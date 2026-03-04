@@ -2,13 +2,13 @@
 
 A collection of interactive web tools for exploring machine learning algorithms step by step. Each tool breaks down a core ML concept into transparent, visual calculations — no black boxes.
 
-🔗 **Live:** [machine-learning-to-go.netlify.app](https://machine-learning-to-go.netlify.app)
+🔗 **Live:** [machine-learning-to-go.netlify.app](https://ml-togo.netlify.app/)
 
 ## Available Tools
 
 | Tool | Description |
 |------|-------------|
-| [SMOTE & SMOTE-NC](https://machine-learning-to-go.netlify.app/smote/) | Step-by-step walkthrough of synthetic oversampling for imbalanced datasets, covering both continuous and mixed-type features |
+| [SMOTE & SMOTE-NC](https://ml-togo.netlify.app/smote/) | Step-by-step walkthrough of synthetic oversampling for imbalanced datasets, covering both continuous and mixed-type features |
 
 ## About
 
