@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Preparation & Feature Engineering — Interactive Guide</title>
+<meta name="description" content="Interactive tool for learning data preparation and feature engineering step by step with live visualizations.">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--o50:#fff7ed;--o100:#ffedd5;--o200:#fed7aa;--o300:#fdba74;--o400:#fb923c;--o500:#f97316;--o600:#ea580c;--o700:#c2410c;--g50:#fafafa;--g100:#f4f4f5;--g200:#e4e4e7;--g300:#d4d4d8;--g400:#a1a1aa;--g500:#71717a;--g600:#52525b;--g700:#3f3f46;--g800:#27272a;--g900:#18181b;--bg:#f8f9fa;--card:#fff;--border:#e9ecef;--txt:#212529;--txt2:#495057;--txtm:#868e96;--b500:#3b82f6;--b50:#eff6ff;--gn500:#22c55e;--gn50:#f0fdf4;--r500:#ef4444;--r50:#fef2f2;--p500:#a855f7;--p50:#faf5ff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;}
+.hdr{background:var(--card);border-bottom:1px solid var(--border);padding:1.1rem 2rem;position:sticky;top:0;z-index:100;}
+.hdr-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+.hdr-t{font-size:1.35rem;font-weight:700;background:linear-gradient(135deg,var(--o500),var(--o600));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hdr-s{font-size:0.72rem;color:var(--txtm);font-family:'JetBrains Mono',monospace;}
+.nav{background:var(--card);border-bottom:1px solid var(--border);padding:0 2rem;overflow-x:auto;position:sticky;top:55px;z-index:99;-webkit-overflow-scrolling:touch;}
+.nav-in{max-width:1100px;margin:0 auto;display:flex;gap:0;}
+.nb{padding:0.65rem 0.9rem;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;font-weight:500;color:var(--txtm);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.nb:hover{color:var(--txt);}.nb.on{color:var(--o600);border-bottom-color:var(--o500);font-weight:600;}
+.mn{max-width:1100px;margin:0 auto;padding:1.5rem 2rem 3rem;}
+.sec{display:none;}.sec.on{display:block;}
+.sh{margin-bottom:1.5rem;}.sh h2{font-size:1.4rem;font-weight:700;margin-bottom:0.25rem;}.sh p{color:var(--txt2);font-size:0.9rem;max-width:700px;}
+.cd{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.1rem;}
+.ct{font-size:0.92rem;font-weight:650;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.45rem;}
+.ic{width:25px;height:25px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.78rem;flex-shrink:0;}
+.io{background:var(--o50);border:1px solid var(--o200);}.ib{background:var(--b50);border:1px solid #bfdbfe;}.ig{background:var(--gn50);border:1px solid #bbf7d0;}.ip{background:var(--p50);border:1px solid #e9d5ff;}.ir{background:var(--r50);border:1px solid #fecaca;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;}
+@media(max-width:768px){.g2,.g3{grid-template-columns:1fr;}.nav{top:48px;}}
+.desc{font-size:0.85rem;color:var(--txt2);line-height:1.6;margin-bottom:0.6rem;}
+.igrp{margin-bottom:0.6rem;}.igrp label{display:block;font-size:0.7rem;font-weight:600;color:var(--txt2);margin-bottom:0.2rem;text-transform:uppercase;letter-spacing:.04em;}
+input[type="number"],input[type="text"],select{font-family:'JetBrains Mono',monospace;font-size:0.82rem;padding:0.42rem 0.65rem;border:1px solid var(--g300);border-radius:8px;background:var(--card);color:var(--txt);width:100%;transition:border-color .2s;}
+input:focus,select:focus{outline:none;border-color:var(--o400);box-shadow:0 0 0 3px rgba(249,115,22,.1);}
+.btn{font-family:'Space Grotesk',sans-serif;font-size:0.8rem;font-weight:600;padding:0.48rem 1rem;border-radius:8px;border:none;cursor:pointer;transition:all .2s;}
+.bp{background:linear-gradient(135deg,var(--o500),var(--o600));color:#fff;}.bp:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(249,115,22,.3);}
+.bo{background:transparent;border:1px solid var(--g300);color:var(--txt2);}.bo:hover{border-color:var(--o400);color:var(--o600);}.bo.on{border-color:var(--o400);color:var(--o600);background:var(--o50);}
+.cr{display:flex;gap:0.6rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:0.6rem;}.cr .igrp{margin-bottom:0;flex:1;min-width:110px;}
+.fb{background:var(--g900);color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:0.82rem;padding:0.8rem 1rem;border-radius:8px;margin:0.6rem 0;overflow-x:auto;line-height:1.7;}.fb .hl{color:var(--o400);font-weight:600;}.fb .cm{color:var(--g500);}
+.sb{background:var(--o50);border:1px solid var(--o200);border-radius:8px;padding:0.75rem 1rem;margin:0.5rem 0;font-size:0.84rem;}.sb .sl{font-family:'JetBrains Mono',monospace;font-size:0.66rem;font-weight:700;color:var(--o600);text-transform:uppercase;letter-spacing:.06em;margin-bottom:0.2rem;}
+.rb{background:var(--gn50);border:1px solid #bbf7d0;border-radius:8px;padding:0.75rem 1rem;margin:0.5rem 0;}.rb .rl{font-family:'JetBrains Mono',monospace;font-size:0.66rem;font-weight:700;color:var(--gn500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:0.2rem;}
+.tg{font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:500;padding:0.16rem 0.4rem;border-radius:4px;display:inline-block;}
+.to{background:var(--o50);color:var(--o700);border:1px solid var(--o200);}.tb{background:var(--b50);color:#1d4ed8;border:1px solid #bfdbfe;}.tgn{background:var(--gn50);color:#15803d;border:1px solid #bbf7d0;}.tgr{background:var(--g100);color:var(--g600);border:1px solid var(--g300);}.tp{background:var(--p50);color:#7c3aed;border:1px solid #e9d5ff;}
+.co{display:flex;gap:0.6rem;padding:0.75rem;border-radius:8px;font-size:0.82rem;margin:0.6rem 0;align-items:flex-start;}.coo{background:var(--o50);border:1px solid var(--o200);}.cob{background:var(--b50);border:1px solid #bfdbfe;}.ci{font-size:1rem;flex-shrink:0;margin-top:.05rem;}
+.ilc{font-family:'JetBrains Mono',monospace;font-size:0.78rem;background:var(--g100);padding:0.1rem 0.3rem;border-radius:4px;border:1px solid var(--g200);}
+.dw{overflow-x:auto;margin:0.6rem 0;border-radius:8px;border:1px solid var(--g200);}
+.dt{width:100%;border-collapse:collapse;font-size:0.76rem;}.dt th{background:var(--g900);color:var(--g200);font-size:0.66rem;font-weight:600;letter-spacing:.04em;padding:0.5rem 0.65rem;text-align:left;}.dt td{padding:0.38rem 0.65rem;border-bottom:1px solid var(--g100);font-family:'JetBrains Mono',monospace;}.dt tr:nth-child(even){background:var(--g50);}.dt tr:last-child td{border-bottom:none;}
+.cm2{background:#fef2f2;color:var(--r500);font-weight:600;font-style:italic;}.cf{background:#f0fdf4;color:var(--gn500);font-weight:600;}.ce{background:var(--b50);font-weight:600;color:#1d4ed8;}
+.tn{display:inline-block;padding:0.3rem 0.7rem;border-radius:8px;font-size:0.78rem;font-weight:600;margin:0.12rem;}.tr{background:var(--o500);color:#fff;}.tbr{background:var(--b50);border:1px solid #bfdbfe;color:#1d4ed8;}.tl{background:var(--g100);border:1px solid var(--g300);color:var(--g700);font-size:0.74rem;}.ta{color:var(--g400);font-size:.85rem;}
+canvas{border-radius:8px;display:block;max-width:100%;margin:0.5rem auto;}
+.stat-card{text-align:center;padding:0.65rem;background:var(--g50);border-radius:8px;border:1px solid var(--g200);}.stat-val{font-family:'JetBrains Mono',monospace;font-size:1.25rem;font-weight:700;color:var(--o600);}.stat-lbl{font-size:0.66rem;color:var(--g500);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-top:0.1rem;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;}@media(max-width:768px){.g4{grid-template-columns:repeat(2,1fr);}}
+.viz-wrap{background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:0.75rem;margin:0.6rem 0;position:relative;}
+.viz-label{position:absolute;top:8px;left:10px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.4rem;font-size:0.75rem;align-items:center;}
+.legend-dot{width:10px;height:10px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:3px;}
+.slider-wrap{position:relative;margin:0.5rem 0 0.25rem;}
+input[type="range"]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:var(--g200);outline:none;border:none;padding:0;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--o500);cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.pill-row{display:flex;gap:0.35rem;flex-wrap:wrap;margin:0.5rem 0;}
+.pill{padding:0.3rem 0.7rem;border-radius:20px;font-size:0.76rem;font-weight:500;cursor:pointer;border:1px solid var(--g300);background:var(--card);color:var(--txt2);transition:all .15s;}
+.pill:hover{border-color:var(--o400);}.pill.on{background:var(--o500);color:#fff;border-color:var(--o500);}
+</style>
+</head>
+<body>
+<header class="hdr"><div class="hdr-in"><div><div class="hdr-t">Data Preparation & Feature Engineering</div><div class="hdr-s">Interactive Step-by-Step Guide</div></div></div></header>
+<nav class="nav"><div class="nav-in">
+<button class="nb on" onclick="go('overview',this)">Overview</button>
+<button class="nb" onclick="go('datatypes',this)">Data Types</button>
+<button class="nb" onclick="go('eda',this)">EDA</button>
+<button class="nb" onclick="go('quality',this)">Data Quality</button>
+<button class="nb" onclick="go('imputation',this)">Imputation</button>
+<button class="nb" onclick="go('scaling',this)">Scaling</button>
+<button class="nb" onclick="go('encoding',this)">Encoding</button>
+<button class="nb" onclick="go('selection',this)">Feature Selection</button>
+</div></nav>
+
+<main class="mn">
+
+<!-- ═══════ OVERVIEW ═══════ -->
+<div id="s-overview" class="sec on">
+<div class="sh"><h2>ML Data Pipeline</h2><p>Machine learning projects use data from different sources with non-uniform formats. Preparation transforms raw data into features a model can learn from.</p></div>
+<div class="cd">
+<div class="ct"><span class="ic io">🔄</span> Interactive Pipeline</div>
+<p class="desc">Click any stage to jump to its section:</p>
+<div id="pipeline-viz" style="margin:0.5rem 0;"></div>
+</div>
+<div class="g3">
+<div class="cd"><div class="ct"><span class="ic ig">🎯</span> Improve Performance</div><p class="desc">Better features lead to more accurate models — often more impactful than algorithm tuning.</p></div>
+<div class="cd"><div class="ct"><span class="ic ib">⚡</span> Reduce Complexity</div><p class="desc">Fewer, better features mean faster training and lower computational cost.</p></div>
+<div class="cd"><div class="ct"><span class="ic ip">🔍</span> Improve Explainability</div><p class="desc">Well-engineered features make model decisions easier to understand.</p></div>
+</div>
+</div>
+
+<!-- ═══════ DATA TYPES ═══════ -->
+<div id="s-datatypes" class="sec">
+<div class="sh"><h2>Data Types</h2><p>Understanding data types determines which visualizations, statistics, and encoding methods apply.</p></div>
+<div class="cd">
+<div class="ct"><span class="ic io">🌳</span> Data Type Hierarchy</div>
+<div style="text-align:center;margin:0.75rem 0;">
+<div><span class="tn tr">Data Types</span></div>
+<div style="margin:0.4rem 0;display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;">
+<div><span class="tn tbr">Quantitative (Numerical)</span><div style="margin-top:0.35rem;"><span class="tn tl">Continuous</span> <span class="tn tl">Discrete</span></div></div>
+<div><span class="tn tbr">Qualitative (Categorical)</span><div style="margin-top:0.35rem;"><span class="tn tl">Ordinal</span> <span class="tn tl">Nominal</span></div></div>
+</div>
+</div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic io">🧪</span> Interactive: Explore Each Data Type</div>
+<p class="desc">Select a type to see its characteristics with a live visualization:</p>
+<div class="pill-row" id="dtype-pills"></div>
+<div id="dtype-viz" style="margin-top:0.75rem;"></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ib">🏷️</span> Classify a Feature</div>
+<div class="cr"><div class="igrp"><label>Feature</label><select id="clf-sel" onchange="clf()">
+<option value="age">Age (28, 53, 77)</option><option value="bp">Resting Blood Pressure (120.5, 130.0)</option><option value="gender">Gender (M, F)</option><option value="chestpain">Chest Pain Type (TA, ATA, NAP, ASY)</option><option value="fastingbs">Fasting Blood Sugar > 120 (0, 1)</option><option value="education">Education Level (Primary, Secondary, Higher)</option><option value="maxhr">Max Heart Rate (60.0 – 202.0)</option>
+</select></div></div>
+<div id="clf-out"></div>
+</div>
+</div>
+
+<!-- ═══════ EDA ═══════ -->
+<div id="s-eda" class="sec">
+<div class="sh"><h2>Exploratory Data Analysis (EDA)</h2><p>EDA means getting to know your data before modelling. It guides cleaning, feature engineering, and gives you intuition about patterns and problems in the dataset. We use the <strong>Heart Failure Prediction Dataset</strong> (918 patients, 11 features) as our running example.</p></div>
+
+<div class="cd">
+<div class="ct"><span class="ic io">📊</span> Descriptive Statistics — <span class="ilc">df.describe()</span></div>
+<p class="desc">This is always your first look at numerical features. Select a feature to see its full summary statistics — count, mean, standard deviation, min, quartiles, and max. The histogram below shows the shape of the distribution, with a red line marking the mean:</p>
+<div class="cr"><div class="igrp"><label>Numerical Feature</label><select id="desc-feat" onchange="descStats()">
+<option value="Age">Age</option><option value="RestingBP">RestingBP (mmHg)</option><option value="Cholesterol">Cholesterol (mg/dl)</option><option value="MaxHR">MaxHR (bpm)</option><option value="Oldpeak">Oldpeak (ST depression)</option>
+</select></div></div>
+<div class="g4" id="desc-cards"></div>
+<div class="viz-wrap" style="margin-top:0.75rem;"><div class="viz-label">Distribution Histogram</div><canvas id="desc-hist" height="200"></canvas></div>
+<div id="desc-insight"></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ib">📦</span> Interactive Box Plot with Outlier Detection</div>
+<p class="desc">A box plot visualizes the <strong>five-number summary</strong> (min, Q1, median, Q3, max) and identifies outliers using the <strong>IQR rule</strong>. Any point below Q1 − 1.5×IQR or above Q3 + 1.5×IQR is flagged as an outlier. This is essential for deciding whether to cap, remove, or investigate extreme values.</p>
+<div class="fb">IQR = Q3 − Q1<br>Lower fence = Q1 − 1.5 × <span class="hl">IQR</span><br>Upper fence = Q3 + 1.5 × <span class="hl">IQR</span>    <span class="cm">// points outside → outliers</span></div>
+<div class="cr"><div class="igrp"><label>Feature</label><select id="box-feat" onchange="drawBox()">
+<option value="Age">Age</option><option value="RestingBP">RestingBP</option><option value="Cholesterol">Cholesterol</option><option value="MaxHR">MaxHR</option><option value="Oldpeak">Oldpeak</option>
+</select></div></div>
+<div class="viz-wrap"><canvas id="box-canvas" height="150"></canvas></div>
+<div id="box-stats"></div>
+<div class="co coo"><span class="ci">💡</span><div><strong>Why it matters:</strong> Outliers can heavily skew mean-based imputation and distance-based models (KNN, SVM). Box plots help you decide: is this a data error (remove), a rare but valid case (keep), or an extreme value to cap (winsorize)?</div></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ig">🔵</span> Scatter Plot — Correlation Explorer</div>
+<p class="desc">Scatter plots show the relationship between two numerical features. Color points by the target variable to reveal patterns. A <strong>Pearson correlation</strong> close to ±1 means a strong linear relationship; near 0 means no linear relationship.</p>
+<div class="cr">
+<div class="igrp"><label>X-Axis</label><select id="sc-x" onchange="drawScatter()"><option value="Age">Age</option><option value="RestingBP">RestingBP</option><option value="Cholesterol">Cholesterol</option><option value="MaxHR" selected>MaxHR</option><option value="Oldpeak">Oldpeak</option></select></div>
+<div class="igrp"><label>Y-Axis</label><select id="sc-y" onchange="drawScatter()"><option value="Age" selected>Age</option><option value="RestingBP">RestingBP</option><option value="Cholesterol">Cholesterol</option><option value="MaxHR">MaxHR</option><option value="Oldpeak">Oldpeak</option></select></div>
+<div class="igrp" style="flex:0;min-width:130px;"><label>Color by</label><select id="sc-c" onchange="drawScatter()"><option value="HeartDisease">HeartDisease</option><option value="none">None</option></select></div>
+</div>
+<div class="viz-wrap"><canvas id="scatter-canvas" height="320"></canvas></div>
+<div id="scatter-stats"></div>
+<div class="co cob"><span class="ci">📐</span><div><strong>Pearson correlation formula:</strong> r = Σ(xᵢ − μₓ)(yᵢ − μᵧ) / (n × σₓ × σᵧ). Values: +1 = perfect positive, 0 = none, −1 = perfect negative. Try MaxHR vs Age — you should see a moderate negative correlation (older patients tend to have lower max heart rate).</div></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ip">📊</span> Segmentation — Categorical × Numerical</div>
+<p class="desc">How does a numerical feature differ across categories? This is one of the most powerful EDA techniques — it reveals which categorical features are <strong>predictive</strong>. If the distributions look very different between groups, the categorical feature likely carries useful information.</p>
+<div class="cr">
+<div class="igrp"><label>Numerical Feature</label><select id="seg-num" onchange="drawSeg()"><option value="Age">Age</option><option value="MaxHR" selected>MaxHR</option><option value="RestingBP">RestingBP</option><option value="Cholesterol">Cholesterol</option><option value="Oldpeak">Oldpeak</option></select></div>
+<div class="igrp"><label>Group by</label><select id="seg-cat" onchange="drawSeg()"><option value="HeartDisease" selected>HeartDisease (0/1)</option><option value="Sex">Sex (M/F)</option><option value="ChestPainType">ChestPainType</option><option value="ExerciseAngina">ExerciseAngina (Y/N)</option></select></div>
+</div>
+<div class="viz-wrap"><div class="viz-label">Grouped Distributions</div><canvas id="seg-canvas" height="230"></canvas></div>
+<div id="seg-insight"></div>
+<div class="co coo"><span class="ci">💡</span><div><strong>Key insight:</strong> Try "MaxHR grouped by HeartDisease" — patients with heart disease tend to have significantly lower maximum heart rates. This separation suggests MaxHR is a strong predictive feature. Compare with "Cholesterol grouped by HeartDisease" — much less separation, meaning cholesterol alone is a weaker predictor.</div></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ir">📋</span> Categorical Feature Summary</div>
+<p class="desc">For categorical features, we look at <strong>value counts and frequencies</strong> instead of mean/std. An imbalanced category distribution (e.g., 90% one class) can cause models to be biased. Check for unexpected categories that might indicate data quality issues.</p>
+<div class="cr"><div class="igrp"><label>Categorical Feature</label><select id="cat-feat" onchange="drawCatBar()">
+<option value="Sex">Sex</option><option value="ChestPainType">ChestPainType</option><option value="FastingBS">FastingBS (0/1)</option><option value="RestingECG">RestingECG</option><option value="ExerciseAngina">ExerciseAngina</option><option value="HeartDisease">HeartDisease (target)</option>
+</select></div></div>
+<div class="g2">
+<div id="cat-summary"></div>
+<div><div class="viz-wrap"><div class="viz-label">Value Counts</div><canvas id="cat-bar" height="180"></canvas></div></div>
+</div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic io">💾</span> The Heart Failure Dataset at a Glance</div>
+<p class="desc">918 patients, 11 features, binary target. Here are the first rows — this is the dataset used throughout this guide for all visualizations:</p>
+<div class="dw"><table class="dt" id="hf-preview"></table></div>
+<div class="sb"><div class="sl">Features</div><strong>Numerical:</strong> Age, RestingBP, Cholesterol, MaxHR, Oldpeak &nbsp;|&nbsp; <strong>Categorical:</strong> Sex, ChestPainType, FastingBS, RestingECG, ExerciseAngina &nbsp;|&nbsp; <strong>Target:</strong> HeartDisease (0/1)</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- ═══════ DATA QUALITY ═══════ -->
+<div id="s-quality" class="sec">
+<div class="sh"><h2>Data Quality Assessment</h2><p>"Garbage in, garbage out" — analysis results cannot exceed data quality.</p></div>
+<div class="cd">
+<div class="ct"><span class="ic io">🔍</span> Interactive: Spot the Data Quality Issues</div>
+<p class="desc">This dataset has quality problems. Click on cells you think are problematic:</p>
+<div id="quality-game"></div>
+<div id="quality-score" style="margin-top:0.5rem;"></div>
+</div>
+<div class="cd">
+<div class="ct"><span class="ic ib">📋</span> Quality Dimensions</div>
+<div class="pill-row" id="qdim-pills"></div>
+<div id="qdim-out" style="margin-top:0.75rem;"></div>
+</div>
+<div class="cd">
+<div class="ct"><span class="ic ir">🧹</span> Data Cleaning Progress</div>
+<div id="clean-checks"></div>
+<div class="viz-wrap" style="margin-top:0.75rem;"><canvas id="clean-bar" height="40"></canvas></div>
+</div>
+</div>
+
+<!-- ═══════ IMPUTATION ═══════ -->
+<div id="s-imputation" class="sec">
+<div class="sh"><h2>Missing Values Imputation</h2><p>Missing data is common. Imputation fills gaps — see how each method changes the distribution.</p></div>
+<div class="cd">
+<div class="ct"><span class="ic io">🧪</span> Interactive Imputation Lab</div>
+<p class="desc">Choose a method and watch how the data and distribution change:</p>
+<div class="pill-row" id="imp-pills"></div>
+<div class="g2" style="margin-top:0.75rem;">
+<div><div id="imp-tbl"></div></div>
+<div><div class="viz-wrap"><div class="viz-label">Distribution</div><canvas id="imp-chart" height="220"></canvas></div>
+<div id="imp-stats"></div></div>
+</div>
+</div>
+<div class="g2">
+<div class="cd"><div class="ct"><span class="ic ib">🔰</span> Early Stage</div>
+<div class="sb"><div class="sl">Numerical</div>Replace with <strong>mean</strong>, <strong>median</strong>, <strong>zero</strong>, or fixed value.</div>
+<div class="sb"><div class="sl">Categorical</div>Replace with <strong>most frequent</strong> or a <strong>"missing"</strong> label.</div></div>
+<div class="cd"><div class="ct"><span class="ic ip">🧠</span> Later Stage</div>
+<div class="sb"><div class="sl">KNN Imputation</div>Estimate from the <strong>k most similar</strong> data points.</div>
+<div class="sb"><div class="sl">Multivariate</div>Use <strong>regression models</strong> to predict from other features.</div></div>
+</div>
+</div>
+
+<!-- ═══════ SCALING ═══════ -->
+<div id="s-scaling" class="sec">
+<div class="sh"><h2>Feature Scaling</h2><p>Features with different scales distort distance calculations. Scaling puts them on equal footing.</p></div>
+<div class="cd">
+<div class="ct"><span class="ic io">⚖️</span> Why Scaling Matters — 2D Distance Visualization</div>
+<p class="desc">Two samples with pressure and temperature. Toggle the unit to see how distance changes:</p>
+<div class="pill-row"><span class="pill on" onclick="setUnit('mbar',this)">Pressure in mbar</span><span class="pill" onclick="setUnit('bar',this)">Pressure in bar</span><span class="pill" onclick="setUnit('scaled',this)">After Scaling</span></div>
+<div class="viz-wrap"><canvas id="dist-canvas" height="300"></canvas></div>
+<div id="dist-explain"></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ib">📐</span> Interactive Standardization (Z-Score)</div>
+<div class="fb">z = (x − <span class="hl">μ</span>) / <span class="hl">σ</span>    <span class="cm">// result: mean=0, std=1</span></div>
+<div class="cr"><div class="igrp"><label>Values (comma-sep)</label><input type="text" id="std-v" value="28, 47, 54, 60, 77" oninput="cStd()"></div></div>
+<div class="g2">
+<div id="std-steps"></div>
+<div class="viz-wrap"><div class="viz-label">Before → After</div><canvas id="std-chart" height="200"></canvas></div>
+</div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ig">📏</span> Interactive Min-Max Normalization</div>
+<div class="fb">x_norm = (x − <span class="hl">min</span>) / (<span class="hl">max</span> − <span class="hl">min</span>)    <span class="cm">// result: [0, 1]</span></div>
+<div class="cr"><div class="igrp"><label>Values (comma-sep)</label><input type="text" id="mm-v" value="60, 120, 138, 156, 202" oninput="cMM()"></div></div>
+<div class="g2">
+<div id="mm-steps"></div>
+<div class="viz-wrap"><div class="viz-label">Before → After</div><canvas id="mm-chart" height="200"></canvas></div>
+</div>
+</div>
+</div>
+
+<!-- ═══════ ENCODING ═══════ -->
+<div id="s-encoding" class="sec">
+<div class="sh"><h2>Categorical Feature Encoding</h2><p>ML models need numbers. Encoding method affects distance calculations and model behavior.</p></div>
+<div class="cd">
+<div class="ct"><span class="ic io">🔥</span> One-Hot Encoding Visualizer</div>
+<div class="cr">
+<div class="igrp"><label>Categories</label><input type="text" id="ohe-v" value="Supplier A, Supplier B, Supplier C" oninput="cOHE()"></div>
+<div class="igrp" style="flex:0;min-width:auto;"><label>Drop first?</label><select id="ohe-d" onchange="cOHE()"><option value="no">No</option><option value="yes">Yes</option></select></div>
+</div>
+<div class="g2">
+<div id="ohe-tbl"></div>
+<div class="viz-wrap"><div class="viz-label">Vector Space</div><canvas id="ohe-canvas" height="220"></canvas></div>
+</div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ip">📊</span> Ordinal Encoding & Number Line</div>
+<div class="cr"><div class="igrp"><label>Ordered categories (lowest → highest)</label><input type="text" id="ord-v" value="Very Bad, Bad, Good, Very Good" oninput="cOrd()"></div></div>
+<div id="ord-tbl"></div>
+<div class="viz-wrap"><canvas id="ord-line" height="70"></canvas></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ir">📐</span> Distance Comparison: One-Hot vs Ordinal</div>
+<p class="desc">Pick two categories and see how distance differs between encodings:</p>
+<div class="cr"><div class="igrp"><label>Ordered categories</label><input type="text" id="dc-cats" value="Very Slow, Slow, Fast, Very Fast" oninput="cDC()"></div></div>
+<div class="cr"><div class="igrp"><label>Category A</label><select id="dc-a" onchange="cDC()"></select></div><div class="igrp"><label>Category B</label><select id="dc-b" onchange="cDC()"></select></div></div>
+<div class="g2">
+<div class="viz-wrap"><div class="viz-label">Ordinal Distance</div><canvas id="dc-ord" height="100"></canvas></div>
+<div class="viz-wrap"><div class="viz-label">One-Hot Distance</div><canvas id="dc-ohe" height="100"></canvas></div>
+</div>
+<div id="dc-insight"></div>
+</div>
+</div>
+
+<!-- ═══════ FEATURE SELECTION ═══════ -->
+<div id="s-selection" class="sec">
+<div class="sh"><h2>Feature Selection</h2><p>Not all features help. Selecting the right ones speeds training, reduces overfitting, and improves accuracy.</p></div>
+<div class="g3">
+<div class="cd" style="border-top:3px solid var(--o500);"><div class="ct"><span class="ic io">🔍</span> Filter</div><p class="desc">Rank features by statistical relevance, independent of model.</p><div class="sb"><div class="sl">Method</div>Correlation, chi-square → select top-k.</div><div style="margin-top:0.5rem;"><span class="tg tgn">Fast</span> <span class="tg tgn">Model-agnostic</span> <span class="tg to">Ignores interactions</span></div></div>
+<div class="cd" style="border-top:3px solid var(--b500);"><div class="ct"><span class="ic ib">🔁</span> Wrapper</div><p class="desc">Try feature subsets, train a model, keep the best set.</p><div class="sb"><div class="sl">Method</div>Forward selection, backward elimination, RFE.</div><div style="margin-top:0.5rem;"><span class="tg tgn">Captures interactions</span> <span class="tg to">Expensive</span></div></div>
+<div class="cd" style="border-top:3px solid var(--p500);"><div class="ct"><span class="ic ip">⚙️</span> Embedded</div><p class="desc">Selection built into training (e.g., Lasso L1).</p><div class="sb"><div class="sl">Method</div>Regularization shrinks irrelevant weights to zero.</div><div style="margin-top:0.5rem;"><span class="tg tgn">Efficient</span> <span class="tg tgn">Integrated</span> <span class="tg to">Model-dependent</span></div></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic io">🧪</span> Interactive Correlation Filter</div>
+<p class="desc">Drag the threshold to select features. Watch the bar chart and model accuracy change:</p>
+<div class="slider-wrap"><input type="range" id="corr-t" min="0" max="50" value="15" oninput="cCorr()"></div>
+<div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:0.8rem;margin-bottom:0.5rem;">Threshold: <strong id="corr-tv">0.15</strong></div>
+<div class="viz-wrap"><canvas id="corr-chart" height="200"></canvas></div>
+<div id="corr-result"></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ib">🔄</span> Creating New Features</div>
+<p class="desc">Enter values to see derived features computed live:</p>
+<div class="g2">
+<div>
+<div class="sb"><div class="sl">Combination: energy = V × I × t</div>
+<div class="cr" style="margin-top:0.4rem;">
+<div class="igrp"><label>Voltage (V)</label><input type="number" id="fe-v" value="12" oninput="cFE()"></div>
+<div class="igrp"><label>Current (A)</label><input type="number" id="fe-i" value="2.5" step="0.1" oninput="cFE()"></div>
+<div class="igrp"><label>Time (s)</label><input type="number" id="fe-t" value="60" oninput="cFE()"></div>
+</div>
+<div id="fe-result"></div>
+</div>
+</div>
+<div>
+<div class="sb"><div class="sl">Logical Features (AND / OR)</div>
+<div class="cr" style="margin-top:0.4rem;">
+<div class="igrp"><label>x1</label><select id="fe-x1" onchange="cFE()"><option value="0">0</option><option value="1">1</option></select></div>
+<div class="igrp"><label>x2</label><select id="fe-x2" onchange="cFE()"><option value="0">0</option><option value="1">1</option></select></div>
+</div>
+<div id="fe-logic"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</main>
+
+<script>
+// ═══════ HELPERS ═══════
+function go(id,el){document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));document.getElementById('s-'+id).classList.add('on');el.classList.add('on');window.scrollTo({top:0,behavior:'smooth'});if(id==='scaling')setTimeout(()=>{drawDist();cStd();cMM();},50);if(id==='encoding')setTimeout(()=>{cOHE();cOrd();cDC();},50);if(id==='imputation')setTimeout(()=>imp(),50);if(id==='selection')setTimeout(()=>cCorr(),50);if(id==='eda')setTimeout(()=>{descStats();drawBox();drawScatter();drawSeg();drawCatBar();},50);}
+function pv(s){return s.split(',').map(v=>parseFloat(v.trim())).filter(v=>!isNaN(v));}
+function pills(cont,items,cb){const el=document.getElementById(cont);el.innerHTML='';items.forEach((it,i)=>{const p=document.createElement('span');p.className='pill'+(i===0?' on':'');p.textContent=it.label;p.onclick=()=>{el.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));p.classList.add('on');cb(it.key);};el.appendChild(p);});cb(items[0].key);}
+const dpr=window.devicePixelRatio||1;
+function hiDPI(canvas,w,h){canvas.width=w*dpr;canvas.height=h*dpr;canvas.style.width=w+'px';canvas.style.height=h+'px';const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);return ctx;}
+
+// ═══════ OVERVIEW: PIPELINE ═══════
+(function(){
+const stages=[{l:'Explore',s:'datatypes'},{l:'EDA',s:'eda'},{l:'Clean',s:'quality'},{l:'Impute',s:'imputation'},{l:'Scale',s:'scaling'},{l:'Encode',s:'encoding'},{l:'Select',s:'selection'}];
+const d=document.getElementById('pipeline-viz');
+let h='<div style="display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap;justify-content:center;">';
+h+='<span class="tn tr" style="cursor:default;">Raw Data</span>';
+stages.forEach(s=>{h+=`<span class="ta">→</span><span class="tn tbr" style="cursor:pointer;" onclick="document.querySelectorAll('.nb')[${stages.indexOf(s)+1}].click()">${s.l}</span>`;});
+h+='<span class="ta">→</span><span class="tn tr" style="cursor:default;">Model</span></div>';
+d.innerHTML=h;
+})();
+
+// ═══════ DATA TYPES: VISUAL EXPLORE ═══════
+const dtypes=[
+{key:'continuous',label:'Continuous',desc:'Can take any value within a range. Measured, not counted.',examples:'Temperature: 22.5°C, 30.8°C · Voltage: 5.3V, 12.6V · Height: 170.2cm',viz:'histogram',data:[28,32,35,38,40,42,43,45,47,47,48,50,51,53,53,54,55,56,58,60,60,62,65,68,70,72,77],vLabel:'Age Distribution (Continuous)',encoding:'Scaling (Standardization / Min-Max)'},
+{key:'discrete',label:'Discrete',desc:'Only finite/countable values. Counted, not measured.',examples:'Dice: 1-6 · Students: 20, 25, 30 · Complaints/day: 3, 7, 10',viz:'dotplot',data:[1,1,2,2,2,3,3,3,3,4,4,4,4,4,5,5,5,6,6],vLabel:'Dice Rolls (Discrete)',encoding:'Usually no encoding needed'},
+{key:'ordinal',label:'Ordinal',desc:'Categories with a natural order or ranking.',examples:'Education: Primary < Secondary < Higher · Pain: Mild < Moderate < Severe',viz:'barord',data:[{l:'Poor',v:15},{l:'Fair',v:30},{l:'Good',v:40},{l:'Excellent',v:15}],vLabel:'Satisfaction (Ordinal)',encoding:'Ordinal Encoding (1, 2, 3, …)'},
+{key:'nominal',label:'Nominal',desc:'Categories with no inherent order.',examples:'Blood type: A, B, AB, O · Eye color: Blue, Green, Brown',viz:'barnom',data:[{l:'A',v:35},{l:'B',v:25},{l:'AB',v:10},{l:'O',v:30}],vLabel:'Blood Type (Nominal)',encoding:'One-Hot Encoding'}
+];
+pills('dtype-pills',dtypes,function(key){
+const d=dtypes.find(x=>x.key===key);
+let h=`<div class="g2"><div><div class="sb"><div class="sl">Description</div>${d.desc}</div><div class="sb"><div class="sl">Examples</div>${d.examples}</div><div class="sb"><div class="sl">Encoding</div>${d.encoding}</div></div><div><div class="viz-wrap"><div class="viz-label">${d.vLabel}</div><canvas id="dtype-cv" height="180"></canvas></div></div></div>`;
+document.getElementById('dtype-viz').innerHTML=h;
+setTimeout(()=>drawDtype(d),30);
+});
+
+function drawDtype(d){
+const canvas=document.getElementById('dtype-cv');if(!canvas)return;
+const W=canvas.parentElement.clientWidth-24,H=180;
+const ctx=hiDPI(canvas,W,H);
+ctx.clearRect(0,0,W,H);
+const pad={t:25,r:15,b:30,l:40};
+if(d.viz==='histogram'){
+const vals=d.data,bins=8,mn=Math.min(...vals),mx=Math.max(...vals),bw=(mx-mn)/bins;
+const counts=Array(bins).fill(0);vals.forEach(v=>{let b=Math.floor((v-mn)/bw);if(b>=bins)b=bins-1;counts[b]++;});
+const mxC=Math.max(...counts),barW=(W-pad.l-pad.r)/bins;
+ctx.fillStyle='#f97316';
+counts.forEach((c,i)=>{const bh=(c/mxC)*(H-pad.t-pad.b);ctx.fillRect(pad.l+i*barW+1,H-pad.b-bh,barW-2,bh);});
+ctx.fillStyle='#a1a1aa';ctx.font='10px JetBrains Mono';
+for(let i=0;i<=bins;i++){const x=pad.l+i*barW;ctx.fillText(Math.round(mn+i*bw),x-8,H-pad.b+14);}
+ctx.strokeStyle='#e4e4e7';ctx.beginPath();ctx.moveTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
+} else if(d.viz==='dotplot'){
+const vals=d.data,u=[...new Set(vals)].sort((a,b)=>a-b);
+const counts={};vals.forEach(v=>counts[v]=(counts[v]||0)+1);
+const mxC=Math.max(...Object.values(counts)),colW=(W-pad.l-pad.r)/u.length;
+ctx.fillStyle='#3b82f6';
+u.forEach((v,i)=>{const x=pad.l+i*colW+colW/2;for(let j=0;j<counts[v];j++){ctx.beginPath();ctx.arc(x,H-pad.b-10-j*16,6,0,Math.PI*2);ctx.fill();}
+ctx.fillStyle='#a1a1aa';ctx.font='11px JetBrains Mono';ctx.textAlign='center';ctx.fillText(v,x,H-pad.b+14);ctx.fillStyle='#3b82f6';});
+} else {
+const items=d.data,mxV=Math.max(...items.map(x=>x.v)),barH=(H-pad.t-pad.b)/items.length-4;
+const colors=d.viz==='barord'?['#fbbf24','#f97316','#22c55e','#3b82f6']:['#ef4444','#3b82f6','#a855f7','#22c55e'];
+items.forEach((it,i)=>{const y=pad.t+i*(barH+4);const bw=(it.v/mxV)*(W-pad.l-pad.r);
+ctx.fillStyle=colors[i%colors.length];ctx.beginPath();ctx.roundRect(pad.l,y,bw,barH,4);ctx.fill();
+ctx.fillStyle='#27272a';ctx.font='11px Space Grotesk';ctx.textAlign='right';ctx.fillText(it.l,pad.l-6,y+barH/2+4);
+ctx.fillStyle='#fff';ctx.font='bold 11px JetBrains Mono';ctx.textAlign='left';ctx.fillText(it.v+'%',pad.l+bw-30>pad.l+5?pad.l+bw-30:pad.l+5,y+barH/2+4);});
+}
+}
+
+// ═══════ CLASSIFY ═══════
+const FI={age:{t:'Quantitative → Discrete',r:'Age in whole years is countable.',c:'#3b82f6'},bp:{t:'Quantitative → Continuous',r:'Blood pressure takes any value in a range.',c:'#3b82f6'},gender:{t:'Qualitative → Nominal',r:'M/F categories with no order.',c:'#22c55e'},chestpain:{t:'Qualitative → Nominal',r:'Types with no inherent ranking.',c:'#22c55e'},fastingbs:{t:'Qualitative → Nominal (Binary)',r:'Yes/no category, not a quantity.',c:'#22c55e'},education:{t:'Qualitative → Ordinal',r:'Primary < Secondary < Higher has a rank.',c:'#a855f7'},maxhr:{t:'Quantitative → Continuous',r:'Continuous scale from 60.0 to 202.0.',c:'#3b82f6'}};
+function clf(){const s=document.getElementById('clf-sel').value,f=FI[s];document.getElementById('clf-out').innerHTML=`<div class="rb"><div class="rl">Classification</div><div style="font-size:1rem;font-weight:700;color:${f.c};margin-bottom:0.3rem;">${f.t}</div><div style="font-size:0.84rem;color:var(--txt2);">${f.r}</div></div>`;}clf();
+
+// ═══════ QUALITY: SPOT THE ISSUES ═══════
+const qRows=[
+{id:1,name:'John',age:45,bp:130,gender:'M',chol:250,issues:{}},
+{id:2,name:'Anna',age:29,bp:0,gender:'F',chol:190,issues:{bp:{reason:'Semantic error: blood pressure cannot be 0',dim:'Accuracy'}}},
+{id:3,name:'Bob',age:55,bp:140,gender:'fmale',chol:280,issues:{gender:{reason:'Syntactic error: "fmale" should be "F"',dim:'Accuracy'}}},
+{id:4,name:'Sara',age:null,bp:125,gender:'F',chol:null,issues:{age:{reason:'Missing value',dim:'Completeness'},chol:{reason:'Missing value',dim:'Completeness'}}},
+{id:5,name:'Tom',age:45,bp:130,gender:'M',chol:250,issues:{_dup:{reason:'Exact duplicate of row 1',dim:'Uniqueness'}}},
+{id:6,name:'Mia',age:33,bp:118,gender:'F',chol:-50,issues:{chol:{reason:'Semantic error: cholesterol cannot be negative',dim:'Accuracy'}}},
+];
+const qFields=['name','age','bp','gender','chol'];
+let foundIssues=new Set();
+(function renderQGame(){
+const el=document.getElementById('quality-game');
+let h='<div class="dw"><table class="dt"><tr><th>#</th>';
+qFields.forEach(f=>h+=`<th>${f}</th>`);h+='</tr>';
+qRows.forEach((r,ri)=>{
+const isDup=r.issues._dup;
+h+=`<tr id="qr-${ri}" ${isDup?'style="cursor:pointer;" onclick="clickQRow('+ri+')"':''}>`; 
+h+=`<td>${r.id}</td>`;
+qFields.forEach(f=>{
+const val=r[f]===null?'NaN':r[f];
+const hasIssue=r.issues[f];
+h+=`<td id="qc-${ri}-${f}" class="${r[f]===null?'cm2':''}" style="cursor:${hasIssue?'pointer':'default'};" ${hasIssue?`onclick="clickQ(${ri},'${f}')"`:''}>${val}</td>`;
+});
+h+='</tr>';});h+='</table></div>';
+el.innerHTML=h;updateQScore();
+})();
+function clickQ(ri,f){const key=ri+'-'+f;if(foundIssues.has(key))return;foundIssues.add(key);
+const cell=document.getElementById('qc-'+ri+'-'+f);cell.style.background='#fef2f2';cell.style.border='2px solid #ef4444';
+const iss=qRows[ri].issues[f];cell.title=iss.reason;
+cell.innerHTML+=` <span style="font-size:0.65rem;color:#ef4444;">⚠ ${iss.dim}</span>`;updateQScore();}
+function clickQRow(ri){const key=ri+'-_dup';if(foundIssues.has(key))return;foundIssues.add(key);
+const row=document.getElementById('qr-'+ri);row.style.background='#fef2f2';row.style.outline='2px solid #ef4444';
+const iss=qRows[ri].issues._dup;
+row.querySelector('td').innerHTML+=` <span style="font-size:0.65rem;color:#ef4444;">⚠ ${iss.dim}</span>`;updateQScore();}
+function updateQScore(){let total=0;qRows.forEach(r=>total+=Object.keys(r.issues).length);
+document.getElementById('quality-score').innerHTML=`<div class="rb"><div class="rl">Issues Found</div><strong>${foundIssues.size}</strong> / ${total} issues discovered ${foundIssues.size===total?'— <span style="color:var(--gn500);">All found! Great job!</span>':'— keep clicking suspicious cells!'}</div>`;}
+
+// ═══════ QUALITY DIMENSIONS ═══════
+const QD=[
+{key:'accuracy',label:'🎯 Accuracy',h:`<div class="g2"><div class="sb"><div class="sl">Syntactic</div>Format issues. <strong>Ex:</strong> "<span style="color:var(--r500)">fmale</span>" instead of "female"</div><div class="sb"><div class="sl">Semantic</div>Logic issues. <strong>Ex:</strong> BP = <span style="color:var(--r500)">0</span> — impossible value</div></div>`},
+{key:'completeness',label:'📦 Completeness',h:`<div class="g2"><div class="sb"><div class="sl">Attribute</div>Missing values in columns → <span style="color:var(--r500)">NaN</span></div><div class="sb"><div class="sl">Record</div>Missing combinations → sampling bias</div></div>`},
+{key:'uniqueness',label:'🔁 Uniqueness',h:`<div class="sb"><div class="sl">Detection</div>Duplicate records. Check with: <span class="ilc">df.duplicated().sum()</span></div>`},
+{key:'timeliness',label:'⏰ Timeliness',h:`<div class="sb"><div class="sl">Example</div>2015 housing data for 2025 predictions → outdated patterns.</div>`},
+{key:'consistency',label:'🔗 Consistency',h:`<div class="sb"><div class="sl">Examples</div>Height: 175cm vs 1.75m · Dates: MM/DD vs DD.MM · Temp: °C vs °F</div>`}
+];
+pills('qdim-pills',QD,k=>{document.getElementById('qdim-out').innerHTML=QD.find(x=>x.key===k).h;});
+
+// ═══════ CLEANING PROGRESS ═══════
+(function(){
+const items=['Remove duplicates','Remove zero-variance cols','Fix syntactic errors','Fix semantic errors','Remove outliers','Unify formats','Standardize dates','Treat missing values'];
+const el=document.getElementById('clean-checks');
+let h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;">';
+items.forEach((it,i)=>{h+=`<label style="display:flex;gap:0.35rem;font-size:0.82rem;cursor:pointer;"><input type="checkbox" style="accent-color:var(--o500);" onchange="updateCleanBar()"> ${it}</label>`;});
+h+='</div>';el.innerHTML=h;
+})();
+function updateCleanBar(){
+const checks=document.querySelectorAll('#clean-checks input[type=checkbox]');
+const total=checks.length;let done=0;checks.forEach(c=>{if(c.checked)done++;});
+const pct=done/total;
+const canvas=document.getElementById('clean-bar');
+const W=canvas.parentElement.clientWidth-24,H=40;
+const ctx=hiDPI(canvas,W,H);
+ctx.clearRect(0,0,W,H);
+ctx.fillStyle='#e4e4e7';ctx.beginPath();ctx.roundRect(0,10,W,20,10);ctx.fill();
+if(pct>0){ctx.fillStyle=pct===1?'#22c55e':'#f97316';ctx.beginPath();ctx.roundRect(0,10,W*pct,20,10);ctx.fill();}
+ctx.fillStyle='#27272a';ctx.font='bold 11px JetBrains Mono';ctx.textAlign='center';ctx.fillText(Math.round(pct*100)+'% complete',W/2,25);
+}
+setTimeout(updateCleanBar,100);
+
+// ═══════ IMPUTATION ═══════
+const ID=[{id:1,v:53},{id:2,v:47},{id:3,v:60},{id:4,v:null},{id:5,v:42},{id:6,v:68},{id:7,v:null},{id:8,v:51},{id:9,v:55},{id:10,v:null},{id:11,v:45},{id:12,v:62}];
+const impMethods=[{key:'none',label:'Show Missing'},{key:'mean',label:'Mean'},{key:'median',label:'Median'},{key:'zero',label:'Zero'},{key:'mode',label:'Mode'},{key:'knn',label:'KNN (k=3)'}];
+pills('imp-pills',impMethods,imp);
+function imp(m){
+if(!m)m='none';
+const data=JSON.parse(JSON.stringify(ID));
+const known=data.filter(r=>r.v!==null).map(r=>r.v);
+const mean=known.reduce((a,b)=>a+b,0)/known.length;
+const sorted=[...known].sort((a,b)=>a-b);
+const median=sorted[Math.floor(sorted.length/2)];
+const mode=sorted.sort((a,b)=>known.filter(v=>v===a).length-known.filter(v=>v===b).length).pop();
+let fillVal=null,methodLabel='';
+if(m==='mean'){fillVal=Math.round(mean*10)/10;methodLabel=`Mean = ${fillVal}`;}
+else if(m==='median'){fillVal=median;methodLabel=`Median = ${fillVal}`;}
+else if(m==='zero'){fillVal=0;methodLabel='Zero';}
+else if(m==='mode'){fillVal=mode;methodLabel=`Mode = ${fillVal}`;}
+else if(m==='knn'){methodLabel='KNN (k=3)';
+data.forEach((r,i)=>{if(r.v===null){const dists=data.filter((o,j)=>j!==i&&o.v!==null).map(o=>({v:o.v,d:Math.abs(i-data.indexOf(o))})).sort((a,b)=>a.d-b.d).slice(0,3);r.v=Math.round(dists.reduce((s,x)=>s+x.v,0)/dists.length*10)/10;}});}
+
+if(fillVal!==null)data.forEach(r=>{if(r.v===null)r.v=fillVal;});
+
+let h='<div class="dw"><table class="dt"><tr><th>#</th><th>Age</th></tr>';
+data.forEach((r,i)=>{const orig=ID[i].v;
+h+=`<tr><td>${r.id}</td><td class="${orig===null&&m!=='none'?'cf':orig===null?'cm2':''}">${r.v===null?'NaN':r.v}${orig===null&&m!=='none'?' ✓':''}</td></tr>`;});
+h+='</table></div>';
+document.getElementById('imp-tbl').innerHTML=h;
+
+if(m!=='none'){
+document.getElementById('imp-stats').innerHTML=`<div class="sb"><div class="sl">Method: ${methodLabel}</div>Filled <strong>${ID.filter(r=>r.v===null).length}</strong> missing values.</div>`;
+}else{document.getElementById('imp-stats').innerHTML=`<div class="sb"><div class="sl">Missing: ${ID.filter(r=>r.v===null).length} / ${ID.length}</div>Select a method above to fill them.</div>`;}
+
+drawImpChart(data.map(r=>r.v).filter(v=>v!==null),known,m);
+}
+function drawImpChart(all,orig,method){
+const canvas=document.getElementById('imp-chart');if(!canvas)return;
+const W=canvas.parentElement.clientWidth-24,H=220;
+const ctx=hiDPI(canvas,W,H);ctx.clearRect(0,0,W,H);
+const pad={t:30,r:15,b:35,l:35};
+const mn=Math.min(0,...all,...orig),mx=Math.max(...all,...orig)+1;
+const bins=8,bw=(mx-mn)/bins;
+function toBins(arr){const c=Array(bins).fill(0);arr.forEach(v=>{let b=Math.floor((v-mn)/bw);if(b>=bins)b=bins-1;if(b>=0)c[b]++;});return c;}
+const origBins=toBins(orig),allBins=toBins(all);
+const mxC=Math.max(...origBins,...allBins,1);
+const barW=(W-pad.l-pad.r)/bins;
+// Draw original
+origBins.forEach((c,i)=>{const bh=(c/mxC)*(H-pad.t-pad.b);
+ctx.fillStyle='rgba(59,130,246,0.3)';ctx.fillRect(pad.l+i*barW+2,H-pad.b-bh,barW/2-2,bh);});
+// Draw all (after imputation)
+if(method!=='none'){allBins.forEach((c,i)=>{const bh=(c/mxC)*(H-pad.t-pad.b);
+ctx.fillStyle='rgba(249,115,22,0.5)';ctx.fillRect(pad.l+i*barW+barW/2,H-pad.b-bh,barW/2-2,bh);});}
+// Axis
+ctx.strokeStyle='#e4e4e7';ctx.beginPath();ctx.moveTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
+ctx.fillStyle='#a1a1aa';ctx.font='9px JetBrains Mono';ctx.textAlign='center';
+for(let i=0;i<=bins;i++)ctx.fillText(Math.round(mn+i*bw),pad.l+i*barW,H-pad.b+14);
+// Legend
+ctx.fillStyle='rgba(59,130,246,0.4)';ctx.fillRect(pad.l,8,10,10);ctx.fillStyle='#27272a';ctx.font='10px Space Grotesk';ctx.textAlign='left';ctx.fillText('Original',pad.l+14,17);
+if(method!=='none'){ctx.fillStyle='rgba(249,115,22,0.6)';ctx.fillRect(pad.l+80,8,10,10);ctx.fillStyle='#27272a';ctx.fillText('After imputation',pad.l+94,17);}
+}
+
+// ═══════ SCALING: DISTANCE VIZ ═══════
+let currentUnit='mbar';
+function setUnit(u,el){currentUnit=u;document.querySelectorAll('#s-scaling .pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');drawDist();}
+function drawDist(){
+const canvas=document.getElementById('dist-canvas');if(!canvas)return;
+const W=canvas.parentElement.clientWidth-24,H=300;
+const ctx=hiDPI(canvas,W,H);ctx.clearRect(0,0,W,H);
+const pad={t:35,r:40,b:45,l:60};
+const pW=W-pad.l-pad.r,pH=H-pad.t-pad.b;
+let pA,pB,xLabel,yLabel,xMin,xMax,yMin,yMax;
+if(currentUnit==='mbar'){pA={x:1013,y:20};pB={x:1020,y:25};xLabel='Pressure (mbar)';yLabel='Temp (°C)';xMin=1010;xMax=1025;yMin=15;yMax=30;}
+else if(currentUnit==='bar'){pA={x:1.013,y:20};pB={x:1.020,y:25};xLabel='Pressure (bar)';yLabel='Temp (°C)';xMin=1.01;xMax=1.025;yMin=15;yMax=30;}
+else{pA={x:-0.5,y:-1.0};pB={x:0.5,y:1.0};xLabel='Pressure (scaled)';yLabel='Temp (scaled)';xMin=-2;xMax=2;yMin=-2;yMax=2;}
+function tx(v){return pad.l+(v-xMin)/(xMax-xMin)*pW;}
+function ty(v){return pad.t+pH-(v-yMin)/(yMax-yMin)*pH;}
+// Grid
+ctx.strokeStyle='#f1f3f5';ctx.lineWidth=1;
+for(let i=0;i<=5;i++){const y=pad.t+i*pH/5;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+const x=pad.l+i*pW/5;ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,H-pad.b);ctx.stroke();}
+// Axes labels
+ctx.fillStyle='#71717a';ctx.font='10px JetBrains Mono';
+ctx.textAlign='center';ctx.fillText(xLabel,pad.l+pW/2,H-5);
+ctx.save();ctx.translate(12,pad.t+pH/2);ctx.rotate(-Math.PI/2);ctx.fillText(yLabel,0,0);ctx.restore();
+// Tick labels
+ctx.fillStyle='#a1a1aa';ctx.font='9px JetBrains Mono';
+for(let i=0;i<=5;i++){const xv=xMin+i*(xMax-xMin)/5;ctx.textAlign='center';ctx.fillText(xv.toPrecision(4),pad.l+i*pW/5,H-pad.b+14);
+const yv=yMin+i*(yMax-yMin)/5;ctx.textAlign='right';ctx.fillText(yv.toPrecision(3),pad.l-6,pad.t+pH-i*pH/5+4);}
+// Distance line
+ctx.setLineDash([5,5]);ctx.strokeStyle='#f97316';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(tx(pA.x),ty(pA.y));ctx.lineTo(tx(pB.x),ty(pB.y));ctx.stroke();
+ctx.setLineDash([]);
+// Points
+const pts=[{p:pA,label:'A',c:'#3b82f6'},{p:pB,label:'B',c:'#ef4444'}];
+pts.forEach(({p,label,c})=>{ctx.beginPath();ctx.arc(tx(p.x),ty(p.y),8,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+ctx.fillStyle='#fff';ctx.font='bold 10px Space Grotesk';ctx.textAlign='center';ctx.fillText(label,tx(p.x),ty(p.y)+4);});
+// Distance label
+const d=Math.sqrt((pB.x-pA.x)**2+(pB.y-pA.y)**2);
+const mx2=(tx(pA.x)+tx(pB.x))/2,my=(ty(pA.y)+ty(pB.y))/2;
+ctx.fillStyle='var(--o600)';ctx.font='bold 13px JetBrains Mono';ctx.textAlign='center';ctx.fillText('d = '+d.toFixed(2),mx2,my-12);
+// Explain
+const xContrib=((pB.x-pA.x)**2/((pB.x-pA.x)**2+(pB.y-pA.y)**2)*100).toFixed(1);
+document.getElementById('dist-explain').innerHTML=`<div class="rb"><div class="rl">Distance = ${d.toFixed(2)}</div>X-axis contributes <strong>${xContrib}%</strong>, Y-axis <strong>${(100-parseFloat(xContrib)).toFixed(1)}%</strong> of the total distance.${currentUnit==='scaled'?' After scaling, both axes contribute equally — this is what we want!':''}</div>`;
+}
+setTimeout(drawDist,100);
+
+// ═══════ STANDARDIZATION ═══════
+function cStd(){
+const vals=pv(document.getElementById('std-v').value);if(vals.length<2)return;
+const mu=vals.reduce((a,b)=>a+b,0)/vals.length,sig=Math.sqrt(vals.reduce((s,x)=>s+(x-mu)**2,0)/vals.length),sc=vals.map(x=>(x-mu)/sig);
+document.getElementById('std-steps').innerHTML=`<div class="sb"><div class="sl">Step 1: Statistics</div>μ = <strong>${mu.toFixed(2)}</strong>, σ = <strong>${sig.toFixed(2)}</strong></div>
+<div class="dw"><table class="dt"><tr><th>x</th><th>x−μ</th><th>z</th></tr>${vals.map((v,i)=>`<tr><td>${v}</td><td>${(v-mu).toFixed(2)}</td><td class="ce">${sc[i].toFixed(3)}</td></tr>`).join('')}</table></div>`;
+drawBeforeAfter('std-chart',vals,sc,'Original','Z-Score');
+}
+function cMM(){
+const vals=pv(document.getElementById('mm-v').value);if(vals.length<2)return;
+const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx-mn,sc=vals.map(x=>(x-mn)/rng);
+document.getElementById('mm-steps').innerHTML=`<div class="sb"><div class="sl">Step 1: Range</div>min=<strong>${mn}</strong>, max=<strong>${mx}</strong>, range=<strong>${rng}</strong></div>
+<div class="dw"><table class="dt"><tr><th>x</th><th>x−min</th><th>x_norm</th></tr>${vals.map((v,i)=>`<tr><td>${v}</td><td>${(v-mn).toFixed(1)}</td><td class="ce">${sc[i].toFixed(3)}</td></tr>`).join('')}</table></div>`;
+drawBeforeAfter('mm-chart',vals,sc,'Original','Normalized');
+}
+function drawBeforeAfter(canvasId,before,after,lbl1,lbl2){
+const canvas=document.getElementById(canvasId);if(!canvas)return;
+const W=canvas.parentElement.clientWidth-24,H=200;
+const ctx=hiDPI(canvas,W,H);ctx.clearRect(0,0,W,H);
+const pad={t:30,r:15,b:25,l:20},midY=H/2;
+const n=before.length,dotR=6;
+// Before (top)
+const bMin=Math.min(...before),bMax=Math.max(...before),bRange=bMax-bMin||1;
+ctx.fillStyle='#71717a';ctx.font='10px Space Grotesk';ctx.textAlign='left';ctx.fillText(lbl1,pad.l,16);
+before.forEach((v,i)=>{const x=pad.l+(v-bMin)/bRange*(W-pad.l-pad.r-20)+10;
+ctx.beginPath();ctx.arc(x,midY-30,dotR,0,Math.PI*2);ctx.fillStyle='#3b82f6';ctx.fill();
+ctx.fillStyle='#27272a';ctx.font='9px JetBrains Mono';ctx.textAlign='center';ctx.fillText(v,x,midY-30-10);});
+// Arrow
+ctx.strokeStyle='#d4d4d8';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(W/2,midY-18);ctx.lineTo(W/2,midY+10);ctx.stroke();
+ctx.fillStyle='#d4d4d8';ctx.beginPath();ctx.moveTo(W/2-4,midY+6);ctx.lineTo(W/2+4,midY+6);ctx.lineTo(W/2,midY+13);ctx.fill();
+// After (bottom)
+const aMin=Math.min(...after),aMax=Math.max(...after),aRange=aMax-aMin||1;
+ctx.fillStyle='#71717a';ctx.font='10px Space Grotesk';ctx.textAlign='left';ctx.fillText(lbl2,pad.l,midY+25);
+after.forEach((v,i)=>{const x=pad.l+(v-aMin)/aRange*(W-pad.l-pad.r-20)+10;
+ctx.beginPath();ctx.arc(x,midY+50,dotR,0,Math.PI*2);ctx.fillStyle='#f97316';ctx.fill();
+ctx.fillStyle='#27272a';ctx.font='9px JetBrains Mono';ctx.textAlign='center';ctx.fillText(v.toFixed(2),x,midY+50+14);});
+}
+setTimeout(()=>{cStd();cMM();},100);
+
+// ═══════ ONE-HOT ENCODING ═══════
+function cOHE(){
+const cats=document.getElementById('ohe-v').value.split(',').map(s=>s.trim()).filter(Boolean);if(cats.length<2)return;
+const u=[...new Set(cats)],drop=document.getElementById('ohe-d').value==='yes',cols=drop?u.slice(1):u;
+let h='<div class="dw"><table class="dt"><tr><th>Original</th>';cols.forEach(c=>h+=`<th>${c}</th>`);h+='</tr>';
+cats.forEach(cat=>{h+=`<tr><td style="font-weight:600">${cat}</td>`;cols.forEach(c=>{const v=cat===c?1:0;h+=`<td class="${v?'ce':''}">${v}</td>`;});h+='</tr>';});h+='</table></div>';
+if(drop)h+=`<div style="font-size:0.78rem;color:var(--txtm);margin-top:0.3rem;">✂️ "${u[0]}" dropped — inferred when all others = 0.</div>`;
+document.getElementById('ohe-tbl').innerHTML=h;
+drawOHESpace(u,cols);
+}
+function drawOHESpace(uniq,cols){
+const canvas=document.getElementById('ohe-canvas');if(!canvas)return;
+const W=canvas.parentElement.clientWidth-24,H=220;
+const ctx=hiDPI(canvas,W,H);ctx.clearRect(0,0,W,H);
+if(uniq.length<2||uniq.length>5)return;
+const colors=['#f97316','#3b82f6','#22c55e','#a855f7','#ef4444'];
+const n=uniq.length,cx=W/2,cy=H/2,radius=Math.min(W,H)/2-35;
+// Draw vectors as points on a circle (conceptual)
+uniq.forEach((cat,i)=>{
+const angle=-Math.PI/2+i*(2*Math.PI/n);
+const x=cx+Math.cos(angle)*radius,y=cy+Math.sin(angle)*radius;
+// Lines to all others
+for(let j=i+1;j<n;j++){const a2=-Math.PI/2+j*(2*Math.PI/n);const x2=cx+Math.cos(a2)*radius,y2=cy+Math.sin(a2)*radius;
+ctx.strokeStyle='#e4e4e7';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);
+const d=Math.sqrt(2).toFixed(2);
+ctx.fillStyle='#a1a1aa';ctx.font='9px JetBrains Mono';ctx.textAlign='center';ctx.fillText('√2',(x+x2)/2,(y+y2)/2-5);}
+ctx.beginPath();ctx.arc(x,y,12,0,Math.PI*2);ctx.fillStyle=colors[i%colors.length];ctx.fill();
+ctx.fillStyle='#fff';ctx.font='bold 9px Space Grotesk';ctx.textAlign='center';ctx.fillText(cat.substring(0,3),x,y+3);
+ctx.fillStyle='#27272a';ctx.font='10px Space Grotesk';ctx.fillText(cat,x,y+26);
+});
+ctx.fillStyle='#71717a';ctx.font='10px Space Grotesk';ctx.textAlign='center';ctx.fillText('All pairs equidistant (√2)',W/2,H-5);
+}
+
+// ═══════ ORDINAL ENCODING ═══════
+function cOrd(){
+const cats=document.getElementById('ord-v').value.split(',').map(s=>s.trim()).filter(Boolean);if(cats.length<2)return;
+let h='<div class="dw"><table class="dt"><tr><th>Category</th><th>Code</th></tr>';
+cats.forEach((c,i)=>h+=`<tr><td style="font-weight:600">${c}</td><td class="ce">${i+1}</td></tr>`);
+h+='</table></div>';document.getElementById('ord-tbl').innerHTML=h;
+drawOrdLine(cats);
+}
+function drawOrdLine(cats){
+const canvas=document.getElementById('ord-line');if(!canvas)return;
+const W=canvas.parentElement.clientWidth-24,H=70;
+const ctx=hiDPI(canvas,W,H);ctx.clearRect(0,0,W,H);
+const pad=40,lineY=35;
+const colors=['#fbbf24','#f97316','#22c55e','#3b82f6','#a855f7'];
+ctx.strokeStyle='#d4d4d8';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,lineY);ctx.lineTo(W-pad,lineY);ctx.stroke();
+// Arrow
+ctx.fillStyle='#d4d4d8';ctx.beginPath();ctx.moveTo(W-pad,lineY-4);ctx.lineTo(W-pad+8,lineY);ctx.lineTo(W-pad,lineY+4);ctx.fill();
+cats.forEach((c,i)=>{const x=pad+(i/(cats.length-1))*(W-2*pad);
+ctx.beginPath();ctx.arc(x,lineY,10,0,Math.PI*2);ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+ctx.fillStyle='#fff';ctx.font='bold 10px JetBrains Mono';ctx.textAlign='center';ctx.fillText(i+1,x,lineY+4);
+ctx.fillStyle='#27272a';ctx.font='10px Space Grotesk';ctx.fillText(c,x,lineY+24);
+});
+}
+
+// ═══════ DISTANCE COMPARISON ═══════
+function cDC(){
+const cats=document.getElementById('dc-cats').value.split(',').map(s=>s.trim()).filter(Boolean);if(cats.length<2)return;
+const sA=document.getElementById('dc-a'),sB=document.getElementById('dc-b'),pA=sA.value,pB=sB.value;
+sA.innerHTML=cats.map((c,i)=>`<option value="${i}">${c}</option>`).join('');
+sB.innerHTML=cats.map((c,i)=>`<option value="${i}">${c}</option>`).join('');
+sA.value=(pA&&+pA<cats.length)?pA:0;sB.value=(pB&&+pB<cats.length)?pB:Math.min(2,cats.length-1);
+const iA=+sA.value,iB=+sB.value;
+const oA=iA+1,oB=iB+1,oD=Math.abs(oA-oB);
+const hD=iA===iB?0:Math.sqrt(2);
+drawDCOrd(cats,iA,iB);drawDCOHE(cats,iA,iB);
+document.getElementById('dc-insight').innerHTML=`<div class="co coo"><span class="ci">💡</span><div><strong>Key insight:</strong> ${iA===iB?'Same category = zero distance for both.':oD>1?`Ordinal distance = <strong>${oD}</strong> (rank-aware), One-Hot = <strong>${hD.toFixed(2)}</strong> (all pairs equal). For ordered data, ordinal encoding captures that "${cats[iA]}" and "${cats[iB]}" are ${oD} ranks apart.`:`Adjacent categories: ordinal = ${oD}, OHE = ${hD.toFixed(2)}. The real difference shows as rank distance grows.`}</div></div>`;
+}
+function drawDCOrd(cats,iA,iB){
+const canvas=document.getElementById('dc-ord');if(!canvas)return;
+const W=canvas.parentElement.clientWidth-24,H=100;
+const ctx=hiDPI(canvas,W,H);ctx.clearRect(0,0,W,H);
+const pad=35,lineY=50;
+ctx.strokeStyle='#d4d4d8';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,lineY);ctx.lineTo(W-pad,lineY);ctx.stroke();
+const d=Math.abs((iA+1)-(iB+1));
+cats.forEach((c,i)=>{const x=pad+(i/(cats.length-1))*(W-2*pad);
+const isA=i===iA,isB=i===iB;
+ctx.beginPath();ctx.arc(x,lineY,isA||isB?12:7,0,Math.PI*2);
+ctx.fillStyle=isA?'#f97316':isB?'#ef4444':'#e4e4e7';ctx.fill();
+if(isA||isB){ctx.fillStyle='#fff';ctx.font='bold 10px Space Grotesk';ctx.textAlign='center';ctx.fillText(isA?'A':'B',x,lineY+4);}
+ctx.fillStyle='#71717a';ctx.font='9px JetBrains Mono';ctx.textAlign='center';ctx.fillText(i+1,x,lineY+26);
+});
+// Distance arc
+if(iA!==iB){const xA=pad+(iA/(cats.length-1))*(W-2*pad),xB=pad+(iB/(cats.length-1))*(W-2*pad);
+ctx.strokeStyle='#f97316';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(xA,lineY-16);ctx.lineTo(xB,lineY-16);ctx.stroke();ctx.setLineDash([]);
+ctx.fillStyle='#f97316';ctx.font='bold 12px JetBrains Mono';ctx.textAlign='center';ctx.fillText('d = '+d,(xA+xB)/2,lineY-22);}
+}
+function drawDCOHE(cats,iA,iB){
+const canvas=document.getElementById('dc-ohe');if(!canvas)return;
+const W=canvas.parentElement.clientWidth-24,H=100;
+const ctx=hiDPI(canvas,W,H);ctx.clearRect(0,0,W,H);
+const cx=W/2,cy=55,r=Math.min(W,H)/2-25;
+const n=cats.length;const d=iA===iB?0:Math.sqrt(2);
+cats.forEach((c,i)=>{const angle=-Math.PI/2+i*(2*Math.PI/n);const x=cx+Math.cos(angle)*r,y=cy+Math.sin(angle)*r;
+const isA=i===iA,isB=i===iB;
+if(isA&&iA!==iB){const a2=-Math.PI/2+iB*(2*Math.PI/n);const x2=cx+Math.cos(a2)*r,y2=cy+Math.sin(a2)*r;
+ctx.strokeStyle='#3b82f6';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);
+ctx.fillStyle='#3b82f6';ctx.font='bold 11px JetBrains Mono';ctx.textAlign='center';ctx.fillText('d = '+d.toFixed(2),(x+x2)/2,(y+y2)/2-8);}
+ctx.beginPath();ctx.arc(x,y,isA||isB?10:6,0,Math.PI*2);
+ctx.fillStyle=isA?'#f97316':isB?'#ef4444':'#e4e4e7';ctx.fill();
+if(isA||isB){ctx.fillStyle='#fff';ctx.font='bold 9px Space Grotesk';ctx.textAlign='center';ctx.fillText(isA?'A':'B',x,y+3);}
+});
+}
+setTimeout(cDC,100);
+
+// ═══════ CORRELATION FILTER ═══════
+const CF=[{n:'MaxHR',c:-0.40},{n:'Oldpeak',c:0.38},{n:'Age',c:0.28},{n:'FastingBS',c:0.27},{n:'RestingBP',c:0.11},{n:'Cholesterol',c:0.05}];
+function cCorr(){
+const t=+document.getElementById('corr-t').value/100;document.getElementById('corr-tv').textContent=t.toFixed(2);
+const sorted=[...CF].sort((a,b)=>Math.abs(b.c)-Math.abs(a.c));
+const sel=sorted.filter(f=>Math.abs(f.c)>=t);
+const canvas=document.getElementById('corr-chart');if(!canvas)return;
+const W=canvas.parentElement.clientWidth-24,H=200;
+const ctx=hiDPI(canvas,W,H);ctx.clearRect(0,0,W,H);
+const pad={t:20,r:50,b:25,l:100};const bH=(H-pad.t-pad.b)/sorted.length-4;
+sorted.forEach((f,i)=>{
+const y=pad.t+i*(bH+4);const a=Math.abs(f.c);const ok=a>=t;
+const maxW=W-pad.l-pad.r-50;const bw=a/0.5*maxW;
+const zeroX=pad.l;
+// Label
+ctx.fillStyle=ok?'#27272a':'#a1a1aa';ctx.font=(ok?'bold ':'')+' 11px Space Grotesk';ctx.textAlign='right';ctx.fillText(f.n,pad.l-10,y+bH/2+4);
+// Bar
+const color=f.c>0?(ok?'#f97316':'#e4e4e7'):(ok?'#3b82f6':'#e4e4e7');
+ctx.globalAlpha=ok?1:0.4;
+ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(zeroX,y,bw,bH,4);ctx.fill();
+// Value
+ctx.fillStyle=ok?'#27272a':'#a1a1aa';ctx.font='bold 10px JetBrains Mono';ctx.textAlign='left';ctx.fillText((f.c>0?'+':'')+f.c.toFixed(2),zeroX+bw+6,y+bH/2+4);
+ctx.globalAlpha=1;
+});
+// Threshold line
+const threshX=pad.l+(t/0.5)*(W-pad.l-pad.r-50);
+ctx.strokeStyle='#ef4444';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+ctx.beginPath();ctx.moveTo(threshX,pad.t-5);ctx.lineTo(threshX,H-pad.b+5);ctx.stroke();ctx.setLineDash([]);
+ctx.fillStyle='#ef4444';ctx.font='9px JetBrains Mono';ctx.textAlign='center';ctx.fillText('threshold',threshX,H-pad.b+18);
+// Legend
+ctx.globalAlpha=1;ctx.font='10px Space Grotesk';ctx.textAlign='left';
+ctx.fillStyle='#f97316';ctx.fillRect(W-130,8,10,10);ctx.fillStyle='#27272a';ctx.fillText('Positive',W-116,17);
+ctx.fillStyle='#3b82f6';ctx.fillRect(W-130,22,10,10);ctx.fillStyle='#27272a';ctx.fillText('Negative',W-116,31);
+
+document.getElementById('corr-result').innerHTML=`<div class="rb"><div class="rl">Selected (|corr| ≥ ${t.toFixed(2)})</div>${sel.length?`<strong>${sel.length}</strong>/${sorted.length} features: ${sel.map(f=>`<span class="tg to">${f.n}</span>`).join(' ')}`:'<span style="color:var(--r500)">None — lower threshold.</span>'}</div>`;
+}
+setTimeout(cCorr,100);
+
+// ═══════ FEATURE ENGINEERING ═══════
+function cFE(){
+const V=parseFloat(document.getElementById('fe-v').value)||0;
+const I=parseFloat(document.getElementById('fe-i').value)||0;
+const T=parseFloat(document.getElementById('fe-t').value)||0;
+const E=V*I*T;
+document.getElementById('fe-result').innerHTML=`<div class="rb"><div class="rl">Result</div><strong>energy</strong> = ${V} × ${I} × ${T} = <strong style="font-size:1.1rem;color:var(--o600);">${E.toFixed(1)} J</strong></div>`;
+const x1=parseInt(document.getElementById('fe-x1').value);
+const x2=parseInt(document.getElementById('fe-x2').value);
+document.getElementById('fe-logic').innerHTML=`<div class="rb"><div class="rl">Result</div>AND = <strong>${x1&x2}</strong> &nbsp;|&nbsp; OR = <strong>${x1|x2}</strong> &nbsp;|&nbsp; XOR = <strong>${x1^x2}</strong></div>`;
+}
+cFE();
+
+// ═══════ HEART FAILURE DATASET (representative 50-patient subset) ═══════
+const HF=[
+{Age:40,Sex:'M',ChestPainType:'ATA',RestingBP:140,Cholesterol:289,FastingBS:0,RestingECG:'Normal',MaxHR:172,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:49,Sex:'F',ChestPainType:'NAP',RestingBP:160,Cholesterol:180,FastingBS:0,RestingECG:'Normal',MaxHR:156,ExerciseAngina:'N',Oldpeak:1,HeartDisease:1},
+{Age:37,Sex:'M',ChestPainType:'ATA',RestingBP:130,Cholesterol:283,FastingBS:0,RestingECG:'ST',MaxHR:98,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:48,Sex:'F',ChestPainType:'ASY',RestingBP:138,Cholesterol:214,FastingBS:0,RestingECG:'Normal',MaxHR:108,ExerciseAngina:'Y',Oldpeak:1.5,HeartDisease:1},
+{Age:54,Sex:'M',ChestPainType:'NAP',RestingBP:150,Cholesterol:195,FastingBS:0,RestingECG:'Normal',MaxHR:122,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:39,Sex:'M',ChestPainType:'NAP',RestingBP:120,Cholesterol:339,FastingBS:0,RestingECG:'Normal',MaxHR:170,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:45,Sex:'F',ChestPainType:'ATA',RestingBP:130,Cholesterol:237,FastingBS:0,RestingECG:'Normal',MaxHR:170,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:54,Sex:'M',ChestPainType:'ATA',RestingBP:110,Cholesterol:208,FastingBS:0,RestingECG:'Normal',MaxHR:142,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:37,Sex:'M',ChestPainType:'ASY',RestingBP:140,Cholesterol:207,FastingBS:0,RestingECG:'Normal',MaxHR:130,ExerciseAngina:'Y',Oldpeak:1.5,HeartDisease:1},
+{Age:48,Sex:'F',ChestPainType:'ATA',RestingBP:120,Cholesterol:284,FastingBS:0,RestingECG:'Normal',MaxHR:120,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:58,Sex:'M',ChestPainType:'ASY',RestingBP:100,Cholesterol:234,FastingBS:0,RestingECG:'Normal',MaxHR:156,ExerciseAngina:'N',Oldpeak:0.1,HeartDisease:1},
+{Age:61,Sex:'M',ChestPainType:'ASY',RestingBP:150,Cholesterol:243,FastingBS:1,RestingECG:'Normal',MaxHR:137,ExerciseAngina:'Y',Oldpeak:1,HeartDisease:1},
+{Age:40,Sex:'M',ChestPainType:'ASY',RestingBP:110,Cholesterol:167,FastingBS:0,RestingECG:'ST',MaxHR:114,ExerciseAngina:'Y',Oldpeak:2,HeartDisease:1},
+{Age:60,Sex:'F',ChestPainType:'ASY',RestingBP:150,Cholesterol:258,FastingBS:0,RestingECG:'Normal',MaxHR:157,ExerciseAngina:'N',Oldpeak:2.6,HeartDisease:1},
+{Age:55,Sex:'M',ChestPainType:'ATA',RestingBP:135,Cholesterol:204,FastingBS:1,RestingECG:'Normal',MaxHR:126,ExerciseAngina:'N',Oldpeak:1.1,HeartDisease:0},
+{Age:63,Sex:'M',ChestPainType:'ASY',RestingBP:130,Cholesterol:330,FastingBS:1,RestingECG:'ST',MaxHR:132,ExerciseAngina:'Y',Oldpeak:1.8,HeartDisease:1},
+{Age:47,Sex:'M',ChestPainType:'NAP',RestingBP:138,Cholesterol:257,FastingBS:0,RestingECG:'Normal',MaxHR:156,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:52,Sex:'M',ChestPainType:'ATA',RestingBP:120,Cholesterol:325,FastingBS:0,RestingECG:'Normal',MaxHR:172,ExerciseAngina:'N',Oldpeak:0.2,HeartDisease:0},
+{Age:68,Sex:'M',ChestPainType:'ASY',RestingBP:180,Cholesterol:274,FastingBS:1,RestingECG:'ST',MaxHR:150,ExerciseAngina:'Y',Oldpeak:1.6,HeartDisease:1},
+{Age:36,Sex:'F',ChestPainType:'NAP',RestingBP:120,Cholesterol:245,FastingBS:0,RestingECG:'Normal',MaxHR:180,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:53,Sex:'M',ChestPainType:'ASY',RestingBP:142,Cholesterol:226,FastingBS:0,RestingECG:'Normal',MaxHR:111,ExerciseAngina:'Y',Oldpeak:0,HeartDisease:1},
+{Age:51,Sex:'M',ChestPainType:'ATA',RestingBP:125,Cholesterol:213,FastingBS:0,RestingECG:'Normal',MaxHR:125,ExerciseAngina:'Y',Oldpeak:1.4,HeartDisease:1},
+{Age:66,Sex:'M',ChestPainType:'ASY',RestingBP:120,Cholesterol:302,FastingBS:0,RestingECG:'Normal',MaxHR:151,ExerciseAngina:'N',Oldpeak:0.4,HeartDisease:0},
+{Age:43,Sex:'F',ChestPainType:'TA',RestingBP:132,Cholesterol:341,FastingBS:1,RestingECG:'ST',MaxHR:136,ExerciseAngina:'Y',Oldpeak:3,HeartDisease:1},
+{Age:69,Sex:'M',ChestPainType:'NAP',RestingBP:140,Cholesterol:254,FastingBS:0,RestingECG:'Normal',MaxHR:146,ExerciseAngina:'N',Oldpeak:2,HeartDisease:1},
+{Age:59,Sex:'M',ChestPainType:'ASY',RestingBP:135,Cholesterol:234,FastingBS:0,RestingECG:'Normal',MaxHR:161,ExerciseAngina:'N',Oldpeak:0.5,HeartDisease:1},
+{Age:44,Sex:'M',ChestPainType:'ATA',RestingBP:130,Cholesterol:233,FastingBS:0,RestingECG:'Normal',MaxHR:179,ExerciseAngina:'Y',Oldpeak:0.4,HeartDisease:0},
+{Age:42,Sex:'M',ChestPainType:'ATA',RestingBP:148,Cholesterol:244,FastingBS:0,RestingECG:'Normal',MaxHR:178,ExerciseAngina:'N',Oldpeak:0.8,HeartDisease:0},
+{Age:57,Sex:'F',ChestPainType:'ASY',RestingBP:128,Cholesterol:303,FastingBS:0,RestingECG:'Normal',MaxHR:159,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:71,Sex:'M',ChestPainType:'ASY',RestingBP:110,Cholesterol:265,FastingBS:1,RestingECG:'ST',MaxHR:130,ExerciseAngina:'N',Oldpeak:0,HeartDisease:1},
+{Age:46,Sex:'M',ChestPainType:'ASY',RestingBP:140,Cholesterol:311,FastingBS:0,RestingECG:'Normal',MaxHR:120,ExerciseAngina:'Y',Oldpeak:1.8,HeartDisease:1},
+{Age:50,Sex:'F',ChestPainType:'ATA',RestingBP:120,Cholesterol:219,FastingBS:0,RestingECG:'Normal',MaxHR:158,ExerciseAngina:'N',Oldpeak:1.6,HeartDisease:0},
+{Age:56,Sex:'M',ChestPainType:'NAP',RestingBP:130,Cholesterol:221,FastingBS:0,RestingECG:'ST',MaxHR:163,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:64,Sex:'M',ChestPainType:'ASY',RestingBP:120,Cholesterol:246,FastingBS:0,RestingECG:'Normal',MaxHR:96,ExerciseAngina:'Y',Oldpeak:2.2,HeartDisease:1},
+{Age:35,Sex:'M',ChestPainType:'ATA',RestingBP:120,Cholesterol:198,FastingBS:0,RestingECG:'Normal',MaxHR:130,ExerciseAngina:'Y',Oldpeak:1.6,HeartDisease:1},
+{Age:41,Sex:'M',ChestPainType:'ATA',RestingBP:110,Cholesterol:235,FastingBS:0,RestingECG:'Normal',MaxHR:153,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:62,Sex:'F',ChestPainType:'ASY',RestingBP:140,Cholesterol:268,FastingBS:0,RestingECG:'ST',MaxHR:160,ExerciseAngina:'N',Oldpeak:3.6,HeartDisease:1},
+{Age:38,Sex:'M',ChestPainType:'NAP',RestingBP:120,Cholesterol:231,FastingBS:0,RestingECG:'Normal',MaxHR:182,ExerciseAngina:'Y',Oldpeak:3.8,HeartDisease:1},
+{Age:65,Sex:'M',ChestPainType:'ASY',RestingBP:110,Cholesterol:248,FastingBS:0,RestingECG:'Normal',MaxHR:158,ExerciseAngina:'N',Oldpeak:0.6,HeartDisease:1},
+{Age:77,Sex:'M',ChestPainType:'ASY',RestingBP:125,Cholesterol:304,FastingBS:0,RestingECG:'Normal',MaxHR:162,ExerciseAngina:'Y',Oldpeak:0,HeartDisease:1},
+{Age:33,Sex:'M',ChestPainType:'NAP',RestingBP:115,Cholesterol:246,FastingBS:0,RestingECG:'Normal',MaxHR:154,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:70,Sex:'M',ChestPainType:'ASY',RestingBP:145,Cholesterol:282,FastingBS:1,RestingECG:'ST',MaxHR:112,ExerciseAngina:'Y',Oldpeak:2.4,HeartDisease:1},
+{Age:29,Sex:'F',ChestPainType:'ATA',RestingBP:110,Cholesterol:189,FastingBS:0,RestingECG:'Normal',MaxHR:186,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:67,Sex:'M',ChestPainType:'ASY',RestingBP:160,Cholesterol:286,FastingBS:0,RestingECG:'ST',MaxHR:108,ExerciseAngina:'Y',Oldpeak:1.5,HeartDisease:1},
+{Age:46,Sex:'F',ChestPainType:'ATA',RestingBP:115,Cholesterol:258,FastingBS:0,RestingECG:'Normal',MaxHR:165,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:74,Sex:'M',ChestPainType:'ASY',RestingBP:155,Cholesterol:310,FastingBS:0,RestingECG:'Normal',MaxHR:112,ExerciseAngina:'Y',Oldpeak:3.2,HeartDisease:1},
+{Age:34,Sex:'F',ChestPainType:'NAP',RestingBP:118,Cholesterol:210,FastingBS:0,RestingECG:'Normal',MaxHR:175,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:58,Sex:'M',ChestPainType:'ASY',RestingBP:132,Cholesterol:258,FastingBS:1,RestingECG:'Normal',MaxHR:141,ExerciseAngina:'Y',Oldpeak:2.8,HeartDisease:1},
+{Age:43,Sex:'M',ChestPainType:'NAP',RestingBP:122,Cholesterol:213,FastingBS:0,RestingECG:'Normal',MaxHR:165,ExerciseAngina:'N',Oldpeak:0.2,HeartDisease:0},
+{Age:72,Sex:'M',ChestPainType:'ASY',RestingBP:160,Cholesterol:292,FastingBS:1,RestingECG:'ST',MaxHR:105,ExerciseAngina:'Y',Oldpeak:2.0,HeartDisease:1}
+];
+
+// ═══════ EDA HELPER FUNCTIONS ═══════
+function hfCol(f){return HF.map(r=>r[f]);}
+function hfNum(f){return hfCol(f).map(Number);}
+function quartile(arr,p){const s=[...arr].sort((a,b)=>a-b);const i=(s.length-1)*p;const lo=Math.floor(i),hi=Math.ceil(i);return s[lo]+(s[hi]-s[lo])*(i-lo);}
+function mean2(a){return a.reduce((s,v)=>s+v,0)/a.length;}
+function std2(a){const m=mean2(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length);}
+function pearson(x,y){const mx=mean2(x),my=mean2(y),sx=std2(x),sy=std2(y);if(sx===0||sy===0)return 0;return x.reduce((s,v,i)=>s+(v-mx)*(y[i]-my),0)/(x.length*sx*sy);}
+
+// ═══════ EDA: DATASET PREVIEW TABLE ═══════
+(function(){
+const t=document.getElementById('hf-preview');if(!t)return;
+const keys=Object.keys(HF[0]);
+let h='<tr>';keys.forEach(k=>h+='<th>'+k+'</th>');h+='</tr>';
+HF.slice(0,6).forEach(r=>{h+='<tr>';keys.forEach(k=>{h+='<td>'+r[k]+'</td>';});h+='</tr>';});
+h+='<tr>';keys.forEach(()=>h+='<td style="color:#a1a1aa">…</td>');h+='</tr>';
+t.innerHTML=h;
+})();
+
+// ═══════ EDA: DESCRIPTIVE STATISTICS ═══════
+function descStats(){
+const f=document.getElementById('desc-feat').value.split(' ')[0];
+const v=hfNum(f),n=v.length,m=mean2(v),s=std2(v),mn=Math.min(...v),mx=Math.max(...v);
+const q1=quartile(v,.25),med=quartile(v,.5),q3=quartile(v,.75);
+document.getElementById('desc-cards').innerHTML=[
+{l:'Count',v:n},{l:'Mean',v:m.toFixed(1)},{l:'Std',v:s.toFixed(1)},{l:'Min',v:mn.toFixed(1)},
+{l:'Q1 (25%)',v:q1.toFixed(1)},{l:'Median (50%)',v:med.toFixed(1)},{l:'Q3 (75%)',v:q3.toFixed(1)},{l:'Max',v:mx.toFixed(1)}
+].map(x=>`<div class="stat-card"><div class="stat-val">${x.v}</div><div class="stat-lbl">${x.l}</div></div>`).join('');
+// Histogram
+const cv=document.getElementById('desc-hist');if(!cv)return;
+const W=cv.parentElement.clientWidth-24,H=200,ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
+const pad={t:28,r:15,b:30,l:42},bins=12,bw=(mx-mn)/bins||1;
+const cs=Array(bins).fill(0);v.forEach(val=>{let b=Math.floor((val-mn)/bw);if(b>=bins)b=bins-1;if(b<0)b=0;cs[b]++;});
+const mc=Math.max(...cs),barW=(W-pad.l-pad.r)/bins;
+// Mean line
+const meanX=pad.l+((m-mn)/(mx-mn||1))*(W-pad.l-pad.r);
+ctx.strokeStyle='#ef444480';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(meanX,pad.t);ctx.lineTo(meanX,H-pad.b);ctx.stroke();ctx.setLineDash([]);
+ctx.fillStyle='#ef4444';ctx.font='bold 10px JetBrains Mono';ctx.textAlign='center';ctx.fillText('μ = '+m.toFixed(1),meanX,pad.t-6);
+// Bars
+cs.forEach((c,i)=>{const bh=(c/mc)*(H-pad.t-pad.b);
+ctx.fillStyle='#f9731650';ctx.fillRect(pad.l+i*barW+1,H-pad.b-bh,barW-2,bh);
+ctx.strokeStyle='#f97316';ctx.lineWidth=1;ctx.strokeRect(pad.l+i*barW+1,H-pad.b-bh,barW-2,bh);
+if(c>0){ctx.fillStyle='#f97316';ctx.font='bold 9px JetBrains Mono';ctx.textAlign='center';ctx.fillText(c,pad.l+i*barW+barW/2,H-pad.b-bh-4);}});
+// Axis
+ctx.strokeStyle='#e4e4e7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
+ctx.fillStyle='#a1a1aa';ctx.font='9px JetBrains Mono';ctx.textAlign='center';
+for(let i=0;i<=bins;i+=2)ctx.fillText(Math.round(mn+i*bw),pad.l+i*barW,H-pad.b+14);
+// Insight
+const skew=m>med?'right-skewed (mean > median)':m<med?'left-skewed (mean < median)':'approximately symmetric';
+document.getElementById('desc-insight').innerHTML=`<div class="rb"><div class="rl">Distribution Shape</div>The ${f} distribution is <strong>${skew}</strong>. Range spans from ${mn.toFixed(1)} to ${mx.toFixed(1)} with most values between Q1=${q1.toFixed(1)} and Q3=${q3.toFixed(1)} (the interquartile range of ${(q3-q1).toFixed(1)}).</div>`;
+}
+
+// ═══════ EDA: BOX PLOT ═══════
+function drawBox(){
+const f=document.getElementById('box-feat').value;
+const v=hfNum(f),mn=Math.min(...v),mx=Math.max(...v);
+const q1=quartile(v,.25),med=quartile(v,.5),q3=quartile(v,.75);
+const iqr=q3-q1,lo=q1-1.5*iqr,hi=q3+1.5*iqr;
+const outliers=v.filter(x=>x<lo||x>hi);
+const whiskerLo=Math.max(lo,mn),whiskerHi=Math.min(hi,mx);
+const cv=document.getElementById('box-canvas');if(!cv)return;
+const W=cv.parentElement.clientWidth-24,H=150,ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
+const pad={l:55,r:55},midY=60,bH=44;
+const range=mx-mn||1;
+function tx(val){return pad.l+(val-mn)/range*(W-pad.l-pad.r);}
+// Data points (jittered)
+v.forEach(val=>{const x=tx(val),isOut=val<lo||val>hi;
+ctx.globalAlpha=0.3;ctx.beginPath();ctx.arc(x,midY+(Math.random()-0.5)*bH*0.8,2.5,0,Math.PI*2);ctx.fillStyle=isOut?'#ef4444':'#71717a';ctx.fill();});
+ctx.globalAlpha=1;
+// Whisker lines
+ctx.strokeStyle='#52525b';ctx.lineWidth=1.5;
+ctx.beginPath();ctx.moveTo(tx(whiskerLo),midY);ctx.lineTo(tx(q1),midY);ctx.stroke();
+ctx.beginPath();ctx.moveTo(tx(q3),midY);ctx.lineTo(tx(whiskerHi),midY);ctx.stroke();
+// Whisker caps
+[whiskerLo,whiskerHi].forEach(val=>{ctx.beginPath();ctx.moveTo(tx(val),midY-14);ctx.lineTo(tx(val),midY+14);ctx.stroke();});
+// Box
+ctx.fillStyle='#fed7aa90';ctx.strokeStyle='#f97316';ctx.lineWidth=2;
+ctx.fillRect(tx(q1),midY-bH/2,tx(q3)-tx(q1),bH);
+ctx.strokeRect(tx(q1),midY-bH/2,tx(q3)-tx(q1),bH);
+// Median line
+ctx.strokeStyle='#c2410c';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(tx(med),midY-bH/2);ctx.lineTo(tx(med),midY+bH/2);ctx.stroke();
+// Outlier markers (larger, on top)
+outliers.forEach(val=>{ctx.beginPath();ctx.arc(tx(val),midY,5,0,Math.PI*2);ctx.fillStyle='#ef4444';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();});
+// Labels
+ctx.fillStyle='#52525b';ctx.font='9px JetBrains Mono';ctx.textAlign='center';
+[{v:q1,l:'Q1'},{v:med,l:'Med'},{v:q3,l:'Q3'}].forEach(({v:val,l})=>ctx.fillText(l+'='+val.toFixed(1),tx(val),midY+bH/2+16));
+ctx.fillText(whiskerLo.toFixed(1),tx(whiskerLo),midY+bH/2+16);ctx.fillText(whiskerHi.toFixed(1),tx(whiskerHi),midY+bH/2+16);
+// Fence labels
+ctx.fillStyle='#ef4444';ctx.font='8px JetBrains Mono';
+if(lo>mn-range*0.1){ctx.textAlign='right';ctx.fillText('fence='+lo.toFixed(1),tx(whiskerLo)-5,midY-20);}
+if(hi<mx+range*0.1){ctx.textAlign='left';ctx.fillText('fence='+hi.toFixed(1),tx(whiskerHi)+5,midY-20);}
+// Stats output
+document.getElementById('box-stats').innerHTML=`<div class="sb"><div class="sl">Step-by-step Calculation</div>
+<strong>1.</strong> Q1 = ${q1.toFixed(1)}, Q3 = ${q3.toFixed(1)}<br>
+<strong>2.</strong> IQR = Q3 − Q1 = ${q3.toFixed(1)} − ${q1.toFixed(1)} = <strong>${iqr.toFixed(1)}</strong><br>
+<strong>3.</strong> Lower fence = Q1 − 1.5 × IQR = ${q1.toFixed(1)} − ${(1.5*iqr).toFixed(1)} = <strong>${lo.toFixed(1)}</strong><br>
+<strong>4.</strong> Upper fence = Q3 + 1.5 × IQR = ${q3.toFixed(1)} + ${(1.5*iqr).toFixed(1)} = <strong>${hi.toFixed(1)}</strong><br>
+<strong>5.</strong> Outliers (outside fences): <strong style="color:${outliers.length?'var(--r500)':'var(--gn500)'}">${outliers.length} found</strong>${outliers.length?' → values: '+outliers.sort((a,b)=>a-b).map(x=>x.toFixed(1)).join(', '):' — all data within expected range'}</div>`;
+}
+
+// ═══════ EDA: SCATTER PLOT ═══════
+function drawScatter(){
+const xf=document.getElementById('sc-x').value,yf=document.getElementById('sc-y').value,cf=document.getElementById('sc-c').value;
+const xv=hfNum(xf),yv=hfNum(yf);
+const cv=document.getElementById('scatter-canvas');if(!cv)return;
+const W=cv.parentElement.clientWidth-24,H=320,ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
+const pad={t:22,r:25,b:42,l:52},pW=W-pad.l-pad.r,pH=H-pad.t-pad.b;
+const xMin=Math.min(...xv),xMax=Math.max(...xv),yMin=Math.min(...yv),yMax=Math.max(...yv);
+function tx(v){return pad.l+(v-xMin)/(xMax-xMin||1)*pW;}
+function ty(v){return pad.t+pH-(v-yMin)/(yMax-yMin||1)*pH;}
+// Grid
+ctx.strokeStyle='#f1f3f5';ctx.lineWidth=1;
+for(let i=0;i<=5;i++){const y=pad.t+i*pH/5;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+const x=pad.l+i*pW/5;ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,H-pad.b);ctx.stroke();}
+// Points
+HF.forEach(r=>{const x=tx(r[xf]),y=ty(r[yf]);
+ctx.globalAlpha=0.65;
+ctx.fillStyle=cf==='HeartDisease'?(r.HeartDisease?'#ef4444':'#3b82f6'):'#f97316';
+ctx.beginPath();ctx.arc(x,y,4.5,0,Math.PI*2);ctx.fill();});
+ctx.globalAlpha=1;
+// Axis labels
+ctx.fillStyle='#52525b';ctx.font='11px Space Grotesk';ctx.textAlign='center';ctx.fillText(xf,pad.l+pW/2,H-4);
+ctx.save();ctx.translate(14,pad.t+pH/2);ctx.rotate(-Math.PI/2);ctx.fillText(yf,0,0);ctx.restore();
+// Tick labels
+ctx.fillStyle='#a1a1aa';ctx.font='9px JetBrains Mono';
+for(let i=0;i<=5;i++){ctx.textAlign='center';ctx.fillText(Math.round(xMin+i*(xMax-xMin)/5),pad.l+i*pW/5,H-pad.b+14);
+ctx.textAlign='right';ctx.fillText(Math.round(yMin+i*(yMax-yMin)/5),pad.l-6,pad.t+pH-i*pH/5+4);}
+// Legend
+if(cf==='HeartDisease'){
+ctx.fillStyle='#3b82f6';ctx.beginPath();ctx.arc(W-110,14,5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#27272a';ctx.font='10px Space Grotesk';ctx.textAlign='left';ctx.fillText('No disease (0)',W-100,17);
+ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(W-110,30,5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#27272a';ctx.fillText('Disease (1)',W-100,33);}
+// Correlation
+const r2=pearson(xv,yv);
+const strength=Math.abs(r2)<0.1?'negligible':Math.abs(r2)<0.3?'weak':Math.abs(r2)<0.5?'moderate':'strong';
+const direction=r2>0?'positive':'negative';
+document.getElementById('scatter-stats').innerHTML=`<div class="rb"><div class="rl">Pearson Correlation</div>r(<strong>${xf}</strong>, <strong>${yf}</strong>) = <strong style="font-size:1.1rem;">${r2.toFixed(3)}</strong> → <strong>${strength} ${direction}</strong> linear relationship${Math.abs(r2)>0.25?' — this feature pair shows a meaningful correlation that could be useful for modelling.':' — weak or no linear relationship between these two features.'}</div>`;
+}
+
+// ═══════ EDA: SEGMENTATION ═══════
+function drawSeg(){
+const nf=document.getElementById('seg-num').value,cf=document.getElementById('seg-cat').value.split(' ')[0];
+const groups={};HF.forEach(r=>{const k=String(r[cf]);if(!groups[k])groups[k]=[];groups[k].push(Number(r[nf]));});
+const keys=Object.keys(groups).sort();
+const colors=['#3b82f6','#ef4444','#22c55e','#a855f7','#f97316'];
+const cv=document.getElementById('seg-canvas');if(!cv)return;
+const W=cv.parentElement.clientWidth-24,H=230,ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
+const pad={t:28,r:15,b:32,l:42};
+const allVals=Object.values(groups).flat();
+const mn=Math.min(...allVals),mx=Math.max(...allVals);
+const bins=14,bw=(mx-mn)/bins||1;
+// Compute bin counts per group
+const groupBins={};let maxC=0;
+keys.forEach(k=>{const cs=Array(bins).fill(0);groups[k].forEach(v=>{let b=Math.floor((v-mn)/bw);if(b>=bins)b=bins-1;if(b<0)b=0;cs[b]++;});groupBins[k]=cs;const mc=Math.max(...cs);if(mc>maxC)maxC=mc;});
+const barW=(W-pad.l-pad.r)/bins;
+const subW=barW/keys.length;
+keys.forEach((k,ki)=>{
+ctx.fillStyle=colors[ki%5]+'70';ctx.strokeStyle=colors[ki%5];ctx.lineWidth=1;
+groupBins[k].forEach((c,i)=>{const bh=(c/maxC)*(H-pad.t-pad.b);const x=pad.l+i*barW+ki*subW+1;
+ctx.fillRect(x,H-pad.b-bh,subW-1,bh);ctx.strokeRect(x,H-pad.b-bh,subW-1,bh);});
+});
+// Axis
+ctx.strokeStyle='#e4e4e7';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
+ctx.fillStyle='#a1a1aa';ctx.font='9px JetBrains Mono';ctx.textAlign='center';
+for(let i=0;i<=bins;i+=2)ctx.fillText(Math.round(mn+i*bw),pad.l+i*barW,H-pad.b+14);
+// Legend
+keys.forEach((k,i)=>{ctx.fillStyle=colors[i%5];ctx.fillRect(pad.l+i*85,10,10,10);ctx.fillStyle='#27272a';ctx.font='10px Space Grotesk';ctx.textAlign='left';ctx.fillText(cf+'='+k,pad.l+i*85+14,19);});
+// Insight
+const means=keys.map(k=>({k,m:mean2(groups[k]),n:groups[k].length}));
+const diff=means.length===2?Math.abs(means[0].m-means[1].m).toFixed(1):null;
+document.getElementById('seg-insight').innerHTML=`<div class="rb"><div class="rl">Group Statistics</div>${means.map(x=>`<strong>${cf}=${x.k}</strong>: mean=${x.m.toFixed(1)}, n=${x.n}`).join(' &nbsp;|&nbsp; ')}${diff?`<br>Difference in means: <strong>${diff}</strong> — ${parseFloat(diff)>10?'substantial separation suggests this grouping is informative for prediction.':'relatively small difference, this grouping may not be strongly predictive.'}`:''}</div>`;
+}
+
+// ═══════ EDA: CATEGORICAL BAR CHART ═══════
+function drawCatBar(){
+const f=document.getElementById('cat-feat').value.split(' ')[0];
+const counts={};HF.forEach(r=>{const k=String(r[f]);counts[k]=(counts[k]||0)+1;});
+const keys=Object.keys(counts).sort(),n=HF.length;
+const freqs=keys.map(k=>({k,c:counts[k],p:(counts[k]/n*100).toFixed(1)}));
+const top=freqs.reduce((a,b)=>a.c>b.c?a:b);
+const isBalanced=Math.max(...freqs.map(x=>x.c))/Math.min(...freqs.map(x=>x.c))<2;
+document.getElementById('cat-summary').innerHTML=`<div class="sb"><div class="sl">Value Counts</div>${freqs.map(x=>`<strong>${x.k}</strong>: ${x.c} (${x.p}%)`).join('<br>')}</div>
+<div class="sb"><div class="sl">Summary</div>Unique values: <strong>${keys.length}</strong><br>Most frequent: <strong>${top.k}</strong> (${top.p}%)<br>Balance: <strong style="color:${isBalanced?'var(--gn500)':'var(--o600)'}">${isBalanced?'Reasonably balanced':'Imbalanced — consider SMOTE or class weights'}</strong></div>`;
+// Bar chart
+const cv=document.getElementById('cat-bar');if(!cv)return;
+const W=cv.parentElement.clientWidth-24,H=180,ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
+const pad={t:18,r:12,b:28,l:12},mc=Math.max(...Object.values(counts));
+const barW=(W-pad.l-pad.r)/keys.length-8;
+const colors=['#f97316','#3b82f6','#22c55e','#a855f7','#ef4444','#eab308'];
+keys.forEach((k,i)=>{
+const bh=(counts[k]/mc)*(H-pad.t-pad.b);const x=pad.l+i*(barW+8)+4;
+ctx.fillStyle=colors[i%6];ctx.beginPath();ctx.roundRect(x,H-pad.b-bh,barW,bh,4);ctx.fill();
+ctx.fillStyle='#27272a';ctx.font='bold 11px JetBrains Mono';ctx.textAlign='center';ctx.fillText(counts[k],x+barW/2,H-pad.b-bh-6);
+ctx.fillStyle='#52525b';ctx.font='10px Space Grotesk';ctx.fillText(k,x+barW/2,H-pad.b+14);
+});
+}
+</script>
+</body>
+</html>
