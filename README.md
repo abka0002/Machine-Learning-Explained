@@ -1,76 +1,29 @@
 # Machine Learning to Go
 
-A collection of interactive web tools for understanding ML algorithms step by step.
+A collection of interactive web tools for exploring machine learning algorithms step by step. Each tool breaks down a core ML concept into transparent, visual calculations — no black boxes.
 
 🔗 **Live:** [machine-learning-to-go.netlify.app](https://machine-learning-to-go.netlify.app)
 
 ## Available Tools
 
-| Tool | Topic | Link |
-|------|-------|------|
-| SMOTE & SMOTE-NC | Synthetic oversampling for imbalanced datasets | [Open](https://machine-learning-to-go.netlify.app/smote/) |
+| Tool | Description |
+|------|-------------|
+| [SMOTE & SMOTE-NC](https://machine-learning-to-go.netlify.app/smote/) | Step-by-step walkthrough of synthetic oversampling for imbalanced datasets, covering both continuous and mixed-type features |
 
-## Project Structure
+## About
 
-```
-├── index.html          ← Landing page with links to all tools
-├── netlify.toml        ← Netlify config
-├── smote/
-│   └── index.html      ← SMOTE & SMOTE-NC interactive tool
-├── <new-app>/          ← Future tools go here
-│   └── index.html
-└── README.md
-```
+These tools are designed for students and practitioners who want to go beyond using ML libraries as black boxes. Each app lets you follow the actual math behind an algorithm — see how distances are computed, how neighbors are selected, and how new samples are generated.
 
-## Adding a New Tool
-
-1. Create a new folder (e.g. `regression/`)
-2. Place your `index.html` inside it
-3. Add a card linking to it in the root `index.html`
-4. Push to GitHub — Netlify deploys automatically
-
-## Deployment Guide
-
-### Step 1 — Clone the repo
-
-```bash
-git clone https://github.com/abka0002/Machine-Learning-to-go.git
-cd Machine-Learning-to-go
-```
-
-### Step 2 — Add the project files
-
-Copy all downloaded files into the repo so it matches the structure above.
-
-### Step 3 — Push to GitHub
-
-```bash
-git add .
-git commit -m "Add ML tools with landing page"
-git push origin main
-```
-
-### Step 4 — Connect Netlify
-
-1. Go to [app.netlify.com](https://app.netlify.com/) and log in (free account).
-2. Click **"Add new site"** → **"Import an existing project"**.
-3. Choose **GitHub** and select **Machine-Learning-to-go**.
-4. Set:
-   - **Branch:** `main`
-   - **Build command:** *(leave empty)*
-   - **Publish directory:** `.`
-5. Click **"Deploy site"**.
-
-### Step 5 — Set a custom site name (optional)
-
-Go to **Site configuration** → **Site details** → **Change site name** → enter `machine-learning-to-go`.
-
-Your site will be live at `https://machine-learning-to-go.netlify.app`.
-
-### Updating
-
-Every `git push` triggers automatic redeployment.
+All tools run entirely in the browser. No server, no installation, no sign-up required.
 
 ## Tech Stack
 
-Pure HTML / CSS / JavaScript — no build step required.
+Pure HTML, CSS, and JavaScript — no build step, no frameworks, no dependencies.
+
+## Contributing
+
+Contributions are welcome. To add a new tool, create a folder with an `index.html` inside it and open a pull request.
+
+## License
+
+MIT
