@@ -1,0 +1,2873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMOTE Calculations - Step by Step</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --orange-50: #fff7ed;
+            --orange-100: #ffedd5;
+            --orange-200: #fed7aa;
+            --orange-300: #fdba74;
+            --orange-400: #fb923c;
+            --orange-500: #f97316;
+            --orange-600: #ea580c;
+            --orange-700: #c2410c;
+            --gray-50: #fafafa;
+            --gray-100: #f4f4f5;
+            --gray-200: #e4e4e7;
+            --gray-300: #d4d4d8;
+            --gray-400: #a1a1aa;
+            --gray-500: #71717a;
+            --gray-600: #52525b;
+            --gray-700: #3f3f46;
+            --gray-800: #27272a;
+            --gray-900: #18181b;
+            --gray-950: #09090b;
+            
+            /* Light theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f5;
+            --bg-card: #ffffff;
+            --border-color: #e9ecef;
+            --border-light: #f1f3f5;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --text-muted: #868e96;
+            --accent-orange: #f97316;
+            --accent-orange-light: #fed7aa;
+            --accent-orange-bg: #fff7ed;
+            --accent-gray: #868e96;
+            --accent-gray-light: #dee2e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--orange-500), var(--orange-600));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .controls-bar {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .control-item label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .control-item input[type="number"],
+        .control-item select {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            width: 80px;
+        }
+
+        .control-item select {
+            width: auto;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--orange-500), var(--orange-600));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--accent-gray);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-600);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--orange-600);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-header h2 .step-badge {
+            background: var(--orange-500);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        .section-content {
+            padding: 1.5rem;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-chip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-chip .label {
+            color: var(--text-muted);
+        }
+
+        .stat-chip .value {
+            color: var(--orange-600);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        tr.minority td {
+            background: var(--accent-orange-bg);
+        }
+
+        tr.minority:hover td {
+            background: var(--accent-orange-light);
+        }
+
+        tr.synthetic td {
+            background: #fffbeb;
+        }
+
+        tr.synthetic:hover td {
+            background: #fef3c7;
+        }
+
+        .class-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .class-badge.minority {
+            background: var(--orange-500);
+            color: white;
+        }
+
+        .class-badge.majority {
+            background: var(--accent-gray-light);
+            color: var(--text-secondary);
+        }
+
+        .class-badge.synthetic {
+            background: var(--orange-300);
+            color: var(--text-primary);
+        }
+
+        .cat-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .cat-badge.cat-a {
+            background: var(--orange-500);
+            color: white;
+        }
+
+        .cat-badge.cat-b {
+            background: var(--accent-gray);
+            color: white;
+        }
+
+        /* Calculation Steps */
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .calc-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .calc-card h4 {
+            color: var(--orange-600);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .calc-card h4::before {
+            content: '▸';
+            color: var(--orange-500);
+        }
+
+        .formula-display {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--orange-500);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .formula-display .formula-title {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .formula-display .formula {
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .formula-display .formula .var {
+            color: var(--orange-600);
+        }
+
+        .formula-display .formula .num {
+            color: var(--orange-500);
+        }
+
+        .formula-display .formula .op {
+            color: var(--text-muted);
+        }
+
+        .calc-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            margin-top: 0.5rem;
+        }
+
+        .calc-result .label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .calc-result .value {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--orange-600);
+            font-weight: 600;
+        }
+
+        /* Distance Matrix */
+        .distance-matrix {
+            overflow-x: auto;
+        }
+
+        .distance-matrix table {
+            font-size: 0.8rem;
+        }
+
+        .distance-matrix th,
+        .distance-matrix td {
+            padding: 0.5rem;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .distance-matrix td.highlight {
+            background: var(--orange-500);
+            color: white;
+            font-weight: 600;
+        }
+
+        .distance-matrix td.self {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+        }
+
+        .distance-matrix td.k-neighbor {
+            background: var(--accent-orange-light);
+            border: 2px solid var(--orange-500);
+        }
+        
+        .distance-matrix td.category-diff {
+            background: #fef3c7;
+            position: relative;
+        }
+        
+        .distance-matrix td.category-diff::after {
+            content: '*';
+            color: var(--orange-600);
+            font-weight: bold;
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.7rem;
+        }
+
+        /* Live Generation */
+        .generation-step {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+
+        .generation-step.active {
+            border-color: var(--orange-500);
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
+        }
+
+        .generation-step h4 {
+            color: var(--orange-600);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .generation-step .step-number {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .generation-step.active .step-number {
+            background: var(--orange-500);
+            color: white;
+        }
+
+        .calc-breakdown {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 2;
+        }
+
+        .calc-breakdown .line {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .calc-breakdown .line-num {
+            color: var(--text-muted);
+            width: 20px;
+            text-align: right;
+        }
+
+        .calc-breakdown .comment {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .calc-breakdown .keyword {
+            color: var(--orange-600);
+        }
+
+        .calc-breakdown .value {
+            color: var(--orange-500);
+        }
+
+        .calc-breakdown .result {
+            color: #16a34a;
+        }
+
+        /* Progress indicator */
+        .progress-bar {
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--orange-500), var(--orange-400));
+            transition: width 0.3s ease;
+        }
+
+        /* Scrollable table container */
+        .scrollable-table {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulsing {
+            animation: pulse 1s infinite;
+        }
+
+        /* Algorithm Banner */
+        .algorithm-banner {
+            background: var(--bg-card);
+            border: 1px solid var(--orange-400);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .algorithm-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--orange-500), var(--orange-400));
+        }
+
+        .algorithm-banner.smotenc {
+            border-color: var(--accent-gray);
+        }
+
+        .algorithm-banner.smotenc::before {
+            background: linear-gradient(180deg, var(--gray-500), var(--gray-400));
+        }
+
+        .banner-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .banner-icon {
+            font-size: 1.25rem;
+        }
+
+        .banner-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--orange-600);
+        }
+
+        .algorithm-banner.smotenc .banner-text {
+            color: var(--text-secondary);
+        }
+
+        .banner-description {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding-left: 2rem;
+        }
+
+        /* Active button state */
+        .btn.active-algo {
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+        }
+
+        /* Visualization Canvas */
+        .viz-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .viz-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .viz-box {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .viz-box h4 {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .viz-box h4 .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .viz-box h4 .badge.before {
+            background: var(--orange-500);
+            color: white;
+        }
+
+        .viz-box h4 .badge.after {
+            background: #16a34a;
+            color: white;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            min-height: 300px;
+        }
+
+        .canvas-wrapper canvas {
+            display: block;
+            width: 100%;
+            height: 300px;
+            min-width: 300px;
+        }
+
+        .viz-legend {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .viz-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .viz-legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .viz-legend-dot.minority {
+            background: var(--orange-500);
+        }
+
+        .viz-legend-dot.majority {
+            background: var(--accent-gray);
+        }
+
+        .viz-legend-dot.synthetic {
+            background: var(--orange-300);
+            border: 2px dashed var(--orange-500);
+        }
+
+        .viz-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .viz-stat {
+            background: var(--bg-card);
+            padding: 0.6rem;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .viz-stat .label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .viz-stat .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--orange-600);
+            font-weight: 600;
+        }
+
+        .viz-stat .value.balanced {
+            color: #16a34a;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-btn {
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .tab-btn.active {
+            background: var(--orange-500);
+            border-color: var(--orange-500);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state p {
+            margin-bottom: 1rem;
+        }
+
+        /* Two column layout for results */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SMOTE & SMOTE-NC Calculator</h1>
+            <h2>Machine Learning Lectures SS2026 HKA/EIT</h2>
+            <p class="subtitle">Step-by-step synthetic data generation with full calculations</p>
+        </header>
+
+        <div class="controls-bar">
+            <div class="control-item">
+                <label>Minority Samples (T):</label>
+                <input type="number" id="minorityInput" value="5" min="3" max="15">
+            </div>
+            <div class="control-item">
+                <label>Majority Samples:</label>
+                <input type="number" id="majorityInput" value="20" min="10" max="50">
+            </div>
+            <div class="control-item">
+                <label>SMOTE N%:</label>
+                <input type="number" id="smoteNInput" value="200" min="50" max="500" step="50" title="Amount of SMOTE as percentage. If N<100, only (N/100)*T samples will be SMOTEd.">
+            </div>
+            <div class="control-item">
+                <label>K Neighbors:</label>
+                <input type="number" id="kInput" value="3" min="1" max="5">
+            </div>
+            <input type="hidden" id="algorithmSelect" value="smote">
+            <button class="btn" onclick="generateDataset()">Generate Dataset</button>
+            <button class="btn" onclick="runSMOTE()" id="smoteBtn" style="background: linear-gradient(135deg, var(--orange-600), var(--orange-500));">▶ Run SMOTE</button>
+            <button class="btn" onclick="runSMOTENC()" id="smotencBtn" style="background: linear-gradient(135deg, var(--gray-600), var(--gray-500));">▶ Run SMOTE-NC</button>
+        </div>
+
+        <!-- Algorithm Info Banner -->
+        <div id="algorithmBanner" class="algorithm-banner" style="display: none;">
+            <div class="banner-content">
+                <span class="banner-icon">⚡</span>
+                <span class="banner-text" id="bannerText">Running SMOTE Algorithm</span>
+            </div>
+            <div class="banner-description" id="bannerDescription">
+                Generating synthetic samples using linear interpolation between minority class samples.
+            </div>
+        </div>
+
+        <!-- Step 1: Original Dataset -->
+        <div class="section">
+            <div class="section-header">
+                <h2><span class="step-badge">1</span> Original Imbalanced Dataset</h2>
+                <div class="stats-bar">
+                    <div class="stat-chip">
+                        <span class="label">Total Samples:</span>
+                        <span class="value" id="totalSamples">25</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="label">Minority:</span>
+                        <span class="value" id="minorityCount">5</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="label">Majority:</span>
+                        <span class="value" id="majorityCount">20</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="label">Imbalance Ratio:</span>
+                        <span class="value" id="imbalanceRatio">1:4</span>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('minority')">Minority Class</button>
+                    <button class="tab-btn" onclick="switchTab('majority')">Majority Class</button>
+                    <button class="tab-btn" onclick="switchTab('all')">All Data</button>
+                </div>
+                
+                <div id="minorityTab" class="tab-content active">
+                    <div class="table-container scrollable-table">
+                        <table id="minorityTable">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>X₁ (Feature 1)</th>
+                                    <th>X₂ (Feature 2)</th>
+                                    <th id="catHeader1" style="display: none;">Category</th>
+                                    <th>Class</th>
+                                </tr>
+                            </thead>
+                            <tbody id="minorityTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="majorityTab" class="tab-content">
+                    <div class="table-container scrollable-table">
+                        <table id="majorityTable">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>X₁ (Feature 1)</th>
+                                    <th>X₂ (Feature 2)</th>
+                                    <th id="catHeader2" style="display: none;">Category</th>
+                                    <th>Class</th>
+                                </tr>
+                            </thead>
+                            <tbody id="majorityTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="allTab" class="tab-content">
+                    <div class="table-container scrollable-table">
+                        <table id="allTable">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>X₁ (Feature 1)</th>
+                                    <th>X₂ (Feature 2)</th>
+                                    <th id="catHeader3" style="display: none;">Category</th>
+                                    <th>Class</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Visualization: Before -->
+        <div class="section" id="vizBeforeSection">
+            <div class="section-header">
+                <h2><span class="step-badge">📊</span> Data Visualization: Before Oversampling</h2>
+                <div class="stats-bar">
+                    <div class="stat-chip">
+                        <span class="label">Status:</span>
+                        <span class="value" style="color: #dc2626;">Imbalanced</span>
+                    </div>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.4rem 0.8rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; font-size: 0.8rem;">
+                        <input type="checkbox" id="showCategoriesBefore" onchange="toggleBeforeCategories()" style="accent-color: var(--orange-500);">
+                        <span style="color: var(--text-secondary);">Show Categories (Feature 3)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="section-content">
+                <div class="viz-container">
+                    <div class="viz-box">
+                        <h4>
+                            Feature Space Distribution
+                            <span class="badge before">BEFORE</span>
+                        </h4>
+                        <div class="canvas-wrapper">
+                            <canvas id="beforeCanvas"></canvas>
+                        </div>
+                        <div class="viz-legend">
+                            <div class="viz-legend-item">
+                                <div class="viz-legend-dot minority"></div>
+                                Minority Class
+                            </div>
+                            <div class="viz-legend-item">
+                                <div class="viz-legend-dot majority"></div>
+                                Majority Class
+                            </div>
+                        </div>
+                        <div class="viz-stats">
+                            <div class="viz-stat">
+                                <div class="label">Minority</div>
+                                <div class="value" id="vizMinorityBefore">5</div>
+                            </div>
+                            <div class="viz-stat">
+                                <div class="label">Majority</div>
+                                <div class="value" id="vizMajorityBefore">20</div>
+                            </div>
+                            <div class="viz-stat">
+                                <div class="label">Ratio</div>
+                                <div class="value" id="vizRatioBefore">1:4</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="viz-box">
+                        <h4>Class Distribution</h4>
+                        <div class="canvas-wrapper">
+                            <canvas id="beforeBarCanvas"></canvas>
+                        </div>
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 6px; border-left: 3px solid #f87171;">
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">
+                                <strong style="color: #f87171;">⚠ Problem:</strong> 
+                                The minority class is significantly underrepresented, which can lead to biased model predictions favoring the majority class.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Distance Calculations -->
+        <div class="section" id="distanceSection" style="display: none;">
+            <div class="section-header">
+                <h2><span class="step-badge">2</span> Distance Matrix (Minority Class)</h2>
+                <div class="stats-bar">
+                    <div class="stat-chip">
+                        <span class="label">Distance Formula:</span>
+                        <span class="value" id="distanceType">Euclidean</span>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                <div class="formula-display" style="margin-bottom: 1.5rem;" id="distanceFormula">
+                    <div class="formula-title">Euclidean Distance Formula</div>
+                    <div class="formula">
+                        d(<span class="var">p</span>, <span class="var">q</span>) = √[ (<span class="var">x₁</span> - <span class="var">x₂</span>)² + (<span class="var">y₁</span> - <span class="var">y₂</span>)² ]
+                    </div>
+                </div>
+                
+                <!-- SMOTE-NC Info Box -->
+                <div id="smotencDistanceInfo" class="smotenc-info-box" style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--accent-gray);">
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">SMOTE-NC Distance Modification</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                        For SMOTE-NC, distance calculation only uses <strong>continuous features</strong>. 
+                        Categorical features are handled separately through majority voting when generating synthetic samples.
+                    </p>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; background: var(--bg-tertiary); padding: 0.75rem; border-radius: 6px;">
+                        <span style="color: var(--text-muted);">// For continuous features only:</span><br>
+                        d(p, q) = √[ Σ(continuous_i - continuous_j)² ]
+                    </div>
+                </div>
+                
+                <div class="distance-matrix">
+                    <table id="distanceMatrix">
+                        <thead id="distanceMatrixHead">
+                        </thead>
+                        <tbody id="distanceMatrixBody">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h4 style="color: var(--orange-500); margin-bottom: 0.75rem;">Sample Calculation</h4>
+                    <div id="sampleDistanceCalc" class="calc-breakdown">
+                        <div class="line"><span class="comment">// Click "Run SMOTE" to see calculations</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: K-Nearest Neighbors -->
+        <div class="section" id="knnSection" style="display: none;">
+            <div class="section-header">
+                <h2><span class="step-badge">3</span> K-Nearest Neighbors</h2>
+                <div class="stats-bar">
+                    <div class="stat-chip">
+                        <span class="label">K Value:</span>
+                        <span class="value" id="kValueDisplay">3</span>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table id="knnTable">
+                        <thead>
+                            <tr>
+                                <th>Point Index</th>
+                                <th>Coordinates</th>
+                                <th>K-Nearest Neighbors (sorted by distance)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="knnTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: SMOTE Generation -->
+        <div class="section" id="generationSection" style="display: none;">
+            <div class="section-header">
+                <h2><span class="step-badge">4</span> Synthetic Sample Generation</h2>
+                <div class="stats-bar">
+                    <div class="stat-chip">
+                        <span class="label">T (Minority):</span>
+                        <span class="value" id="tValueDisplay">5</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="label">N%:</span>
+                        <span class="value" id="nPercentDisplay">200%</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="label">To Generate:</span>
+                        <span class="value" id="toGenerateDisplay">5</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="label">Generated:</span>
+                        <span class="value" id="generatedCount">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                <!-- Algorithm explanation box -->
+                <div id="algorithmExplanation" class="formula-display" style="margin-bottom: 1rem; border-left-color: var(--accent-gray);">
+                    <div class="formula-title">SMOTE Algorithm: SMOTE(T, N, k)</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">
+                        <div><strong>Input:</strong></div>
+                        <div style="margin-left: 1rem;">• T = <span id="algT">5</span> (number of minority class samples)</div>
+                        <div style="margin-left: 1rem;">• N = <span id="algN">200</span>% (amount of SMOTE)</div>
+                        <div style="margin-left: 1rem;">• k = <span id="algK">3</span> (number of nearest neighbors)</div>
+                        <div id="nLessThan100Box" style="display: none; margin-top: 0.5rem; padding: 0.5rem; background: var(--accent-orange-bg); border-radius: 4px; border: 1px solid var(--orange-300);">
+                            <div style="color: var(--orange-600); font-weight: 600;">⚠ N &lt; 100%: Applying lines 2-6 of algorithm</div>
+                            <div style="margin-left: 1rem; margin-top: 0.25rem;">Line 3: Randomize the T minority class samples</div>
+                            <div style="margin-left: 1rem;">Line 4: T = (N/100) × T = <span id="algNewT">1</span> samples selected</div>
+                            <div style="margin-left: 1rem;">Line 5: N = 100%</div>
+                            <div style="margin-left: 1rem; margin-top: 0.25rem; color: var(--text-muted);">(Original T was <span id="algOrigT">5</span>, now only <span id="algNewT2">1</span> will be SMOTEd)</div>
+                        </div>
+                        <div style="margin-top: 0.5rem;"><strong>Output:</strong> <span id="algOutput">10</span> synthetic samples</div>
+                        <div style="margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-muted);">
+                            Line 7: N = (int)(N/100) = <span id="algNInt">2</span> → Each selected sample generates <span id="algNPerSample">2</span> synthetic sample(s)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="formula-display" style="margin-bottom: 1.5rem;">
+                    <div class="formula-title">Populate(N, i, nnarray) Function</div>
+                    <div class="formula">
+                        <span class="var">Synthetic[newindex][attr]</span> = <span class="var">Sample[i][attr]</span> + <span class="var">gap</span> × <span class="var">dif</span>
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                        where: dif = Sample[nnarray[nn]][attr] − Sample[i][attr], gap = random(0, 1)
+                    </div>
+                    <div id="smotencPopulateNote" style="display: none; margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); padding: 0.5rem; background: var(--bg-tertiary); border-radius: 4px;">
+                        <strong>SMOTE-NC:</strong> Nominal features are assigned the value occurring in the majority of the k-nearest neighbors.
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="fill" id="progressFill" style="width: 0%"></div>
+                </div>
+
+                <div id="generationSteps">
+                    <div class="empty-state">
+                        <p>Click "Run SMOTE" to start generating synthetic samples</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Final Balanced Dataset -->
+        <div class="section" id="resultSection" style="display: none;">
+            <div class="section-header">
+                <h2><span class="step-badge">5</span> Balanced Dataset (After SMOTE)</h2>
+                <div class="stats-bar">
+                    <div class="stat-chip">
+                        <span class="label">New Total:</span>
+                        <span class="value" id="newTotal">30</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="label">Minority (with synthetic):</span>
+                        <span class="value" id="newMinority">10</span>
+                    </div>
+                    <div class="stat-chip">
+                        <span class="label">New Ratio:</span>
+                        <span class="value" id="newRatio">1:2</span>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                <div class="two-col">
+                    <div>
+                        <h4 style="color: var(--orange-400); margin-bottom: 1rem;">Synthetic Samples Generated</h4>
+                        <div class="table-container scrollable-table">
+                            <table id="syntheticTable">
+                                <thead>
+                                    <tr>
+                                        <th>Index</th>
+                                        <th>X₁</th>
+                                        <th>X₂</th>
+                                        <th id="catHeader4" style="display: none;">Category</th>
+                                        <th>Parent</th>
+                                        <th>Neighbor</th>
+                                        <th>λ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="syntheticTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--orange-400); margin-bottom: 1rem;">Complete Minority Class</h4>
+                        <div class="table-container scrollable-table">
+                            <table id="completeMinorityTable">
+                                <thead>
+                                    <tr>
+                                        <th>Index</th>
+                                        <th>X₁</th>
+                                        <th>X₂</th>
+                                        <th id="catHeader5" style="display: none;">Category</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="completeMinorityTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Visualization: After -->
+        <div class="section" id="vizAfterSection" style="display: none;">
+            <div class="section-header">
+                <h2><span class="step-badge">📊</span> Data Visualization: After Oversampling</h2>
+                <div class="stats-bar">
+                    <div class="stat-chip">
+                        <span class="label">Status:</span>
+                        <span class="value" style="color: #4ade80;">More Balanced</span>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                <div class="viz-container">
+                    <div class="viz-box">
+                        <h4>
+                            Feature Space Distribution
+                            <span class="badge after">AFTER</span>
+                        </h4>
+                        <div class="canvas-wrapper">
+                            <canvas id="afterCanvas"></canvas>
+                        </div>
+                        <div class="viz-legend">
+                            <div class="viz-legend-item">
+                                <div class="viz-legend-dot minority"></div>
+                                Original Minority
+                            </div>
+                            <div class="viz-legend-item">
+                                <div class="viz-legend-dot synthetic"></div>
+                                Synthetic Samples
+                            </div>
+                            <div class="viz-legend-item">
+                                <div class="viz-legend-dot majority"></div>
+                                Majority Class
+                            </div>
+                        </div>
+                        <div class="viz-stats">
+                            <div class="viz-stat">
+                                <div class="label">Original</div>
+                                <div class="value" id="vizOriginalAfter">5</div>
+                            </div>
+                            <div class="viz-stat">
+                                <div class="label">Synthetic</div>
+                                <div class="value" style="color: var(--orange-300);" id="vizSyntheticAfter">5</div>
+                            </div>
+                            <div class="viz-stat">
+                                <div class="label">New Ratio</div>
+                                <div class="value balanced" id="vizRatioAfter">1:2</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="viz-box">
+                        <h4>Class Distribution Comparison</h4>
+                        <div class="canvas-wrapper">
+                            <canvas id="afterBarCanvas"></canvas>
+                        </div>
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: #dcfce7; border-radius: 6px; border-left: 3px solid #16a34a;">
+                            <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                                <strong style="color: #16a34a;">✓ Result:</strong> 
+                                SMOTE has generated synthetic samples to balance the dataset. The minority class is now better represented, improving model training.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Side by Side Comparison -->
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="color: var(--orange-500); margin-bottom: 1rem;">Before vs After Comparison</h4>
+                    <div class="viz-container">
+                        <div class="canvas-wrapper" style="border: 1px solid var(--border-color); border-radius: 8px;">
+                            <canvas id="comparisonCanvas"></canvas>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div class="calc-card" style="margin: 0;">
+                                <h4>Improvement Metrics</h4>
+                                <div class="calc-result">
+                                    <span class="label">Minority Increase</span>
+                                    <span class="value" id="minorityIncrease">+100%</span>
+                                </div>
+                                <div class="calc-result">
+                                    <span class="label">Imbalance Reduction</span>
+                                    <span class="value" id="imbalanceReduction">50%</span>
+                                </div>
+                                <div class="calc-result">
+                                    <span class="label">Ratio Before</span>
+                                    <span class="value" id="compRatioBefore">1:4</span>
+                                </div>
+                                <div class="calc-result">
+                                    <span class="label">Ratio After</span>
+                                    <span class="value" style="color: #16a34a;" id="compRatioAfter">1:2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let state = {
+            algorithm: 'smote',
+            minorityData: [],
+            majorityData: [],
+            syntheticData: [],
+            distanceMatrix: [],
+            kNeighbors: [],
+            k: 3
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            generateDataset();
+        });
+        
+        // Also initialize on window load (ensures CSS is applied)
+        window.addEventListener('load', () => {
+            setTimeout(() => drawBeforeVisualization(), 200);
+        });
+        
+        // Redraw on window resize
+        window.addEventListener('resize', () => {
+            drawBeforeVisualization();
+            if (state.syntheticData.length > 0) {
+                drawAfterVisualization();
+            }
+        });
+
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        // Generate initial dataset
+        function generateDataset() {
+            const minorityCount = parseInt(document.getElementById('minorityInput').value);
+            const majorityCount = parseInt(document.getElementById('majorityInput').value);
+            state.algorithm = document.getElementById('algorithmSelect').value;
+            state.k = parseInt(document.getElementById('kInput').value);
+            
+            // Show/hide category columns
+            const showCat = state.algorithm === 'smotenc';
+            document.querySelectorAll('[id^="catHeader"]').forEach(el => {
+                el.style.display = showCat ? '' : 'none';
+            });
+            
+            // Generate minority class (clustered around a point)
+            state.minorityData = [];
+            const minCenterX = 2.5;
+            const minCenterY = 7.5;
+            
+            for (let i = 0; i < minorityCount; i++) {
+                state.minorityData.push({
+                    id: i,
+                    x1: +(minCenterX + (Math.random() - 0.5) * 2).toFixed(4),
+                    x2: +(minCenterY + (Math.random() - 0.5) * 2).toFixed(4),
+                    category: Math.random() > 0.5 ? 'A' : 'B',
+                    class: 'minority'
+                });
+            }
+            
+            // Generate majority class
+            state.majorityData = [];
+            const majCenterX = 7;
+            const majCenterY = 3;
+            
+            for (let i = 0; i < majorityCount; i++) {
+                state.majorityData.push({
+                    id: minorityCount + i,
+                    x1: +(majCenterX + (Math.random() - 0.5) * 4).toFixed(4),
+                    x2: +(majCenterY + (Math.random() - 0.5) * 4).toFixed(4),
+                    category: Math.random() > 0.5 ? 'A' : 'B',
+                    class: 'majority'
+                });
+            }
+            
+            state.syntheticData = [];
+            
+            // Update UI
+            updateDataTables();
+            updateStats();
+            
+            // Draw before visualization with longer delay to ensure DOM is ready
+            setTimeout(() => {
+                drawBeforeVisualization();
+            }, 300);
+            
+            // Hide later sections
+            document.getElementById('distanceSection').style.display = 'none';
+            document.getElementById('knnSection').style.display = 'none';
+            document.getElementById('generationSection').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('vizAfterSection').style.display = 'none';
+            document.getElementById('algorithmBanner').style.display = 'none';
+        }
+
+        function updateDataTables() {
+            const showCat = state.algorithm === 'smotenc';
+            
+            // Minority table
+            document.getElementById('minorityTableBody').innerHTML = state.minorityData.map(d => `
+                <tr class="minority">
+                    <td>${d.id}</td>
+                    <td>${d.x1}</td>
+                    <td>${d.x2}</td>
+                    ${showCat ? `<td><span class="cat-badge cat-${d.category.toLowerCase()}">${d.category}</span></td>` : ''}
+                    <td><span class="class-badge minority">Minority</span></td>
+                </tr>
+            `).join('');
+            
+            // Majority table
+            document.getElementById('majorityTableBody').innerHTML = state.majorityData.map(d => `
+                <tr>
+                    <td>${d.id}</td>
+                    <td>${d.x1}</td>
+                    <td>${d.x2}</td>
+                    ${showCat ? `<td><span class="cat-badge cat-${d.category.toLowerCase()}">${d.category}</span></td>` : ''}
+                    <td><span class="class-badge majority">Majority</span></td>
+                </tr>
+            `).join('');
+            
+            // All data table
+            const allData = [...state.minorityData, ...state.majorityData];
+            document.getElementById('allTableBody').innerHTML = allData.map(d => `
+                <tr class="${d.class}">
+                    <td>${d.id}</td>
+                    <td>${d.x1}</td>
+                    <td>${d.x2}</td>
+                    ${showCat ? `<td><span class="cat-badge cat-${d.category.toLowerCase()}">${d.category}</span></td>` : ''}
+                    <td><span class="class-badge ${d.class}">${d.class.charAt(0).toUpperCase() + d.class.slice(1)}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStats() {
+            const minority = state.minorityData.length;
+            const majority = state.majorityData.length;
+            const total = minority + majority;
+            const ratio = (majority / minority).toFixed(1);
+            
+            document.getElementById('totalSamples').textContent = total;
+            document.getElementById('minorityCount').textContent = minority;
+            document.getElementById('majorityCount').textContent = majority;
+            document.getElementById('imbalanceRatio').textContent = `1:${ratio}`;
+        }
+
+        // Calculate Euclidean distance (for SMOTE)
+        function euclideanDistance(p1, p2) {
+            return Math.sqrt(Math.pow(p1.x1 - p2.x1, 2) + Math.pow(p1.x2 - p2.x2, 2));
+        }
+        
+        // Calculate SMOTE-NC distance with categorical penalty
+        function smoteNCDistance(p1, p2, medianStd) {
+            // Continuous features distance
+            const continuousDist = Math.pow(p1.x1 - p2.x1, 2) + Math.pow(p1.x2 - p2.x2, 2);
+            
+            // Categorical penalty: if categories differ, add (median_std)²
+            const categoricalPenalty = (p1.category !== p2.category) ? Math.pow(medianStd, 2) : 0;
+            
+            return Math.sqrt(continuousDist + categoricalPenalty);
+        }
+        
+        // Calculate median of standard deviations for continuous features (MINORITY CLASS ONLY)
+        function calculateMedianStd(data) {
+            // Calculate std for X1 (minority class)
+            const x1Values = data.map(d => d.x1);
+            const x1Mean = x1Values.reduce((a, b) => a + b, 0) / x1Values.length;
+            const x1Std = Math.sqrt(x1Values.reduce((sum, val) => sum + Math.pow(val - x1Mean, 2), 0) / x1Values.length);
+            
+            // Calculate std for X2 (minority class)
+            const x2Values = data.map(d => d.x2);
+            const x2Mean = x2Values.reduce((a, b) => a + b, 0) / x2Values.length;
+            const x2Std = Math.sqrt(x2Values.reduce((sum, val) => sum + Math.pow(val - x2Mean, 2), 0) / x2Values.length);
+            
+            // Store individual stds for display
+            state.x1Std = x1Std;
+            state.x2Std = x2Std;
+            
+            // Return median (with 2 values, it's the average)
+            return (x1Std + x2Std) / 2;
+        }
+
+        // Run SMOTE-NC algorithm
+        function runSMOTENC() {
+            // Set algorithm to SMOTE-NC
+            document.getElementById('algorithmSelect').value = 'smotenc';
+            state.algorithm = 'smotenc';
+            
+            // Show category columns
+            document.querySelectorAll('[id^="catHeader"]').forEach(el => {
+                el.style.display = '';
+            });
+            
+            // Auto-check the show categories checkbox
+            const showCatCheckbox = document.getElementById('showCategoriesBefore');
+            if (showCatCheckbox) {
+                showCatCheckbox.checked = true;
+            }
+            
+            // Update button states
+            document.getElementById('smoteBtn').style.background = 'var(--gray-700)';
+            document.getElementById('smotencBtn').style.background = 'linear-gradient(135deg, var(--orange-600), var(--orange-500))';
+            
+            // Show algorithm banner
+            const banner = document.getElementById('algorithmBanner');
+            banner.style.display = 'block';
+            banner.className = 'algorithm-banner smotenc';
+            document.getElementById('bannerText').textContent = 'Running SMOTE-NC Algorithm';
+            document.getElementById('bannerDescription').innerHTML = `
+                <strong>SMOTE-NC (Nominal and Continuous)</strong> handles mixed data types. 
+                For categorical features, the synthetic sample inherits the most frequent category among its k-nearest neighbors (majority voting).
+            `;
+            
+            // Regenerate data with categories visible
+            updateDataTables();
+            
+            // Run the algorithm
+            runSMOTEAlgorithm();
+        }
+
+        // Run SMOTE algorithm
+        async function runSMOTE() {
+            // Set algorithm to SMOTE
+            document.getElementById('algorithmSelect').value = 'smote';
+            state.algorithm = 'smote';
+            
+            // Hide category columns
+            document.querySelectorAll('[id^="catHeader"]').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Uncheck the show categories checkbox
+            const showCatCheckbox = document.getElementById('showCategoriesBefore');
+            if (showCatCheckbox) {
+                showCatCheckbox.checked = false;
+            }
+            
+            // Update button states
+            document.getElementById('smoteBtn').style.background = 'linear-gradient(135deg, var(--orange-600), var(--orange-500))';
+            document.getElementById('smotencBtn').style.background = 'var(--gray-700)';
+            
+            // Show algorithm banner
+            const banner = document.getElementById('algorithmBanner');
+            banner.style.display = 'block';
+            banner.className = 'algorithm-banner';
+            document.getElementById('bannerText').textContent = 'Running SMOTE Algorithm';
+            document.getElementById('bannerDescription').innerHTML = `
+                <strong>SMOTE (Synthetic Minority Oversampling Technique)</strong> - Chawla et al. (2002)<br>
+                Creates synthetic samples by interpolating between minority class samples and their k-nearest neighbors:<br>
+                <code style="background: var(--bg-tertiary); padding: 0.2rem 0.4rem; border-radius: 4px; color: var(--text-primary);">Synthetic[attr] = Sample[i][attr] + gap × (Sample[nnarray[nn]][attr] − Sample[i][attr])</code>
+            `;
+            
+            // Update tables
+            updateDataTables();
+            
+            // Run the algorithm
+            runSMOTEAlgorithm();
+        }
+
+        // Implements SMOTE(T, N, k) exactly as described in Chawla et al. (2002)
+        async function runSMOTEAlgorithm() {
+            state.k = parseInt(document.getElementById('kInput').value);
+            let T = state.minorityData.length; // Line 10: Number of minority class samples
+            let N = parseInt(document.getElementById('smoteNInput').value); // Amount of SMOTE N%
+            const originalT = T;
+            const originalN = N;
+            
+            // Store selected samples (may be subset if N < 100)
+            let selectedSamples = [...state.minorityData];
+            let showNLessThan100 = false;
+            
+            // Lines 2-6: If N < 100%, randomize and select subset
+            if (N < 100) {
+                showNLessThan100 = true;
+                // Line 3: Randomize the T minority class samples
+                selectedSamples = shuffleArray([...state.minorityData]);
+                // Line 4: T = (N/100) * T
+                T = Math.floor((N / 100) * T);
+                selectedSamples = selectedSamples.slice(0, T);
+                // Line 5: N = 100
+                N = 100;
+            }
+            
+            // Line 7: N = (int)(N/100) - amount of SMOTE in integral multiples of 100
+            const N_multiplier = Math.floor(N / 100);
+            
+            // Total synthetic samples = (N/100) * T (after adjustment)
+            const syntheticCount = N_multiplier * T;
+            
+            // Store for display and later use
+            state.T = T;
+            state.originalT = originalT;
+            state.N = originalN;
+            state.N_multiplier = N_multiplier;
+            state.selectedSamples = selectedSamples;
+            
+            // Step 2: Calculate distance matrix
+            calculateDistanceMatrix();
+            document.getElementById('distanceSection').style.display = 'block';
+            document.getElementById('distanceSection').scrollIntoView({ behavior: 'smooth' });
+            
+            await sleep(500);
+            
+            // Step 3: Find K-nearest neighbors for ALL minority samples (Line 13-14)
+            findKNearestNeighbors();
+            document.getElementById('knnSection').style.display = 'block';
+            document.getElementById('kValueDisplay').textContent = state.k;
+            
+            await sleep(500);
+            
+            // Step 4: Generate synthetic samples
+            document.getElementById('generationSection').style.display = 'block';
+            
+            // Update algorithm parameters display
+            // Always show ORIGINAL values in the Input section
+            document.getElementById('tValueDisplay').textContent = originalT;
+            document.getElementById('nPercentDisplay').textContent = originalN + '%';
+            document.getElementById('toGenerateDisplay').textContent = syntheticCount;
+            document.getElementById('algT').textContent = originalT;  // Show original T
+            document.getElementById('algN').textContent = originalN;
+            document.getElementById('algK').textContent = state.k;
+            document.getElementById('algOutput').textContent = syntheticCount;
+            
+            // Show/hide N < 100 warning box
+            const nLessThan100Box = document.getElementById('nLessThan100Box');
+            if (showNLessThan100) {
+                nLessThan100Box.style.display = 'block';
+                document.getElementById('algOrigT').textContent = originalT;
+                document.getElementById('algNewT').textContent = T;
+                document.getElementById('algNewT2').textContent = T;
+                // After N<100 adjustment, N becomes 100, so N_multiplier = 1
+                document.getElementById('algNInt').textContent = '1 (after N set to 100%)';
+                document.getElementById('algNPerSample').textContent = '1';
+            } else {
+                nLessThan100Box.style.display = 'none';
+                document.getElementById('algNInt').textContent = N_multiplier;
+                document.getElementById('algNPerSample').textContent = N_multiplier;
+            }
+            
+            // Show/hide SMOTE-NC populate note
+            document.getElementById('smotencPopulateNote').style.display = state.algorithm === 'smotenc' ? 'block' : 'none';
+            
+            // Update section header based on algorithm
+            const genHeader = document.querySelector('#generationSection .section-header h2');
+            genHeader.innerHTML = `<span class="step-badge">4</span> ${state.algorithm === 'smotenc' ? 'SMOTE-NC' : 'SMOTE'} Synthetic Sample Generation`;
+            
+            // Generate synthetic samples using the Populate function logic
+            await generateSyntheticSamples(selectedSamples, N_multiplier);
+            
+            // Step 5: Show results
+            document.getElementById('resultSection').style.display = 'block';
+            updateResultSection();
+            
+            // Draw after visualization
+            setTimeout(() => drawAfterVisualization(), 100);
+        }
+        
+        // Fisher-Yates shuffle
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Run SMOTE algorithm (old function removed, replaced above)
+
+        function calculateDistanceMatrix() {
+            const minority = state.minorityData;
+            const n = minority.length;
+            const showCat = state.algorithm === 'smotenc';
+            
+            // Calculate median standard deviation for SMOTE-NC
+            let medianStd = 0;
+            if (showCat) {
+                medianStd = calculateMedianStd(minority);
+                state.medianStd = medianStd; // Store for later use
+            }
+            
+            // Update distance info display
+            document.getElementById('distanceType').textContent = showCat ? 'SMOTE-NC (with categorical penalty)' : 'Euclidean';
+            document.getElementById('smotencDistanceInfo').style.display = showCat ? 'block' : 'none';
+            
+            if (showCat) {
+                document.getElementById('distanceFormula').innerHTML = `
+                    <div class="formula-title">SMOTE-NC Distance Formula (from Chawla et al. 2002)</div>
+                    <div class="formula">
+                        d(<span class="var">p</span>, <span class="var">q</span>) = √[ Σ(continuous features)² + (median × #differing_nominal)² ]
+                    </div>
+                    <div style="margin-top: 0.75rem; padding: 0.75rem; background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                            <strong>Step 1 - Median Computation:</strong>
+                        </div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-muted);">
+                            Compute the median of standard deviations of all continuous features for the minority class.
+                        </div>
+                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: var(--accent-orange-bg); border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: var(--orange-600); font-weight: 600; margin-bottom: 0.25rem;">
+                                Minority Class (n=${minority.length}):
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">
+                                σ<sub>X₁</sub> = ${state.x1Std.toFixed(4)} | 
+                                σ<sub>X₂</sub> = ${state.x2Std.toFixed(4)} | 
+                                <strong style="color: var(--orange-600);">Median = ${medianStd.toFixed(4)}</strong>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.75rem; margin-bottom: 0.5rem;">
+                            <strong>Step 2 - Nearest Neighbor Computation:</strong>
+                        </div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-muted);">
+                            For every differing nominal feature, include the median in the Euclidean distance computation.
+                        </div>
+                    </div>
+                `;
+                
+                // Update the SMOTE-NC info box
+                document.getElementById('smotencDistanceInfo').innerHTML = `
+                    <h4 style="color: var(--text-secondary); margin-bottom: 0.5rem;">📐 SMOTE-NC Algorithm (Chawla et al. 2002)</h4>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                        <p><strong>1. Median computation:</strong> Compute the median of standard deviations of all continuous features for the minority class. If the nominal features differ between a sample and its potential nearest neighbors, then this median is included in the Euclidean distance computation.</p>
+                        <p style="margin-top: 0.5rem;"><strong>2. Nearest neighbor computation:</strong> Compute Euclidean distance using the continuous feature space. For every differing nominal feature, include the median of the standard deviations in the distance computation.</p>
+                        <p style="margin-top: 0.5rem;"><strong>3. Populate synthetic sample:</strong> Continuous features are created using SMOTE interpolation. The nominal feature is given the value occurring in the majority of the k-nearest neighbors.</p>
+                    </div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; background: var(--bg-card); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-muted); margin-bottom: 0.5rem;">// Standard deviations (minority class, n=${minority.length}):</div>
+                        <div>σ<sub>X₁</sub> = <span style="color: var(--orange-600);">${state.x1Std.toFixed(4)}</span></div>
+                        <div>σ<sub>X₂</sub> = <span style="color: var(--orange-600);">${state.x2Std.toFixed(4)}</span></div>
+                        <div style="margin-top: 0.5rem;">median = median(${state.x1Std.toFixed(4)}, ${state.x2Std.toFixed(4)}) = <span style="color: var(--orange-600);">${medianStd.toFixed(4)}</span></div>
+                        <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px dashed var(--border-color);">
+                            <div style="color: var(--text-muted);">// Distance with nominal penalty:</div>
+                            <div>d² = Σ(continuous)² + (#differing_nominal × median)²</div>
+                            <div style="margin-top: 0.25rem;">d² = (X₁ᵖ−X₁ᵍ)² + (X₂ᵖ−X₂ᵍ)² + (${medianStd.toFixed(4)})² <span style="color: var(--text-muted);">if Category differs</span></div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; padding: 0.5rem; background: var(--accent-orange-bg); border-radius: 4px;">
+                        💡 "We use median to penalize the difference of nominal features by an amount that is related to the typical difference in continuous feature values."
+                    </p>
+                `;
+            } else {
+                document.getElementById('distanceFormula').innerHTML = `
+                    <div class="formula-title">Euclidean Distance Formula</div>
+                    <div class="formula">
+                        d(<span class="var">p</span>, <span class="var">q</span>) = √[ (<span class="var">x₁</span> - <span class="var">x₂</span>)² + (<span class="var">y₁</span> - <span class="var">y₂</span>)² ]
+                    </div>
+                `;
+            }
+            
+            state.distanceMatrix = [];
+            
+            for (let i = 0; i < n; i++) {
+                state.distanceMatrix[i] = [];
+                for (let j = 0; j < n; j++) {
+                    if (i === j) {
+                        state.distanceMatrix[i][j] = 0;
+                    } else {
+                        if (showCat) {
+                            state.distanceMatrix[i][j] = smoteNCDistance(minority[i], minority[j], medianStd);
+                        } else {
+                            state.distanceMatrix[i][j] = euclideanDistance(minority[i], minority[j]);
+                        }
+                    }
+                }
+            }
+            
+            // Render distance matrix with category indicators
+            let headerRow = '<tr><th></th>' + minority.map(d => {
+                if (showCat) {
+                    return `<th>P${d.id}<br><span style="font-size:0.65rem;color:${d.category === 'A' ? 'var(--orange-500)' : 'var(--accent-gray)'};">[${d.category}]</span></th>`;
+                }
+                return `<th>P${d.id}</th>`;
+            }).join('') + '</tr>';
+            document.getElementById('distanceMatrixHead').innerHTML = headerRow;
+            
+            let bodyHTML = '';
+            for (let i = 0; i < n; i++) {
+                if (showCat) {
+                    bodyHTML += `<tr><th>P${minority[i].id}<br><span style="font-size:0.65rem;color:${minority[i].category === 'A' ? 'var(--orange-500)' : 'var(--accent-gray)'};">[${minority[i].category}]</span></th>`;
+                } else {
+                    bodyHTML += `<tr><th>P${minority[i].id}</th>`;
+                }
+                for (let j = 0; j < n; j++) {
+                    const val = state.distanceMatrix[i][j];
+                    let cls = i === j ? 'self' : '';
+                    
+                    // Highlight cells where categories differ (penalty applied)
+                    if (showCat && i !== j && minority[i].category !== minority[j].category) {
+                        cls += ' category-diff';
+                    }
+                    
+                    bodyHTML += `<td class="${cls}">${val.toFixed(4)}</td>`;
+                }
+                bodyHTML += '</tr>';
+            }
+            document.getElementById('distanceMatrixBody').innerHTML = bodyHTML;
+            
+            // Sample calculation
+            if (n >= 2) {
+                const p1 = minority[0];
+                const p2 = minority[1];
+                const dist = state.distanceMatrix[0][1];
+                const categoriesDiffer = p1.category !== p2.category;
+                
+                let sampleCalcHTML = `
+                    <div class="line"><span class="line-num">1</span><span class="comment">// Distance between P${p1.id} and P${p2.id}</span></div>
+                    <div class="line"><span class="line-num">2</span><span class="keyword">P${p1.id}</span> = (<span class="value">${p1.x1}</span>, <span class="value">${p1.x2}</span>)${showCat ? ` <span style="color: ${p1.category === 'A' ? 'var(--orange-500)' : 'var(--accent-gray)'};">[Cat: ${p1.category}]</span>` : ''}</div>
+                    <div class="line"><span class="line-num">3</span><span class="keyword">P${p2.id}</span> = (<span class="value">${p2.x1}</span>, <span class="value">${p2.x2}</span>)${showCat ? ` <span style="color: ${p2.category === 'A' ? 'var(--orange-500)' : 'var(--accent-gray)'};">[Cat: ${p2.category}]</span>` : ''}</div>
+                    <div class="line"><span class="line-num">4</span></div>
+                `;
+                
+                if (showCat) {
+                    const contDist = Math.pow(p1.x1 - p2.x1, 2) + Math.pow(p1.x2 - p2.x2, 2);
+                    const penalty = categoriesDiffer ? medianStd : 0;
+                    const penaltySq = penalty * penalty;
+                    
+                    sampleCalcHTML += `
+                        <div class="line"><span class="line-num">5</span><span class="comment">// SMOTE-NC: Continuous features + Categorical penalty</span></div>
+                        <div class="line"><span class="line-num">6</span><span class="comment">// Step 1: Continuous distance²</span></div>
+                        <div class="line"><span class="line-num">7</span>cont² = (<span class="value">${p1.x1}</span> - <span class="value">${p2.x1}</span>)² + (<span class="value">${p1.x2}</span> - <span class="value">${p2.x2}</span>)²</div>
+                        <div class="line"><span class="line-num">8</span>cont² = (<span class="value">${(p1.x1 - p2.x1).toFixed(4)}</span>)² + (<span class="value">${(p1.x2 - p2.x2).toFixed(4)}</span>)²</div>
+                        <div class="line"><span class="line-num">9</span>cont² = <span class="value">${Math.pow(p1.x1 - p2.x1, 2).toFixed(4)}</span> + <span class="value">${Math.pow(p1.x2 - p2.x2, 2).toFixed(4)}</span> = <span class="value">${contDist.toFixed(4)}</span></div>
+                        <div class="line"><span class="line-num">10</span></div>
+                        <div class="line"><span class="line-num">11</span><span class="comment">// Step 2: Categorical penalty</span></div>
+                        <div class="line"><span class="line-num">12</span>Categories: ${p1.category} ${categoriesDiffer ? '≠' : '='} ${p2.category} → ${categoriesDiffer ? '<span style="color: #dc2626;">Different!</span>' : '<span style="color: #16a34a;">Same!</span>'}</div>
+                        <div class="line"><span class="line-num">13</span>median_std = <span class="value">${medianStd.toFixed(4)}</span></div>
+                        <div class="line"><span class="line-num">14</span>penalty² = ${categoriesDiffer ? `(${medianStd.toFixed(4)})² = <span class="value">${penaltySq.toFixed(4)}</span>` : '<span class="value">0</span> (same category)'}</div>
+                        <div class="line"><span class="line-num">15</span></div>
+                        <div class="line"><span class="line-num">16</span><span class="comment">// Step 3: Final distance</span></div>
+                        <div class="line"><span class="line-num">17</span>d² = cont² + penalty² = <span class="value">${contDist.toFixed(4)}</span> + <span class="value">${penaltySq.toFixed(4)}</span> = <span class="value">${(contDist + penaltySq).toFixed(4)}</span></div>
+                        <div class="line"><span class="line-num">18</span><span class="result">d = √${(contDist + penaltySq).toFixed(4)} = ${dist.toFixed(4)}</span></div>
+                    `;
+                } else {
+                    sampleCalcHTML += `
+                        <div class="line"><span class="line-num">5</span>d = √[(<span class="value">${p1.x1}</span> - <span class="value">${p2.x1}</span>)² + (<span class="value">${p1.x2}</span> - <span class="value">${p2.x2}</span>)²]</div>
+                        <div class="line"><span class="line-num">6</span>d = √[(<span class="value">${(p1.x1 - p2.x1).toFixed(4)}</span>)² + (<span class="value">${(p1.x2 - p2.x2).toFixed(4)}</span>)²]</div>
+                        <div class="line"><span class="line-num">7</span>d = √[<span class="value">${Math.pow(p1.x1 - p2.x1, 2).toFixed(4)}</span> + <span class="value">${Math.pow(p1.x2 - p2.x2, 2).toFixed(4)}</span>]</div>
+                        <div class="line"><span class="line-num">8</span>d = √<span class="value">${(Math.pow(p1.x1 - p2.x1, 2) + Math.pow(p1.x2 - p2.x2, 2)).toFixed(4)}</span></div>
+                        <div class="line"><span class="line-num">9</span><span class="result">d = ${dist.toFixed(4)}</span></div>
+                    `;
+                }
+                
+                document.getElementById('sampleDistanceCalc').innerHTML = sampleCalcHTML;
+            }
+        }
+
+        function findKNearestNeighbors() {
+            const minority = state.minorityData;
+            const k = state.k;
+            
+            state.kNeighbors = [];
+            
+            for (let i = 0; i < minority.length; i++) {
+                const distances = [];
+                for (let j = 0; j < minority.length; j++) {
+                    if (i !== j) {
+                        distances.push({
+                            index: j,
+                            point: minority[j],
+                            distance: state.distanceMatrix[i][j]
+                        });
+                    }
+                }
+                distances.sort((a, b) => a.distance - b.distance);
+                state.kNeighbors[i] = distances.slice(0, k);
+            }
+            
+            // Render KNN table
+            let html = '';
+            for (let i = 0; i < minority.length; i++) {
+                const point = minority[i];
+                const neighbors = state.kNeighbors[i];
+                
+                html += `
+                    <tr>
+                        <td>P${point.id}</td>
+                        <td>(${point.x1}, ${point.x2})</td>
+                        <td>
+                            ${neighbors.map((n, idx) => `
+                                <span style="display: inline-block; margin-right: 0.5rem; padding: 0.25rem 0.5rem; background: var(--bg-tertiary); border-radius: 4px; font-size: 0.8rem;">
+                                    <span style="color: var(--orange-500);">${idx + 1}.</span> P${n.point.id} 
+                                    <span style="color: var(--text-muted);">(d=${n.distance.toFixed(3)})</span>
+                                </span>
+                            `).join('')}
+                        </td>
+                    </tr>
+                `;
+            }
+            document.getElementById('knnTableBody').innerHTML = html;
+            
+            // Highlight k-neighbors in distance matrix
+            const matrixRows = document.querySelectorAll('#distanceMatrixBody tr');
+            matrixRows.forEach((row, i) => {
+                const cells = row.querySelectorAll('td');
+                state.kNeighbors[i].forEach(n => {
+                    cells[n.index].classList.add('k-neighbor');
+                });
+            });
+        }
+
+        // Implements the SMOTE Populate(N, i, nnarray) function from Chawla et al. (2002)
+        // Lines 17-27 of the algorithm
+        async function generateSyntheticSamples(selectedSamples, N_multiplier) {
+            state.syntheticData = [];
+            const stepsContainer = document.getElementById('generationSteps');
+            stepsContainer.innerHTML = '';
+            
+            const showCat = state.algorithm === 'smotenc';
+            let newindex = 0; // Line 11: keeps count of synthetic samples generated
+            const T = selectedSamples.length;
+            const totalToGenerate = T * N_multiplier;
+            
+            // Line 13: for i ← 1 to T
+            for (let i = 0; i < T; i++) {
+                const sample = selectedSamples[i];
+                // Find the index in the original minorityData to get correct k-NN
+                const originalIdx = state.minorityData.findIndex(s => s.id === sample.id);
+                const neighbors = state.kNeighbors[originalIdx]; // nnarray for sample i
+                
+                // Line 15: Populate(N, i, nnarray)
+                // Lines 17-26: while N ≠ 0
+                let N_remaining = N_multiplier;
+                
+                while (N_remaining > 0) {
+                    // Line 18: Choose a random number between 1 and k, call it nn
+                    const nn = Math.floor(Math.random() * state.k);
+                    const neighborData = neighbors[nn];
+                    const neighbor = neighborData.point;
+                    
+                    // Line 21: gap = random number between 0 and 1
+                    const gap = Math.random();
+                    
+                    // Lines 19-22: for attr ← 1 to numattrs
+                    // dif = Sample[nnarray[nn]][attr] − Sample[i][attr]
+                    // Synthetic[newindex][attr] = Sample[i][attr] + gap * dif
+                    const dif_x1 = neighbor.x1 - sample.x1;
+                    const dif_x2 = neighbor.x2 - sample.x2;
+                    const newX1 = sample.x1 + gap * dif_x1;
+                    const newX2 = sample.x2 + gap * dif_x2;
+                    
+                    // For SMOTE-NC: nominal feature = value occurring in majority of k-NN
+                    let category = null;
+                    let categoryVotes = null;
+                    if (showCat) {
+                        categoryVotes = { A: 0, B: 0 };
+                        neighbors.forEach(n => categoryVotes[n.point.category]++);
+                        category = categoryVotes.A >= categoryVotes.B ? 'A' : 'B';
+                    }
+                    
+                    const synthetic = {
+                        id: `S${newindex}`,
+                        x1: +newX1.toFixed(4),
+                        x2: +newX2.toFixed(4),
+                        category: category,
+                        parentId: sample.id,
+                        parentIdx: i,
+                        neighborId: neighbor.id,
+                        neighborIdx: nn,
+                        gap: gap
+                    };
+                    
+                    state.syntheticData.push(synthetic);
+                    
+                    // Build k-neighbors list HTML showing which was selected (nn)
+                    const kNeighborsListHTML = neighbors.map((n, idx) => {
+                        const isSelected = idx === nn;
+                        return `<span style="display: inline-block; margin: 0.15rem; padding: 0.25rem 0.5rem; background: ${isSelected ? 'var(--orange-500)' : 'var(--bg-tertiary)'}; color: ${isSelected ? 'white' : 'var(--text-secondary)'}; border-radius: 4px; font-size: 0.75rem; ${isSelected ? 'font-weight: 600;' : ''}">
+                            ${idx + 1}. P${n.point.id} (d=${n.distance.toFixed(3)})${isSelected ? ' ✓' : ''}
+                        </span>`;
+                    }).join('');
+                    
+                    // Create step visualization matching paper's algorithm exactly
+                    const stepHTML = `
+                        <div class="generation-step animate-in" id="genStep${newindex}">
+                            <h4><span class="step-number">${newindex + 1}</span> Populate(N=${N_multiplier}, i=${i}, nnarray) → Synthetic[${newindex}]</h4>
+                            
+                            <div class="calc-breakdown">
+                                <div class="line"><span class="line-num">17</span><span class="comment">// while N ≠ 0 (N_remaining = ${N_remaining})</span></div>
+                                <div class="line"><span class="line-num">18</span><span class="keyword">nn</span> = random(1, k) = <span class="value">${nn + 1}</span> <span class="comment">// Choose one of the k nearest neighbors of i</span></div>
+                                <div class="line"><span class="line-num"></span></div>
+                                <div class="line"><span class="line-num"></span><span class="comment">// Sample[i] = P${sample.id}:</span></div>
+                                <div class="line"><span class="line-num"></span><span class="keyword">Sample[${i}]</span> = (<span class="value">${sample.x1}</span>, <span class="value">${sample.x2}</span>)${showCat ? ` <span style="color: ${sample.category === 'A' ? 'var(--orange-500)' : 'var(--accent-gray)'};">[${sample.category}]</span>` : ''}</div>
+                                <div class="line"><span class="line-num"></span></div>
+                                <div class="line"><span class="line-num"></span><span class="comment">// nnarray (k=${state.k} nearest neighbors):</span></div>
+                                <div class="line"><span class="line-num"></span>${kNeighborsListHTML}</div>
+                                <div class="line"><span class="line-num"></span></div>
+                                <div class="line"><span class="line-num"></span><span class="comment">// Sample[nnarray[nn]] = Sample[nnarray[${nn + 1}]] = P${neighbor.id}:</span></div>
+                                <div class="line"><span class="line-num"></span><span class="keyword">Sample[nnarray[${nn + 1}]]</span> = (<span class="value">${neighbor.x1}</span>, <span class="value">${neighbor.x2}</span>)${showCat ? ` <span style="color: ${neighbor.category === 'A' ? 'var(--orange-500)' : 'var(--accent-gray)'};">[${neighbor.category}]</span>` : ''}</div>
+                                <div class="line"><span class="line-num"></span></div>
+                                <div class="line"><span class="line-num">19</span><span class="comment">// for attr ← 1 to numattrs:</span></div>
+                                <div class="line"><span class="line-num">20</span><span class="keyword">dif[X₁]</span> = Sample[nnarray[nn]][X₁] − Sample[i][X₁] = ${neighbor.x1} − ${sample.x1} = <span class="value">${dif_x1.toFixed(4)}</span></div>
+                                <div class="line"><span class="line-num">21</span><span class="keyword">gap</span> = random(0, 1) = <span class="value">${gap.toFixed(6)}</span></div>
+                                <div class="line"><span class="line-num">22</span><span class="keyword">Synthetic[${newindex}][X₁]</span> = Sample[i][X₁] + gap × dif = ${sample.x1} + ${gap.toFixed(4)} × ${dif_x1.toFixed(4)} = <span class="result">${newX1.toFixed(4)}</span></div>
+                                <div class="line"><span class="line-num"></span></div>
+                                <div class="line"><span class="line-num">20</span><span class="keyword">dif[X₂]</span> = Sample[nnarray[nn]][X₂] − Sample[i][X₂] = ${neighbor.x2} − ${sample.x2} = <span class="value">${dif_x2.toFixed(4)}</span></div>
+                                <div class="line"><span class="line-num">21</span><span class="keyword">gap</span> = <span class="value">${gap.toFixed(6)}</span> <span class="comment">// same gap for all attributes</span></div>
+                                <div class="line"><span class="line-num">22</span><span class="keyword">Synthetic[${newindex}][X₂]</span> = Sample[i][X₂] + gap × dif = ${sample.x2} + ${gap.toFixed(4)} × ${dif_x2.toFixed(4)} = <span class="result">${newX2.toFixed(4)}</span></div>
+                                ${showCat ? `
+                                <div class="line"><span class="line-num"></span></div>
+                                <div class="line"><span class="line-num"></span><span class="comment">// SMOTE-NC: Nominal feature = value in majority of k-NN</span></div>
+                                <div class="line"><span class="line-num"></span>k-NN category votes: A = <span class="value">${categoryVotes.A}</span>, B = <span class="value">${categoryVotes.B}</span></div>
+                                <div class="line"><span class="line-num"></span><span class="keyword">Synthetic[${newindex}][Category]</span> = <span class="result">${category}</span> (majority: ${categoryVotes.A >= categoryVotes.B ? 'A' : 'B'})</div>
+                                ` : ''}
+                                <div class="line"><span class="line-num">23</span><span class="comment">// endfor</span></div>
+                                <div class="line"><span class="line-num">24</span><span class="keyword">newindex++</span> <span class="comment">// newindex = ${newindex + 1}</span></div>
+                                <div class="line"><span class="line-num">25</span><span class="keyword">N = N − 1</span> <span class="comment">// N_remaining = ${N_remaining - 1}</span></div>
+                                <div class="line"><span class="line-num"></span></div>
+                                <div class="line"><span class="line-num"></span><span class="result" style="font-size: 0.9rem;">✓ Synthetic[${newindex}] = (${newX1.toFixed(4)}, ${newX2.toFixed(4)})${showCat ? ` [${category}]` : ''}</span></div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    stepsContainer.innerHTML += stepHTML;
+                    
+                    // Update progress
+                    document.getElementById('progressFill').style.width = `${((newindex + 1) / totalToGenerate) * 100}%`;
+                    document.getElementById('generatedCount').textContent = newindex + 1;
+                    
+                    // Scroll to latest step
+                    document.getElementById(`genStep${newindex}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                    newindex++; // Line 24
+                    N_remaining--; // Line 25
+                    
+                    await sleep(500);
+                }
+            }
+            // Line 27: return (End of Populate)
+        }
+
+        function updateResultSection() {
+            const showCat = state.algorithm === 'smotenc';
+            const originalMinority = state.minorityData.length;
+            const synthetic = state.syntheticData.length;
+            const majority = state.majorityData.length;
+            const newMinority = originalMinority + synthetic;
+            const newTotal = newMinority + majority;
+            const newRatio = (majority / newMinority).toFixed(1);
+            
+            document.getElementById('newTotal').textContent = newTotal;
+            document.getElementById('newMinority').textContent = newMinority;
+            document.getElementById('newRatio').textContent = `1:${newRatio}`;
+            
+            // Show/hide category columns
+            document.getElementById('catHeader4').style.display = showCat ? '' : 'none';
+            document.getElementById('catHeader5').style.display = showCat ? '' : 'none';
+            
+            // Synthetic table
+            document.getElementById('syntheticTableBody').innerHTML = state.syntheticData.map(d => `
+                <tr class="synthetic">
+                    <td>${d.id}</td>
+                    <td>${d.x1}</td>
+                    <td>${d.x2}</td>
+                    ${showCat ? `<td><span class="cat-badge cat-${d.category ? d.category.toLowerCase() : 'a'}">${d.category || '-'}</span></td>` : ''}
+                    <td>P${d.parentId}</td>
+                    <td>P${d.neighborId}</td>
+                    <td>${(d.gap || 0).toFixed(4)}</td>
+                </tr>
+            `).join('');
+            
+            // Complete minority table
+            const completeMinority = [
+                ...state.minorityData.map(d => ({...d, type: 'Original'})),
+                ...state.syntheticData.map(d => ({...d, type: 'Synthetic'}))
+            ];
+            
+            document.getElementById('completeMinorityTableBody').innerHTML = completeMinority.map(d => `
+                <tr class="${d.type === 'Synthetic' ? 'synthetic' : 'minority'}">
+                    <td>${d.id}</td>
+                    <td>${d.x1}</td>
+                    <td>${d.x2}</td>
+                    ${showCat ? `<td><span class="cat-badge cat-${d.category ? d.category.toLowerCase() : 'a'}">${d.category || '-'}</span></td>` : ''}
+                    <td><span class="class-badge ${d.type === 'Synthetic' ? 'synthetic' : 'minority'}">${d.type}</span></td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ============== VISUALIZATION FUNCTIONS ==============
+
+        function drawBeforeVisualization() {
+            const showCatCheckbox = document.getElementById('showCategoriesBefore');
+            const showCat = showCatCheckbox ? showCatCheckbox.checked : false;
+            
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                drawScatterPlot('beforeCanvas', state.minorityData, state.majorityData, [], showCat);
+                drawBarChart('beforeBarCanvas', state.minorityData.length, state.majorityData.length, 0);
+            }, 50);
+            
+            // Update stats
+            const minority = state.minorityData.length;
+            const majority = state.majorityData.length;
+            const ratio = (majority / minority).toFixed(1);
+            
+            document.getElementById('vizMinorityBefore').textContent = minority;
+            document.getElementById('vizMajorityBefore').textContent = majority;
+            document.getElementById('vizRatioBefore').textContent = `1:${ratio}`;
+            
+            // Update legend for categories
+            updateBeforeLegend(showCat);
+        }
+        
+        function toggleBeforeCategories() {
+            drawBeforeVisualization();
+        }
+        
+        function updateBeforeLegend(showCategories) {
+            const legendContainer = document.querySelector('#vizBeforeSection .viz-legend');
+            if (showCategories) {
+                legendContainer.innerHTML = `
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot minority" style="border-radius: 0; clip-path: polygon(50% 0%, 100% 100%, 0% 100%);"></div>
+                        Minority (Cat A)
+                    </div>
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot minority" style="border-radius: 0;"></div>
+                        Minority (Cat B)
+                    </div>
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot majority" style="border-radius: 0; clip-path: polygon(50% 0%, 100% 100%, 0% 100%);"></div>
+                        Majority (Cat A)
+                    </div>
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot majority" style="border-radius: 0;"></div>
+                        Majority (Cat B)
+                    </div>
+                `;
+            } else {
+                legendContainer.innerHTML = `
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot minority"></div>
+                        Minority Class
+                    </div>
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot majority"></div>
+                        Majority Class
+                    </div>
+                `;
+            }
+        }
+
+        function drawAfterVisualization() {
+            const showCat = state.algorithm === 'smotenc';
+            const vizSection = document.getElementById('vizAfterSection');
+            
+            if (!vizSection) {
+                console.error('vizAfterSection not found');
+                return;
+            }
+            
+            vizSection.style.display = 'block';
+            
+            // Small delay to ensure DOM is updated
+            setTimeout(() => {
+                drawScatterPlot('afterCanvas', state.minorityData, state.majorityData, state.syntheticData, showCat);
+                drawComparisonBarChart('afterBarCanvas');
+                drawComparisonScatter('comparisonCanvas', showCat);
+            }, 50);
+            
+            // Update stats
+            const originalMinority = state.minorityData.length;
+            const synthetic = state.syntheticData.length;
+            const majority = state.majorityData.length;
+            const newMinority = originalMinority + synthetic;
+            const ratioBefore = majority / originalMinority;
+            const ratioAfter = majority / newMinority;
+            
+            document.getElementById('vizOriginalAfter').textContent = originalMinority;
+            document.getElementById('vizSyntheticAfter').textContent = synthetic;
+            document.getElementById('vizRatioAfter').textContent = `1:${ratioAfter.toFixed(1)}`;
+            
+            // Improvement metrics
+            const minorityIncrease = ((synthetic / originalMinority) * 100).toFixed(0);
+            const imbalanceReduction = (((ratioBefore - ratioAfter) / ratioBefore) * 100).toFixed(0);
+            
+            document.getElementById('minorityIncrease').textContent = `+${minorityIncrease}%`;
+            document.getElementById('imbalanceReduction').textContent = `${imbalanceReduction}%`;
+            document.getElementById('compRatioBefore').textContent = `1:${ratioBefore.toFixed(1)}`;
+            document.getElementById('compRatioAfter').textContent = `1:${ratioAfter.toFixed(1)}`;
+            
+            // Update legend for categories
+            updateAfterLegend(showCat);
+            
+            // Add category distribution stats for SMOTE-NC
+            if (showCat) {
+                updateCategoryStats();
+            } else {
+                // Hide category stats if exists
+                const catStatsDiv = document.getElementById('categoryStatsDiv');
+                if (catStatsDiv) {
+                    catStatsDiv.style.display = 'none';
+                }
+            }
+            
+            vizSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function updateAfterLegend(showCategories) {
+            const legendContainer = document.querySelector('#vizAfterSection .viz-box .viz-legend');
+            if (showCategories) {
+                legendContainer.innerHTML = `
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot minority" style="border-radius: 0; clip-path: polygon(50% 0%, 100% 100%, 0% 100%);"></div>
+                        Original (Cat A)
+                    </div>
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot minority" style="border-radius: 0;"></div>
+                        Original (Cat B)
+                    </div>
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot synthetic" style="border-radius: 0; clip-path: polygon(50% 0%, 100% 100%, 0% 100%);"></div>
+                        Synthetic (Cat A)
+                    </div>
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot synthetic" style="border-radius: 0;"></div>
+                        Synthetic (Cat B)
+                    </div>
+                `;
+            } else {
+                legendContainer.innerHTML = `
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot minority"></div>
+                        Original Minority
+                    </div>
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot synthetic"></div>
+                        Synthetic Samples
+                    </div>
+                    <div class="viz-legend-item">
+                        <div class="viz-legend-dot majority"></div>
+                        Majority Class
+                    </div>
+                `;
+            }
+        }
+        
+        function updateCategoryStats() {
+            // Count categories in original minority
+            const origCatA = state.minorityData.filter(d => d.category === 'A').length;
+            const origCatB = state.minorityData.filter(d => d.category === 'B').length;
+            
+            // Count categories in synthetic
+            const synthCatA = state.syntheticData.filter(d => d.category === 'A').length;
+            const synthCatB = state.syntheticData.filter(d => d.category === 'B').length;
+            
+            // Add category stats section if not exists
+            let catStatsDiv = document.getElementById('categoryStatsDiv');
+            if (!catStatsDiv) {
+                catStatsDiv = document.createElement('div');
+                catStatsDiv.id = 'categoryStatsDiv';
+                catStatsDiv.style.cssText = 'margin-top: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);';
+                
+                const vizAfterContent = document.querySelector('#vizAfterSection .section-content');
+                vizAfterContent.insertBefore(catStatsDiv, vizAfterContent.querySelector('.viz-container').nextSibling);
+            }
+            
+            catStatsDiv.style.display = 'block';
+            catStatsDiv.innerHTML = `
+                <h4 style="color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: var(--orange-500);">◆</span> Category Distribution (Feature 3)
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem;">Original Minority</div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div style="flex: 1; text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: 6px; border-left: 3px solid var(--orange-500);">
+                                <div style="font-size: 0.65rem; color: var(--text-muted);">Category A</div>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; color: var(--orange-500); font-weight: 600;">${origCatA}</div>
+                            </div>
+                            <div style="flex: 1; text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: 6px; border-left: 3px solid var(--accent-gray);">
+                                <div style="font-size: 0.65rem; color: var(--text-muted);">Category B</div>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; color: var(--accent-gray); font-weight: 600;">${origCatB}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem;">Synthetic Samples</div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div style="flex: 1; text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: 6px; border-left: 3px solid var(--orange-300);">
+                                <div style="font-size: 0.65rem; color: var(--text-muted);">Category A</div>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; color: var(--orange-400); font-weight: 600;">${synthCatA}</div>
+                            </div>
+                            <div style="flex: 1; text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: 6px; border-left: 3px solid var(--accent-gray-light);">
+                                <div style="font-size: 0.65rem; color: var(--text-muted);">Category B</div>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; color: var(--accent-gray); font-weight: 600;">${synthCatB}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem;">Total (After SMOTE-NC)</div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div style="flex: 1; text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: 6px; border-left: 3px solid #16a34a;">
+                                <div style="font-size: 0.65rem; color: var(--text-muted);">Category A</div>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; color: #16a34a; font-weight: 600;">${origCatA + synthCatA}</div>
+                            </div>
+                            <div style="flex: 1; text-align: center; padding: 0.5rem; background: var(--bg-card); border-radius: 6px; border-left: 3px solid #16a34a;">
+                                <div style="font-size: 0.65rem; color: var(--text-muted);">Category B</div>
+                                <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; color: #16a34a; font-weight: 600;">${origCatB + synthCatB}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; padding: 0.75rem; background: var(--accent-orange-bg); border-radius: 6px; border-left: 3px solid var(--orange-500);">
+                    <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                        <strong style="color: var(--orange-600);">SMOTE-NC Note:</strong> 
+                        Categorical values for synthetic samples are determined by <em>majority voting</em> among k-nearest neighbors. 
+                        This preserves the categorical distribution characteristics of the original data.
+                    </p>
+                </div>
+            `;
+        }
+
+        function drawScatterPlot(canvasId, minority, majority, synthetic, showCategories = false) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            
+            // Use fallback width if rect.width is 0
+            const width = rect.width > 0 ? rect.width : 400;
+            const height = 300;
+            
+            canvas.width = width * 2;
+            canvas.height = height * 2;
+            ctx.scale(2, 2);
+            
+            const padding = 40;
+            
+            // Clear - light background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Check if we have data
+            const allData = [...minority, ...majority, ...synthetic];
+            if (allData.length === 0) {
+                ctx.fillStyle = '#868e96';
+                ctx.font = '14px Space Grotesk';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data to display', width / 2, height / 2);
+                return;
+            }
+            
+            // Find data bounds
+            const xMin = Math.min(...allData.map(d => d.x1)) - 0.5;
+            const xMax = Math.max(...allData.map(d => d.x1)) + 0.5;
+            const yMin = Math.min(...allData.map(d => d.x2)) - 0.5;
+            const yMax = Math.max(...allData.map(d => d.x2)) + 0.5;
+            
+            const scaleX = (x) => padding + ((x - xMin) / (xMax - xMin)) * (width - 2 * padding);
+            const scaleY = (y) => height - padding - ((y - yMin) / (yMax - yMin)) * (height - 2 * padding);
+            
+            // Draw grid - light gray
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const x = padding + (i / 5) * (width - 2 * padding);
+                const y = padding + (i / 5) * (height - 2 * padding);
+                
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, height - padding);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes - medium gray
+            ctx.strokeStyle = '#adb5bd';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.stroke();
+            
+            // Axis labels
+            ctx.fillStyle = '#495057';
+            ctx.font = '11px Space Grotesk';
+            ctx.textAlign = 'center';
+            ctx.fillText('X₁ (Feature 1)', width / 2, height - 8);
+            
+            ctx.save();
+            ctx.translate(12, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('X₂ (Feature 2)', 0, 0);
+            ctx.restore();
+            
+            // Helper function to draw shape based on category
+            function drawPoint(x, y, color, size, category, isSynthetic = false) {
+                ctx.save();
+                
+                if (isSynthetic) {
+                    // Dashed circle for synthetic
+                    ctx.beginPath();
+                    ctx.arc(x, y, size + 3, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#f97316';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([3, 3]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                ctx.fillStyle = color;
+                
+                if (showCategories && category) {
+                    if (category === 'A') {
+                        // Triangle for Category A
+                        ctx.beginPath();
+                        ctx.moveTo(x, y - size);
+                        ctx.lineTo(x + size, y + size * 0.7);
+                        ctx.lineTo(x - size, y + size * 0.7);
+                        ctx.closePath();
+                        ctx.fill();
+                        
+                        // Add border for visibility
+                        ctx.strokeStyle = color === '#f97316' ? '#c2410c' : '#495057';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    } else {
+                        // Square for Category B
+                        ctx.beginPath();
+                        ctx.rect(x - size * 0.7, y - size * 0.7, size * 1.4, size * 1.4);
+                        ctx.fill();
+                        
+                        ctx.strokeStyle = color === '#f97316' ? '#c2410c' : '#495057';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                } else {
+                    // Circle (default)
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = color === '#f97316' ? '#c2410c' : '#495057';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+            
+            // Draw majority class - light gray
+            majority.forEach(d => {
+                drawPoint(scaleX(d.x1), scaleY(d.x2), '#adb5bd', 6, d.category);
+            });
+            
+            // Draw minority class - orange
+            minority.forEach(d => {
+                drawPoint(scaleX(d.x1), scaleY(d.x2), '#f97316', 7, d.category);
+            });
+            
+            // Draw synthetic samples - light orange
+            synthetic.forEach(d => {
+                drawPoint(scaleX(d.x1), scaleY(d.x2), '#fdba74', 6, d.category, true);
+            });
+            
+            // Draw category legend if showing categories
+            if (showCategories) {
+                const legendY = height - padding + 25;
+                const legendX = width - 130;
+                
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(legendX - 10, legendY - 15, 130, 35);
+                ctx.strokeStyle = '#dee2e6';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(legendX - 10, legendY - 15, 130, 35);
+                
+                // Category A - Triangle
+                ctx.fillStyle = '#495057';
+                ctx.beginPath();
+                ctx.moveTo(legendX, legendY - 5);
+                ctx.lineTo(legendX + 6, legendY + 3);
+                ctx.lineTo(legendX - 6, legendY + 3);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.fillStyle = '#495057';
+                ctx.font = '9px Space Grotesk';
+                ctx.textAlign = 'left';
+                ctx.fillText('Cat A', legendX + 12, legendY + 2);
+                
+                // Category B - Square
+                ctx.fillStyle = '#495057';
+                ctx.fillRect(legendX + 60, legendY - 5, 10, 10);
+                
+                ctx.fillText('Cat B', legendX + 77, legendY + 2);
+            }
+        }
+
+        function drawBarChart(canvasId, minorityCount, majorityCount, syntheticCount) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            
+            // Use fallback width if rect.width is 0
+            const width = rect.width > 0 ? rect.width : 400;
+            const height = 300;
+            
+            canvas.width = width * 2;
+            canvas.height = height * 2;
+            ctx.scale(2, 2);
+            
+            const padding = 50;
+            
+            // Clear - light background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            const maxVal = Math.max(minorityCount + syntheticCount, majorityCount) * 1.2;
+            const barWidth = 60;
+            const gap = 40;
+            const startX = (width - (2 * barWidth + gap)) / 2;
+            
+            const scaleY = (val) => height - padding - (val / maxVal) * (height - 2 * padding);
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (i / 5) * (height - 2 * padding);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+                
+                // Y-axis labels
+                const val = Math.round(maxVal * (1 - i / 5));
+                ctx.fillStyle = '#868e96';
+                ctx.font = '10px JetBrains Mono';
+                ctx.textAlign = 'right';
+                ctx.fillText(val, padding - 8, y + 3);
+            }
+            
+            // Draw minority bar - orange
+            const minorityHeight = (minorityCount / maxVal) * (height - 2 * padding);
+            ctx.fillStyle = '#f97316';
+            ctx.fillRect(startX, scaleY(minorityCount), barWidth, minorityHeight);
+            
+            // Draw synthetic portion if exists - light orange
+            if (syntheticCount > 0) {
+                const syntheticHeight = (syntheticCount / maxVal) * (height - 2 * padding);
+                ctx.fillStyle = '#fdba74';
+                ctx.fillRect(startX, scaleY(minorityCount + syntheticCount), barWidth, syntheticHeight);
+                
+                // Dashed border for synthetic
+                ctx.strokeStyle = '#f97316';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.strokeRect(startX, scaleY(minorityCount + syntheticCount), barWidth, syntheticHeight);
+                ctx.setLineDash([]);
+            }
+            
+            // Draw majority bar - light gray
+            const majorityHeight = (majorityCount / maxVal) * (height - 2 * padding);
+            ctx.fillStyle = '#adb5bd';
+            ctx.fillRect(startX + barWidth + gap, scaleY(majorityCount), barWidth, majorityHeight);
+            
+            // Labels
+            ctx.fillStyle = '#212529';
+            ctx.font = '12px Space Grotesk';
+            ctx.textAlign = 'center';
+            ctx.fillText('Minority', startX + barWidth / 2, height - 25);
+            ctx.fillText('Majority', startX + barWidth + gap + barWidth / 2, height - 25);
+            
+            // Value labels on bars
+            ctx.fillStyle = '#212529';
+            ctx.font = 'bold 14px JetBrains Mono';
+            ctx.fillText(minorityCount + syntheticCount, startX + barWidth / 2, scaleY(minorityCount + syntheticCount) - 8);
+            ctx.fillText(majorityCount, startX + barWidth + gap + barWidth / 2, scaleY(majorityCount) - 8);
+        }
+
+        function drawComparisonBarChart(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            
+            // Use fallback width if rect.width is 0
+            const width = rect.width > 0 ? rect.width : 400;
+            const height = 300;
+            
+            canvas.width = width * 2;
+            canvas.height = height * 2;
+            ctx.scale(2, 2);
+            
+            const padding = 50;
+            
+            // Clear - light background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            const minorityBefore = state.minorityData.length;
+            const synthetic = state.syntheticData.length;
+            const majorityCount = state.majorityData.length;
+            const minorityAfter = minorityBefore + synthetic;
+            
+            const maxVal = Math.max(minorityAfter, majorityCount) * 1.2;
+            const barWidth = 35;
+            const groupGap = 50;
+            const barGap = 8;
+            const startX = (width - (4 * barWidth + 2 * barGap + groupGap)) / 2;
+            
+            const scaleY = (val) => height - padding - (val / maxVal) * (height - 2 * padding);
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (i / 5) * (height - 2 * padding);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            
+            // Before - Minority (outline)
+            ctx.fillStyle = '#fff7ed';
+            ctx.fillRect(startX, scaleY(minorityBefore), barWidth, (minorityBefore / maxVal) * (height - 2 * padding));
+            ctx.strokeStyle = '#f97316';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(startX, scaleY(minorityBefore), barWidth, (minorityBefore / maxVal) * (height - 2 * padding));
+            
+            // After - Minority (with synthetic)
+            ctx.fillStyle = '#f97316';
+            ctx.fillRect(startX + barWidth + barGap, scaleY(minorityBefore), barWidth, (minorityBefore / maxVal) * (height - 2 * padding));
+            ctx.fillStyle = '#fdba74';
+            ctx.fillRect(startX + barWidth + barGap, scaleY(minorityAfter), barWidth, (synthetic / maxVal) * (height - 2 * padding));
+            
+            // Before - Majority (outline)
+            ctx.fillStyle = '#f1f3f5';
+            ctx.fillRect(startX + 2 * barWidth + barGap + groupGap, scaleY(majorityCount), barWidth, (majorityCount / maxVal) * (height - 2 * padding));
+            ctx.strokeStyle = '#adb5bd';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(startX + 2 * barWidth + barGap + groupGap, scaleY(majorityCount), barWidth, (majorityCount / maxVal) * (height - 2 * padding));
+            
+            // After - Majority (same)
+            ctx.fillStyle = '#adb5bd';
+            ctx.fillRect(startX + 3 * barWidth + 2 * barGap + groupGap, scaleY(majorityCount), barWidth, (majorityCount / maxVal) * (height - 2 * padding));
+            
+            // Labels
+            ctx.fillStyle = '#495057';
+            ctx.font = '11px Space Grotesk';
+            ctx.textAlign = 'center';
+            ctx.fillText('Before', startX + barWidth / 2, height - 25);
+            ctx.fillText('After', startX + barWidth + barGap + barWidth / 2, height - 25);
+            ctx.fillText('Before', startX + 2 * barWidth + barGap + groupGap + barWidth / 2, height - 25);
+            ctx.fillText('After', startX + 3 * barWidth + 2 * barGap + groupGap + barWidth / 2, height - 25);
+            
+            ctx.font = 'bold 12px Space Grotesk';
+            ctx.fillStyle = '#f97316';
+            ctx.fillText('MINORITY', startX + barWidth + barGap / 2, height - 8);
+            ctx.fillStyle = '#868e96';
+            ctx.fillText('MAJORITY', startX + 2.5 * barWidth + 1.5 * barGap + groupGap, height - 8);
+            
+            // Value labels
+            ctx.fillStyle = '#212529';
+            ctx.font = 'bold 11px JetBrains Mono';
+            ctx.fillText(minorityBefore, startX + barWidth / 2, scaleY(minorityBefore) - 5);
+            ctx.fillText(minorityAfter, startX + barWidth + barGap + barWidth / 2, scaleY(minorityAfter) - 5);
+            ctx.fillText(majorityCount, startX + 2 * barWidth + barGap + groupGap + barWidth / 2, scaleY(majorityCount) - 5);
+            ctx.fillText(majorityCount, startX + 3 * barWidth + 2 * barGap + groupGap + barWidth / 2, scaleY(majorityCount) - 5);
+        }
+
+        function drawComparisonScatter(canvasId, showCategories = false) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            
+            // Use fallback width if rect.width is 0
+            const width = rect.width > 0 ? rect.width : 600;
+            const height = 300;
+            
+            canvas.width = width * 2;
+            canvas.height = height * 2;
+            ctx.scale(2, 2);
+            
+            const padding = 40;
+            const midX = width / 2;
+            
+            // Clear - light background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Check if we have data
+            const allData = [...state.minorityData, ...state.majorityData, ...state.syntheticData];
+            if (allData.length === 0) {
+                ctx.fillStyle = '#868e96';
+                ctx.font = '14px Space Grotesk';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data to display', width / 2, height / 2);
+                return;
+            }
+            
+            // Divider
+            ctx.strokeStyle = '#dee2e6';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(midX, 20);
+            ctx.lineTo(midX, height - 20);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Labels
+            ctx.fillStyle = '#dc2626';
+            ctx.font = 'bold 14px Space Grotesk';
+            ctx.textAlign = 'center';
+            ctx.fillText('BEFORE', midX / 2, 30);
+            
+            ctx.fillStyle = '#16a34a';
+            ctx.fillText('AFTER', midX + midX / 2, 30);
+            
+            // Find data bounds
+            const xMin = Math.min(...allData.map(d => d.x1)) - 0.5;
+            const xMax = Math.max(...allData.map(d => d.x1)) + 0.5;
+            const yMin = Math.min(...allData.map(d => d.x2)) - 0.5;
+            const yMax = Math.max(...allData.map(d => d.x2)) + 0.5;
+            
+            // Left side (before)
+            const scaleXLeft = (x) => padding + ((x - xMin) / (xMax - xMin)) * (midX - 2 * padding);
+            const scaleYLeft = (y) => height - padding - ((y - yMin) / (yMax - yMin)) * (height - 2 * padding - 20);
+            
+            // Right side (after)
+            const scaleXRight = (x) => midX + padding + ((x - xMin) / (xMax - xMin)) * (midX - 2 * padding);
+            const scaleYRight = (y) => height - padding - ((y - yMin) / (yMax - yMin)) * (height - 2 * padding - 20);
+            
+            // Helper function to draw shape based on category
+            function drawPointShape(x, y, color, size, category, isSynthetic = false) {
+                ctx.save();
+                ctx.fillStyle = color;
+                
+                if (isSynthetic) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, size + 2, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#f97316';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([2, 2]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                if (showCategories && category) {
+                    if (category === 'A') {
+                        // Triangle
+                        ctx.beginPath();
+                        ctx.moveTo(x, y - size);
+                        ctx.lineTo(x + size, y + size * 0.7);
+                        ctx.lineTo(x - size, y + size * 0.7);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.strokeStyle = color === '#f97316' ? '#c2410c' : '#495057';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    } else {
+                        // Square
+                        ctx.fillRect(x - size * 0.7, y - size * 0.7, size * 1.4, size * 1.4);
+                        ctx.strokeStyle = color === '#f97316' ? '#c2410c' : '#495057';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x - size * 0.7, y - size * 0.7, size * 1.4, size * 1.4);
+                    }
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = color === '#f97316' ? '#c2410c' : '#495057';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+            
+            // Draw BEFORE (left)
+            state.majorityData.forEach(d => {
+                drawPointShape(scaleXLeft(d.x1), scaleYLeft(d.x2), '#adb5bd', 4, d.category);
+            });
+            
+            state.minorityData.forEach(d => {
+                drawPointShape(scaleXLeft(d.x1), scaleYLeft(d.x2), '#f97316', 5, d.category);
+            });
+            
+            // Draw AFTER (right)
+            state.majorityData.forEach(d => {
+                drawPointShape(scaleXRight(d.x1), scaleYRight(d.x2), '#adb5bd', 4, d.category);
+            });
+            
+            state.minorityData.forEach(d => {
+                drawPointShape(scaleXRight(d.x1), scaleYRight(d.x2), '#f97316', 5, d.category);
+            });
+            
+            state.syntheticData.forEach(d => {
+                drawPointShape(scaleXRight(d.x1), scaleYRight(d.x2), '#fdba74', 4, d.category, true);
+            });
+            
+            // Draw category legend if showing categories
+            if (showCategories) {
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(width - 100, height - 40, 90, 30);
+                ctx.strokeStyle = '#dee2e6';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(width - 100, height - 40, 90, 30);
+                
+                // Triangle for Cat A
+                ctx.fillStyle = '#495057';
+                ctx.beginPath();
+                ctx.moveTo(width - 90, height - 28);
+                ctx.lineTo(width - 84, height - 18);
+                ctx.lineTo(width - 96, height - 18);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.font = '8px Space Grotesk';
+                ctx.textAlign = 'left';
+                ctx.fillText('A', width - 80, height - 20);
+                
+                // Square for Cat B
+                ctx.fillRect(width - 55, height - 28, 8, 8);
+                ctx.fillText('B', width - 43, height - 20);
+            }
+        }
+    </script>
+</body>
+</html>
