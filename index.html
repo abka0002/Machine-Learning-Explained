@@ -4,346 +4,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Machine Learning to Go — Interactive ML Tools</title>
-    <meta name="description" content="A collection of interactive tools for learning machine learning concepts step by step. Built for students and practitioners.">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="A collection of interactive tools for learning machine learning concepts step by step. Built for ML lectures SS2026 HKA/EIT.">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --orange-50: #fff7ed;
-            --orange-100: #ffedd5;
-            --orange-200: #fed7aa;
-            --orange-300: #fdba74;
-            --orange-400: #fb923c;
-            --orange-500: #f97316;
-            --orange-600: #ea580c;
-            --orange-700: #c2410c;
-            --gray-50: #fafafa;
-            --gray-100: #f4f4f5;
-            --gray-200: #e4e4e7;
-            --gray-300: #d4d4d8;
-            --gray-400: #a1a1aa;
-            --gray-500: #71717a;
-            --gray-600: #52525b;
-            --gray-700: #3f3f46;
-            --gray-800: #27272a;
-            --gray-900: #18181b;
-            --gray-950: #09090b;
+            --o50:#fff7ed;--o100:#ffedd5;--o200:#fed7aa;--o300:#fdba74;
+            --o400:#fb923c;--o500:#f97316;--o600:#ea580c;--o700:#c2410c;
+            --g50:#fafafa;--g100:#f4f4f5;--g200:#e4e4e7;--g300:#d4d4d8;
+            --g400:#a1a1aa;--g500:#71717a;--g600:#52525b;--g700:#3f3f46;
+            --g800:#27272a;--g900:#18181b;
+            --b500:#3b82f6;--b50:#eff6ff;
+            --gn500:#22c55e;--gn50:#f0fdf4;
+            --p500:#a855f7;--p50:#faf5ff;
         }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g900);min-height:100vh;overflow-x:hidden;}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Space Grotesk', sans-serif;
-            background: var(--gray-50);
-            color: var(--gray-900);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Decorative grid background */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
+        body::before{content:'';position:fixed;inset:0;
             background-image:
-                linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
-            background-size: 48px 48px;
-            pointer-events: none;
-            z-index: 0;
-        }
+                linear-gradient(rgba(0,0,0,0.018) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(0,0,0,0.018) 1px,transparent 1px);
+            background-size:52px 52px;pointer-events:none;z-index:0;}
 
-        .page-wrapper {
-            position: relative;
-            z-index: 1;
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 3rem 1.5rem 4rem;
-        }
+        .wrap{position:relative;z-index:1;max-width:1020px;margin:0 auto;padding:3.5rem 1.5rem 4rem;}
 
         /* ── Header ── */
-        header {
-            text-align: center;
-            margin-bottom: 4rem;
-            position: relative;
-        }
+        header{text-align:center;margin-bottom:3.5rem;}
+        .pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:600;
+            letter-spacing:0.1em;text-transform:uppercase;color:var(--o600);background:var(--o50);
+            border:1px solid var(--o200);padding:0.3rem 0.8rem;border-radius:100px;margin-bottom:1.4rem;}
+        h1{font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;line-height:1.08;letter-spacing:-0.03em;margin-bottom:0.8rem;}
+        h1 span{background:linear-gradient(135deg,var(--o500),var(--o700));
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+        .subtitle{font-size:1.05rem;color:var(--g500);max-width:540px;margin:0 auto;line-height:1.6;}
+        .semester{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--g400);margin-top:0.6rem;}
+        .divider{width:48px;height:3px;background:linear-gradient(90deg,var(--o400),var(--o600));
+            border-radius:2px;margin:2.5rem auto 2.5rem;}
 
-        .badge {
-            display: inline-block;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--orange-600);
-            background: var(--orange-50);
-            border: 1px solid var(--orange-200);
-            padding: 0.35rem 0.85rem;
-            border-radius: 100px;
-            margin-bottom: 1.5rem;
-        }
+        /* ── Category labels ── */
+        .cat-label{font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;
+            letter-spacing:0.12em;text-transform:uppercase;color:var(--g400);margin-bottom:1.2rem;margin-top:2.8rem;}
+        .cat-label:first-of-type{margin-top:0;}
 
-        h1 {
-            font-size: clamp(2.4rem, 5vw, 3.4rem);
-            font-weight: 700;
-            line-height: 1.1;
-            letter-spacing: -0.03em;
-            margin-bottom: 1rem;
-        }
+        /* ── Card grid ── */
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1.2rem;}
 
-        h1 span {
-            background: linear-gradient(135deg, var(--orange-500), var(--orange-700));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+        .card{background:#fff;border:1px solid var(--g200);border-radius:14px;padding:1.6rem;
+            text-decoration:none;color:inherit;
+            transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+            position:relative;overflow:hidden;display:flex;flex-direction:column;}
+        .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+            background:linear-gradient(90deg,var(--o400),var(--o600));opacity:0;transition:opacity 0.25s;}
+        .card:hover{border-color:var(--o300);
+            box-shadow:0 8px 30px rgba(249,115,22,0.08),0 2px 8px rgba(0,0,0,0.04);
+            transform:translateY(-2px);}
+        .card:hover::before{opacity:1;}
 
-        .subtitle {
-            font-size: 1.1rem;
-            color: var(--gray-500);
-            max-width: 520px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
+        .card-head{display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:1rem;}
+        .card-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;
+            justify-content:center;font-size:1.2rem;flex-shrink:0;}
+        .ico-o{background:var(--o50);border:1px solid var(--o200);}
+        .ico-b{background:var(--b50);border:1px solid #bfdbfe;}
+        .ico-g{background:var(--gn50);border:1px solid #bbf7d0;}
+        .ico-p{background:var(--p50);border:1px solid #e9d5ff;}
 
-        /* ── Decorative divider ── */
-        .divider {
-            width: 48px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--orange-400), var(--orange-600));
-            border-radius: 2px;
-            margin: 2.5rem auto 3rem;
-        }
+        .card-title{font-size:1rem;font-weight:650;color:var(--g900);margin-bottom:0.4rem;letter-spacing:-0.01em;}
+        .card-desc{font-size:0.84rem;color:var(--g500);line-height:1.55;flex-grow:1;}
 
-        /* ── Section label ── */
-        .section-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--gray-400);
-            margin-bottom: 1.5rem;
-        }
+        .card-tags{display:flex;flex-wrap:wrap;gap:0.35rem;margin-top:1rem;padding-top:0.85rem;border-top:1px solid var(--g100);}
+        .tag{font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:500;
+            letter-spacing:0.04em;padding:0.18rem 0.5rem;border-radius:4px;background:var(--g100);color:var(--g600);}
+        .tag.a{background:var(--o50);color:var(--o700);}
+        .tag.ext{background:#fef2f2;color:#dc2626;}
 
-        /* ── App cards grid ── */
-        .apps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.25rem;
-        }
+        .ext-badge{font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:600;
+            letter-spacing:0.06em;text-transform:uppercase;color:var(--b500);background:var(--b50);
+            border:1px solid #bfdbfe;padding:0.15rem 0.45rem;border-radius:4px;margin-left:auto;white-space:nowrap;}
 
-        .app-card {
-            background: #fff;
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 1.75rem;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+        .card.soon{opacity:0.45;pointer-events:none;}
+        .card.soon .card-icon{background:var(--g100);border-color:var(--g200);}
+        .soon-badge{font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:600;
+            letter-spacing:0.08em;text-transform:uppercase;color:var(--g400);background:var(--g100);
+            padding:0.15rem 0.45rem;border-radius:4px;margin-left:auto;}
 
-        .app-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--orange-400), var(--orange-600));
-            opacity: 0;
-            transition: opacity 0.25s;
-        }
+        footer{margin-top:4rem;text-align:center;padding:2rem 0;border-top:1px solid var(--g200);}
+        footer p{font-size:0.78rem;color:var(--g400);}
+        footer a{color:var(--o500);text-decoration:none;font-weight:500;}
+        footer a:hover{text-decoration:underline;}
 
-        .app-card:hover {
-            border-color: var(--orange-300);
-            box-shadow: 0 8px 30px rgba(249, 115, 22, 0.08), 0 2px 8px rgba(0,0,0,0.04);
-            transform: translateY(-2px);
-        }
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+        .card{animation:fadeUp 0.5s ease both;}
+        .card:nth-child(1){animation-delay:0.05s;}
+        .card:nth-child(2){animation-delay:0.12s;}
+        .card:nth-child(3){animation-delay:0.19s;}
+        .card:nth-child(4){animation-delay:0.26s;}
+        .card:nth-child(5){animation-delay:0.33s;}
+        .card:nth-child(6){animation-delay:0.40s;}
 
-        .app-card:hover::before {
-            opacity: 1;
-        }
-
-        .card-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: var(--orange-50);
-            border: 1px solid var(--orange-100);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.15rem;
-            margin-bottom: 1.1rem;
-            flex-shrink: 0;
-        }
-
-        .card-title {
-            font-size: 1.05rem;
-            font-weight: 650;
-            color: var(--gray-900);
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.01em;
-        }
-
-        .card-description {
-            font-size: 0.85rem;
-            color: var(--gray-500);
-            line-height: 1.55;
-            flex-grow: 1;
-        }
-
-        .card-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-            margin-top: 1.1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--gray-100);
-        }
-
-        .tag {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.6rem;
-            font-weight: 500;
-            letter-spacing: 0.04em;
-            padding: 0.2rem 0.55rem;
-            border-radius: 4px;
-            background: var(--gray-100);
-            color: var(--gray-600);
-        }
-
-        .tag.accent {
-            background: var(--orange-50);
-            color: var(--orange-700);
-        }
-
-        /* ── Coming soon placeholder ── */
-        .app-card.coming-soon {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .app-card.coming-soon .card-icon {
-            background: var(--gray-100);
-            border-color: var(--gray-200);
-        }
-
-        .coming-soon-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.6rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--gray-400);
-            background: var(--gray-100);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            margin-left: auto;
-            align-self: flex-start;
-        }
-
-        .card-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            margin-bottom: 1.1rem;
-        }
-
-        /* ── Footer ── */
-        footer {
-            margin-top: 5rem;
-            text-align: center;
-            padding: 2rem 0;
-            border-top: 1px solid var(--gray-200);
-        }
-
-        footer p {
-            font-size: 0.8rem;
-            color: var(--gray-400);
-        }
-
-        footer a {
-            color: var(--orange-500);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* ── Responsive ── */
-        @media (max-width: 600px) {
-            .page-wrapper {
-                padding: 2rem 1rem 3rem;
-            }
-            header { margin-bottom: 3rem; }
-            .apps-grid { grid-template-columns: 1fr; }
-        }
+        @media(max-width:600px){.wrap{padding:2rem 1rem 3rem;}header{margin-bottom:2.5rem;}.grid{grid-template-columns:1fr;}}
     </style>
 </head>
 <body>
-    <div class="page-wrapper">
+<div class="wrap">
 
-        <header>
-            <div class="badge">Open-Source Learning Tools</div>
-            <h1>Machine Learning <span>to Go</span></h1>
-            <p class="subtitle">Interactive tools for understanding ML algorithms step by step. Pick a topic and start exploring.</p>
-        </header>
+    <header>
+        <div class="pill">Open-Source Learning Tools</div>
+        <h1>Machine Learning <span>to Go</span></h1>
+        <p class="subtitle">Interactive tools for understanding ML algorithms step by step. Pick a topic and start exploring.</p>
+        <div class="semester">ML Lectures SS2026 · HKA / EIT</div>
+    </header>
 
-        <div class="divider"></div>
+    <div class="divider"></div>
 
-        <div class="section-label">Available Tools</div>
+    <!-- ═══════ DATA PREPARATION & EDA ═══════ -->
+    <div class="cat-label">Data Preparation & EDA</div>
+    <div class="grid">
 
-        <div class="apps-grid">
+        <a href="./DataPreparationAndFeatureEngineering/" class="card">
+            <div class="card-head">
+                <div class="card-icon ico-o">🔧</div>
+            </div>
+            <div class="card-title">Feature Engineering & EDA</div>
+            <div class="card-desc">Complete pipeline from data types through EDA (descriptive stats, box plots, scatter plots, segmentation) to imputation, scaling, encoding, and feature selection — all with the Heart Failure dataset.</div>
+            <div class="card-tags">
+                <span class="tag a">ML_02 / ML_03</span>
+                <span class="tag">EDA</span>
+                <span class="tag">Preparation</span>
+                <span class="tag">Interactive</span>
+            </div>
+        </a>
 
-            <!-- Feature Engineering App -->
-            <a href="./DataPreparationAndFeatureEngineering/" class="app-card">
-                <div class="card-header">
-                    <div class="card-icon">🔧</div>
-                </div>
-                <div class="card-title">Data Preparation & Feature Engineering</div>
-                <div class="card-description">Explore data types, quality assessment, imputation, feature selection, scaling, and categorical encoding — all with interactive examples.</div>
-                <div class="card-tags">
-                    <span class="tag accent">Data Prep</span>
-                    <span class="tag">Encoding</span>
-                    <span class="tag">Scaling</span>
-                </div>
-            </a>
+        <a href="./smote/" class="card">
+            <div class="card-head">
+                <div class="card-icon ico-b">⚖️</div>
+            </div>
+            <div class="card-title">SMOTE & SMOTE-NC</div>
+            <div class="card-desc">Step-by-step walkthrough of synthetic oversampling for imbalanced datasets. See every distance calculation, k-NN selection, and synthetic sample generation live.</div>
+            <div class="card-tags">
+                <span class="tag a">Imbalanced Data</span>
+                <span class="tag">Oversampling</span>
+                <span class="tag">Chawla et al.</span>
+            </div>
+        </a>
 
-            
-            <!-- SMOTE App -->
-            <a href="./smote/" class="app-card">
-                <div class="card-header">
-                    <div class="card-icon">⚖️</div>
-                </div>
-                <div class="card-title">SMOTE & SMOTE-NC</div>
-                <div class="card-description">Step-by-step walkthrough of how SMOTE and SMOTE-NC generate synthetic samples for imbalanced datasets. See every calculation live.</div>
-                <div class="card-tags">
-                    <span class="tag accent">Imbalanced Data</span>
-                    <span class="tag">Oversampling</span>
-                    <span class="tag">Interactive</span>
-                </div>
-            </a>
-
-
-
-            
-        </div>
-
-        <footer>
-            <p>Built for the ML course — <a href="https://github.com/abka0002/Machine-Learning-to-go" target="_blank" rel="noopener">View on GitHub</a></p>
-        </footer>
+        <!-- SMOTE Python version — external Streamlit -->
+        <a href="https://smote-calculator.streamlit.app" target="_blank" rel="noopener" class="card">
+            <div class="card-head">
+                <div class="card-icon ico-g">🐍</div>
+                <span class="ext-badge">↗ Streamlit</span>
+            </div>
+            <div class="card-title">SMOTE Calculator (Python)</div>
+            <div class="card-desc">Python/Streamlit version with Plotly visualizations and full step-by-step calculations. Same algorithm, Python backend — runs on Streamlit Cloud.</div>
+            <div class="card-tags">
+                <span class="tag a">Python</span>
+                <span class="tag">Streamlit</span>
+                <span class="tag ext">External</span>
+            </div>
+        </a>
 
     </div>
+
+    <!-- ═══════ MODELS & ALGORITHMS ═══════ -->
+    <div class="cat-label">Models & Algorithms</div>
+    <div class="grid">
+
+        <a href="./transformer/" class="card">
+            <div class="card-head">
+                <div class="card-icon ico-p">🤖</div>
+            </div>
+            <div class="card-title">Attention Is All You Need</div>
+            <div class="card-desc">Interactive guide to the Transformer architecture — self-attention, Q/K/V matrices, multi-head attention, positional encoding, masking, and the full encoder-decoder pipeline with step-by-step math.</div>
+            <div class="card-tags">
+                <span class="tag a">Vaswani et al. 2017</span>
+                <span class="tag">Self-Attention</span>
+                <span class="tag">Transformers</span>
+            </div>
+        </a>
+
+        <div class="card soon">
+            <div class="card-head">
+                <div class="card-icon">📈</div>
+                <span class="soon-badge">Coming soon</span>
+            </div>
+            <div class="card-title">Linear Regression</div>
+            <div class="card-desc">Visualize gradient descent, cost functions, and the geometry behind ordinary least squares.</div>
+            <div class="card-tags"><span class="tag">Regression</span><span class="tag">Optimization</span></div>
+        </div>
+
+        <div class="card soon">
+            <div class="card-head">
+                <div class="card-icon">🌳</div>
+                <span class="soon-badge">Coming soon</span>
+            </div>
+            <div class="card-title">Decision Trees</div>
+            <div class="card-desc">Watch a decision tree grow split by split. Explore entropy, Gini impurity, and information gain interactively.</div>
+            <div class="card-tags"><span class="tag">Classification</span><span class="tag">Tree-Based</span></div>
+        </div>
+
+        <div class="card soon">
+            <div class="card-head">
+                <div class="card-icon">🧠</div>
+                <span class="soon-badge">Coming soon</span>
+            </div>
+            <div class="card-title">Neural Networks</div>
+            <div class="card-desc">Build a network layer by layer. See forward propagation, backpropagation, and weight updates in real time.</div>
+            <div class="card-tags"><span class="tag">Deep Learning</span><span class="tag">Backprop</span></div>
+        </div>
+
+    </div>
+
+    <!-- ═══════ MODEL EVALUATION ═══════ -->
+    <div class="cat-label">Model Evaluation & Selection</div>
+    <div class="grid">
+
+        <div class="card soon">
+            <div class="card-head">
+                <div class="card-icon">🎯</div>
+                <span class="soon-badge">Coming soon</span>
+            </div>
+            <div class="card-title">Confusion Matrix & Metrics</div>
+            <div class="card-desc">Interactive confusion matrix with precision, recall, F1, ROC curves, and threshold tuning.</div>
+            <div class="card-tags"><span class="tag">Metrics</span><span class="tag">ROC / AUC</span></div>
+        </div>
+
+        <div class="card soon">
+            <div class="card-head">
+                <div class="card-icon">🔄</div>
+                <span class="soon-badge">Coming soon</span>
+            </div>
+            <div class="card-title">Cross-Validation</div>
+            <div class="card-desc">Visualize k-fold, stratified, and leave-one-out cross-validation with bias-variance tradeoff.</div>
+            <div class="card-tags"><span class="tag">Validation</span><span class="tag">Model Selection</span></div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>Built for the ML course — <a href="https://github.com/abka0002/Machine-Learning-to-go" target="_blank" rel="noopener">View on GitHub</a></p>
+    </footer>
+
+</div>
 </body>
 </html>
