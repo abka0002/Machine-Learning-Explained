@@ -10,7 +10,7 @@ A collection of interactive web tools for exploring machine learning algorithms 
 |------|-------------|
 | [Data Preparation & Feature Engineering](https://abka0002.github.io/Machine-Learning-to-go/DataPreparationAndFeatureEngineering/) | Interactive pipeline covering EDA, data types, imputation, scaling, encoding, and feature selection with the Heart Failure dataset |
 | [SMOTE & SMOTE-NC](https://abka0002.github.io/Machine-Learning-to-go/smote/) | Step-by-step walkthrough of synthetic oversampling for imbalanced datasets, covering both continuous and mixed-type features |
-| [Attention Is All You Need](https://abka0002.github.io/Machine-Learning-to-go/transformer](https://abka0002.github.io/Machine-Learning-to-go/) | Interactive guide to the Transformer architecture — self-attention, multi-head attention, positional encoding, encoder-decoder, and masking |
+| [Attention Is All You Need](https://abka0002.github.io/Machine-Learning-to-go/AttentionAndTransformer/) | Interactive guide to the Transformer architecture — self-attention, multi-head attention, positional encoding, encoder-decoder, and masking |
 
 ## About
 
