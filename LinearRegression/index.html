@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linear Regression — Interactive Learning</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f4f9f4;--card:#fff;--green:#2e7d32;--green2:#66bb6a;--greenLight:#e8f5e9;--greenPale:#f1f8f1;--ink:#1b2e1b;--muted:#5a7a5a;--border:#c8e6c9;--shadow:0 8px 30px rgba(46,125,50,.10);--accent:#1b5e20;--red:#c62828;--blue:#1565c0;--orange:#e65100}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+header{background:linear-gradient(135deg,#1b5e20,#66bb6a);color:#fff;padding:20px;position:sticky;top:0;z-index:50;box-shadow:0 4px 20px rgba(46,125,50,.25)}
+header h1{font-size:1.6rem;margin-bottom:4px}header p{opacity:.92;font-size:.95rem}
+.app{display:grid;grid-template-columns:260px 1fr;gap:16px;width:min(1320px,97%);margin:16px auto 40px;min-height:80vh}
+nav{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;box-shadow:var(--shadow);position:sticky;top:100px;align-self:start}
+nav h3{color:var(--green);font-size:.95rem;margin-bottom:8px}
+nav button{width:100%;text-align:left;border:none;background:var(--greenPale);padding:10px;border-radius:10px;margin:4px 0;cursor:pointer;font-size:.84rem;transition:.2s}
+nav button:hover,nav button.on{background:var(--green);color:#fff;font-weight:600}
+section{display:none;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow)}
+section.on{display:block}
+h2{color:var(--green);margin-bottom:4px;font-size:1.35rem}.sub{color:var(--muted);margin-bottom:14px;font-size:.92rem}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cd{border:1px solid var(--border);border-radius:14px;padding:16px;background:var(--card);margin-bottom:14px}
+.cd h4{margin:0 0 8px;color:var(--accent);display:flex;align-items:center;gap:6px}
+.cd h4 .ico{width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.io{background:#e8f5e9;border:1px solid #c8e6c9}.ib{background:#e3f2fd;border:1px solid #bbdefb}.ir{background:#fce4ec;border:1px solid #f8bbd0}.ip{background:#f3e5f5;border:1px solid #e1bee7}.iw{background:#fff3e0;border:1px solid #ffe0b2}
+.desc{font-size:.88rem;color:var(--muted);margin-bottom:10px;line-height:1.6}
+.note{background:#e8f5e9;border-left:4px solid var(--green);padding:10px 12px;border-radius:8px;margin:10px 0;font-size:.9rem}
+.warn{background:#fff3e0;border-left:4px solid var(--orange);padding:10px 12px;border-radius:8px;margin:10px 0;font-size:.9rem}
+.fb{background:#1b2e1b;color:#c8e6c9;font-family:'Consolas','Courier New',monospace;font-size:.84rem;padding:12px 14px;border-radius:10px;margin:8px 0;overflow-x:auto;line-height:1.8}
+.fb .hl{color:#66bb6a;font-weight:700}.fb .cm{color:#5a7a5a}
+.sb{background:var(--greenPale);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:.88rem}
+.sb .sl{font-family:monospace;font-size:.66rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.rb{background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:.88rem}
+.rb .rl{font-family:monospace;font-size:.66rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+canvas{border-radius:10px;display:block;max-width:100%}
+.viz{background:var(--greenPale);border:1px solid var(--border);border-radius:10px;padding:10px;margin:8px 0;position:relative}
+.viz-lbl{position:absolute;top:8px;left:10px;font-family:monospace;font-size:.6rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+label{display:block;margin:8px 0 4px;font-weight:600;font-size:.88rem}
+input[type=range]{width:100%;accent-color:var(--green);margin:2px 0}
+select,input[type=text],input[type=number]{width:100%;padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:.88rem;font-family:inherit}
+select:focus,input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(46,125,50,.1)}
+.val{color:var(--green);font-weight:700;font-family:monospace}
+.btn{border:none;background:var(--green);color:#fff;padding:9px 16px;border-radius:10px;cursor:pointer;margin:4px 4px 4px 0;font-size:.86rem;font-weight:600;transition:.2s}
+.btn:hover{background:var(--accent);transform:translateY(-1px)}.btn.sec{background:var(--green2)}.btn.wh{background:#fff;color:var(--green);border:2px solid var(--green)}.btn.wh:hover{background:var(--greenLight)}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.84rem}th,td{border:1px solid var(--border);padding:6px 8px;text-align:center}th{background:var(--greenLight);color:var(--accent);font-size:.78rem;text-transform:uppercase;letter-spacing:.03em}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}
+.metric{background:var(--greenPale);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center}
+.metric .k{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}.metric .v{font-size:1.15rem;font-weight:700;color:var(--accent);font-family:monospace}
+.cr{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}.cr>div{flex:1;min-width:120px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:860px){.app{grid-template-columns:1fr}nav{position:static}.row,.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}}
+.quiz{border:2px dashed var(--border);border-radius:12px;padding:12px;margin:12px 0;background:#f9fdf9}.quiz button{margin:6px 6px 0 0}.qr{margin-top:6px;font-size:.9rem}
+.tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.tab{padding:7px 14px;border-radius:10px 10px 0 0;border:1px solid var(--border);border-bottom:none;cursor:pointer;font-size:.86rem;background:var(--greenPale);transition:.2s;font-weight:500}.tab.on{background:var(--green);color:#fff;font-weight:600}
+.tpanel{display:none;border:1px solid var(--border);border-radius:0 14px 14px 14px;padding:14px;background:#fff}.tpanel.on{display:block}
+</style>
+</head>
+<body>
+<header><h1>📈 Linear Regression</h1><p>Interactive learning aids — Machine Learning Lecture HKA/EIT</p></header>
+<div class="app">
+<nav>
+<h3>📑 Topics</h3>
+<button class="tb on" data-t="s-slr">1. Simple Linear Regression</button>
+<button class="tb" data-t="s-sse">2. Least Squares (SSE)</button>
+<button class="tb" data-t="s-split">3. Train / Test Split</button>
+<button class="tb" data-t="s-metrics">4. Evaluation Metrics</button>
+<button class="tb" data-t="s-outlier">5. Outlier Impact</button>
+<button class="tb" data-t="s-multi">6. Multiple Regression</button>
+<button class="tb" data-t="s-poly">7. Polynomial & Overfitting</button>
+<button class="tb" data-t="s-biasvar">8. Bias-Variance Tradeoff</button>
+<button class="tb" data-t="s-reg">9. Regularization</button>
+<button class="tb" data-t="s-cv">10. Cross-Validation</button>
+<button class="tb" data-t="s-grid">11. Grid Search & Tuning</button>
+</nav>
+<main id="main-area">
+<!-- 1. SIMPLE LINEAR REGRESSION -->
+<section id="s-slr" class="on">
+<h2>Simple Linear Regression</h2>
+<p class="sub">One feature (x), one target (y): the model finds the best straight line ŷ = β₀ + β₁·x</p>
+
+<div class="cd">
+<h4><span class="ico io">🎮</span> Interactive Line Fitting — Heating Load Dataset</h4>
+<p class="desc">The dataset shows how <strong>Wall Area (m²)</strong> affects <strong>Heating Load (W/m²)</strong>. Drag the sliders to manually fit a line, then click <em>Best Fit</em> to see the optimal OLS solution. Watch how residuals and error metrics respond in real time.</p>
+<div class="g2">
+<div>
+<div class="viz"><div class="viz-lbl">Scatter + Regression Line</div><canvas id="slr-canvas" height="340"></canvas></div>
+<div class="cr">
+<div><label>Intercept β₀: <span class="val" id="b0v">5.0</span></label><input type="range" id="b0s" min="-10" max="30" step="0.5" value="5"></div>
+<div><label>Slope β₁: <span class="val" id="b1v">0.05</span></label><input type="range" id="b1s" min="-0.1" max="0.2" step="0.002" value="0.05"></div>
+</div>
+<button class="btn" id="olsBtn">🎯 Compute Best Fit (OLS)</button>
+<button class="btn sec" id="resetBtn">↺ Reset</button>
+</div>
+<div>
+<div class="g4" id="slr-cards"></div>
+<div class="viz"><div class="viz-lbl">Residual Plot (y − ŷ)</div><canvas id="slr-resid" height="160"></canvas></div>
+<div class="fb">ŷ = <span class="hl">β₀</span> + <span class="hl">β₁</span> · x<br>
+residual eᵢ = yᵢ − ŷᵢ <span class="cm">// actual minus predicted</span><br>
+SSE = Σ eᵢ² <span class="cm">// sum of squared residuals</span></div>
+<div id="slr-insight" class="rb"></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 2. LEAST SQUARES -->
+<section id="s-sse">
+<h2>Least Squares & Loss Function</h2>
+<p class="sub">Why minimize the <em>sum of squared</em> errors instead of just the sum of errors?</p>
+
+<div class="cd">
+<h4><span class="ico iw">⚖️</span> Why Squared? — Interactive Demonstration</h4>
+<p class="desc">Adjust the prediction line (ŷ = β₀ + β₁·x) using the sliders. Watch how <strong>Sum of Errors</strong> can be near zero even with a terrible fit — positive and negative residuals cancel out! <strong>SSE</strong> prevents this by squaring each error first.</p>
+<div class="g2">
+<div>
+<div class="cr">
+<div><label>β₀: <span class="val" id="sse-b0v">15</span></label><input type="range" id="sse-b0" min="-5" max="30" step="0.5" value="15"></div>
+<div><label>β₁: <span class="val" id="sse-b1v">0.00</span></label><input type="range" id="sse-b1" min="-0.1" max="0.2" step="0.005" value="0"></div>
+</div>
+<div class="viz"><div class="viz-lbl">6 sample points + your prediction line</div><canvas id="sse-scatter" height="240"></canvas></div>
+<div class="viz"><div class="viz-lbl">Residual bars (e = y − ŷ)</div><canvas id="sse-bars" height="180"></canvas></div>
+</div>
+<div>
+<div id="sse-table"></div>
+<div class="g2" style="margin-top:8px">
+<div class="metric"><div class="k">Sum of Errors (Σeᵢ)</div><div class="v" id="sse-se" style="color:var(--red)">0</div></div>
+<div class="metric"><div class="k">SSE (Σeᵢ²)</div><div class="v" id="sse-sse" style="color:var(--green)">0</div></div>
+</div>
+<div id="sse-verdict" class="warn"></div>
+<div class="note"><strong>Conclusion:</strong> Sum of Errors is useless as a loss function because cancellation hides real errors. Squaring ensures every error contributes positively. That's why OLS minimizes <strong>SSE</strong>, not SE.</div>
+</div>
+</div>
+</div>
+
+<div class="cd">
+<h4><span class="ico io">🏔️</span> SSE Loss Surface — Contour Map</h4>
+<p class="desc">The SSE forms a <strong>convex bowl</strong> over the parameter space (β₀, β₁). Every point on this map represents a different line; the color shows the SSE for that line. The minimum (darkest green) is where OLS finds the optimal parameters.</p>
+<div class="g2">
+<div><div class="viz"><div class="viz-lbl">SSE Contour — click to explore</div><canvas id="sse-contour" height="300"></canvas></div>
+<div id="sse-contour-info" class="sb"></div></div>
+<div>
+<div class="fb">L(β₀, β₁) = Σ(yᵢ − β₀ − β₁·xᵢ)²<br><br>
+<span class="cm">// Set partial derivatives to zero:</span><br>
+∂L/∂β₀ = −2 Σ(yᵢ − β₀ − β₁·xᵢ) = 0<br>
+∂L/∂β₁ = −2 Σ xᵢ(yᵢ − β₀ − β₁·xᵢ) = 0<br><br>
+<span class="cm">// Matrix form (Normal Equation):</span><br>
+<span class="hl">β = (XᵀX)⁻¹ · Xᵀy</span></div>
+<div class="note"><strong>Key properties:</strong> The loss surface is <em>convex</em> (bowl-shaped), so there is exactly <strong>one global minimum</strong>. No local minima traps — OLS always finds the best solution.</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 3. TRAIN/TEST SPLIT -->
+<section id="s-split">
+<h2>Train / Test Split</h2>
+<p class="sub">Before training, divide data into subsets. The model must generalize to unseen data.</p>
+
+<div class="cd">
+<h4><span class="ico io">✂️</span> Interactive Split — Watch Generalization</h4>
+<p class="desc">Adjust the split ratio and observe: the model is trained <strong>only on green points</strong> (training set) but evaluated on <strong>blue points</strong> (test set). A good model performs well on both.</p>
+<div class="g2">
+<div>
+<label>Training ratio: <span class="val" id="sp-val">80</span>%</label>
+<input type="range" id="sp-slider" min="20" max="95" value="80">
+<div class="viz"><div class="viz-lbl">Train (green) vs Test (blue)</div><canvas id="sp-canvas" height="340"></canvas></div>
+</div>
+<div>
+<div class="g2" id="sp-metrics"></div>
+<div class="viz"><canvas id="sp-bar" height="80"></canvas></div>
+<div class="sb"><div class="sl">80/20 Rule (Pareto Principle)</div>A common split: <strong>80% training, 20% testing</strong>. Loosely inspired by the Pareto principle — 80% of effect is driven by 20% of causes. In practice, ratio depends on dataset size.</div>
+<div class="warn">⚠️ <strong>Never</strong> use test data during training or tuning! The test set must remain <strong>unseen</strong> until final evaluation. Using it earlier causes <em>data leakage</em> — overly optimistic metrics that don't reflect real-world performance.</div>
+<div class="note"><strong>Scaling after split:</strong> Fit the scaler on training data only (<code>fit_transform</code>), then apply to test data (<code>transform</code>). This prevents information from the test set leaking into training.</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 4. EVALUATION METRICS -->
+<section id="s-metrics">
+<h2>Evaluation Metrics</h2>
+<p class="sub">Quantify model performance with MAE, MSE, RMSE, and R².</p>
+
+<div class="cd">
+<h4><span class="ico io">🧮</span> Interactive Metric Calculator — Step by Step</h4>
+<p class="desc">Enter actual and predicted values (comma-separated). Every metric is computed with full working shown.</p>
+<div class="cr">
+<div><label>Actual values (y):</label><input type="text" id="met-y" value="10, 15, 20, 25, 30"></div>
+<div><label>Predicted values (ŷ):</label><input type="text" id="met-yh" value="12, 14, 22, 24, 28"></div>
+<div style="flex:0;min-width:100px"><label>&nbsp;</label><button class="btn" onclick="calcMet()">Calculate</button></div>
+</div>
+<div class="g4" id="met-cards"></div>
+<div id="met-steps"></div>
+</div>
+
+<div class="g2">
+<div class="cd">
+<h4><span class="ico ib">📐</span> Formulas</h4>
+<div class="fb">
+<span class="hl">MAE</span> = (1/n) Σ|yᵢ − ŷᵢ| <span class="cm">// avg absolute error</span><br>
+<span class="hl">MSE</span> = (1/n) Σ(yᵢ − ŷᵢ)² <span class="cm">// avg squared error</span><br>
+<span class="hl">RMSE</span> = √MSE <span class="cm">// same unit as y</span><br>
+<span class="hl">R²</span> = 1 − SSE/SST <span class="cm">// variance explained</span><br>
+&nbsp;&nbsp;SSE = Σ(yᵢ − ŷᵢ)² <span class="cm">// sum of sq. residuals</span><br>
+&nbsp;&nbsp;SST = Σ(yᵢ − ȳ)² <span class="cm">// total sum of squares</span>
+</div>
+</div>
+<div class="cd">
+<h4><span class="ico io">🎯</span> Interpretation Guide</h4>
+<table><tr><th>Metric</th><th>Range</th><th>Perfect</th><th>Meaning</th></tr>
+<tr><td><strong>MAE</strong></td><td>[0, ∞)</td><td>0</td><td>Average error in original units. Robust to outliers.</td></tr>
+<tr><td><strong>MSE</strong></td><td>[0, ∞)</td><td>0</td><td>Penalizes large errors quadratically. Sensitive to outliers.</td></tr>
+<tr><td><strong>RMSE</strong></td><td>[0, ∞)</td><td>0</td><td>MSE in original units. Most commonly reported.</td></tr>
+<tr><td><strong>R²</strong></td><td>(−∞, 1]</td><td>1</td><td>1 = perfect. 0 = no better than mean. &lt;0 = worse than mean.</td></tr></table>
+<div class="note"><strong>Heating Load example:</strong> MAE=1.38, MSE=2.80, RMSE=1.76, R²=0.90 — the model explains 90% of the variance.</div>
+</div>
+</div>
+</section>
+
+<!-- 5. OUTLIER IMPACT -->
+<section id="s-outlier">
+<h2>Outlier Impact</h2>
+<p class="sub">A single outlier can dramatically distort the regression line and all metrics.</p>
+
+<div class="cd">
+<h4><span class="ico ir">💥</span> Click to Place an Outlier</h4>
+<p class="desc">The dashed green line is the clean fit (no outlier). Click anywhere on the plot to add an outlier — watch the red line (new fit) get pulled toward it. Compare R² before and after.</p>
+<div class="viz"><div class="viz-lbl">Click to add/move outlier</div><canvas id="out-canvas" height="380"></canvas></div>
+<div class="g2" style="margin-top:8px">
+<div id="out-clean" class="metric"><div class="k">Clean Fit R²</div><div class="v">—</div></div>
+<div id="out-dirty" class="metric"><div class="k">With Outlier R²</div><div class="v">—</div></div>
+</div>
+<div class="sb"><div class="sl">From the lecture: Outlier Impact</div><strong>Without outlier:</strong> R² = 0.90. <strong>With outlier in training:</strong> R² = 0.21 (train), R² = −0.29 (test). A single outlier destroyed the model — R² went <em>negative</em>, meaning the model is worse than predicting the mean.</div>
+<div class="note"><strong>Why?</strong> OLS minimizes <em>squared</em> errors — large residuals (outliers) have disproportionate influence. Solutions: remove outliers, use robust regression (e.g., Huber loss), or apply regularization.</div>
+</div>
+</section>
+
+<!-- 6. MULTIPLE REGRESSION -->
+<section id="s-multi">
+<h2>Multiple Linear Regression</h2>
+<p class="sub">Extend to m features: ŷ = β₀ + β₁x₁ + β₂x₂ + … + βₘxₘ</p>
+
+<div class="cd">
+<h4><span class="ico io">📐</span> Matrix Notation & Normal Equation</h4>
+<div class="g2">
+<div>
+<div class="fb">
+<span class="cm">// Feature matrix X (n samples, m+1 columns):</span><br>
+X = [[1, x₁⁽¹⁾, x₂⁽¹⁾, …, xₘ⁽¹⁾],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1, x₁⁽²⁾, x₂⁽²⁾, …, xₘ⁽²⁾],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;…<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1, x₁⁽ⁿ⁾, x₂⁽ⁿ⁾, …, xₘ⁽ⁿ⁾]]<br><br>
+<span class="cm">// Coefficient vector:</span><br>
+β = [β₀, β₁, β₂, …, βₘ]ᵀ<br><br>
+<span class="cm">// Prediction:</span><br>
+<span class="hl">ŷ = X · w</span><br><br>
+<span class="cm">// Normal Equation (closed-form solution):</span><br>
+<span class="hl">β = (XᵀX)⁻¹ · Xᵀy</span>
+</div>
+</div>
+<div>
+<h4><span class="ico ib">🧪</span> 2-Feature Prediction Surface</h4>
+<p class="desc">Adjust weights to see how the prediction surface changes. Color = predicted ŷ value.</p>
+<div class="cr">
+<div><label>β₀: <span class="val" id="mb0v">5</span></label><input type="range" id="mb0" min="-10" max="20" value="5"></div>
+<div><label>β₁: <span class="val" id="mb1v">2.0</span></label><input type="range" id="mb1" min="-5" max="5" step="0.1" value="2"></div>
+<div><label>β₂: <span class="val" id="mb2v">-1.0</span></label><input type="range" id="mb2" min="-5" max="5" step="0.1" value="-1"></div>
+</div>
+<div class="viz"><canvas id="multi-heat" height="240"></canvas></div>
+<div id="multi-eq" class="fb"></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 7. POLYNOMIAL & OVERFITTING -->
+<section id="s-poly">
+<h2>Polynomial Features & Overfitting</h2>
+<p class="sub">Capture nonlinear patterns — but beware of model complexity.</p>
+
+<div class="cd">
+<h4><span class="ico io">🎮</span> Interactive: Polynomial Degree vs Fit Quality</h4>
+<p class="desc">The <strong>true function</strong> (dashed) is a quadratic: y = 1 + 2x + 3x² with Gaussian noise (σ=10). Increase the polynomial degree and watch the model transition from <strong>underfitting → good fit → overfitting</strong>. Pay attention to train vs test error.</p>
+<label>Polynomial Degree: <span class="val" id="poly-deg-v">1</span></label>
+<input type="range" id="poly-deg" min="1" max="9" value="1">
+<div class="fb"><span class="cm"># Data (np.random.seed(0)):</span><br>
+x = np.linspace(-3, 3, 100)<br>
+y_true = <span class="hl">1 + 2*x + 3*x²</span><br>
+y = y_true + np.random.normal(scale=<span class="hl">10</span>, size=x.shape)<br>
+<span class="cm"># train_test_split(test_size=0.3, random_state=42)</span><br>
+<span class="cm"># 70 train / 30 test samples</span></div>
+<div class="viz"><div class="viz-lbl">Polynomial Regression — Degree <span id="poly-deg-lbl">1</span></div><canvas id="poly-canvas" height="380"></canvas></div>
+<div class="g2">
+<div class="g2" id="poly-train-m"></div>
+<div class="g2" id="poly-test-m"></div>
+</div>
+<div id="poly-feedback" class="rb"></div>
+</div>
+
+<div class="g2">
+<div class="cd">
+<h4><span class="ico ib">🔧</span> How Polynomial Features Work</h4>
+<div class="fb"><span class="cm">// Original (2 features):</span><br>
+[x₁, x₂]<br><br>
+<span class="cm">// Degree-2 (full quadratic):</span><br>
+[1, x₁, x₂, <span class="hl">x₁²</span>, <span class="hl">x₁·x₂</span>, <span class="hl">x₂²</span>]<br><br>
+<span class="cm">// Degree-3 adds:</span><br>
+[…, <span class="hl">x₁³</span>, <span class="hl">x₁²·x₂</span>, <span class="hl">x₁·x₂²</span>, <span class="hl">x₂³</span>]<br><br>
+<span class="cm">// Still linear in parameters!</span><br>
+<span class="cm">// ŷ = β₀ + β₁x₁ + β₂x₂ + β₃x₁² + …</span></div>
+</div>
+<div class="cd">
+<h4><span class="ico iw">💡</span> Kinetic Energy Example</h4>
+<p class="desc">KE = ½mv² — physics tells us V² matters. Adding this single domain-informed feature is better than brute-force polynomial expansion:</p>
+<table><tr><th>Features</th><th>R² Train</th><th>R² Test</th><th>MSE Test</th></tr>
+<tr><td>M, V (linear)</td><td>0.94</td><td>0.93</td><td>22,450,540</td></tr>
+<tr><td>M, V, <strong style="color:var(--green)">V²</strong></td><td><strong>1.00</strong></td><td><strong>1.00</strong></td><td>756,358</td></tr></table>
+<div class="note"><strong>Domain knowledge beats brute force!</strong> Adding V² captures the true physics. The MSE dropped by <strong>97%</strong>.</div>
+</div>
+</div>
+</section>
+
+<!-- 8. BIAS-VARIANCE -->
+<section id="s-biasvar">
+<h2>Bias-Variance Tradeoff</h2>
+<p class="sub">The fundamental tension in machine learning: too simple vs too complex.</p>
+
+<div class="cd">
+<h4><span class="ico io">📈</span> Complexity vs Error — The U-Shaped Curve</h4>
+<p class="desc">Training error always decreases with complexity. But test error follows a <strong>U-shape</strong>: it decreases initially (model learns the pattern) then increases (model memorizes noise). The sweet spot is where test error is minimized.</p>
+<div class="viz"><div class="viz-lbl">Training Error vs Test Error</div><canvas id="bv-canvas" height="380"></canvas></div>
+</div>
+
+<div class="g3">
+<div class="cd" style="border-top:3px solid var(--red)">
+<h4><span class="ico ir">🔴</span> Underfitting (High Bias)</h4>
+<p class="desc">Model too simple — cannot capture the pattern.</p>
+<div class="sb"><div class="sl">Symptoms</div>High training error <strong>AND</strong> high test error. Both are bad.</div>
+<div class="sb"><div class="sl">Fix</div>• Add more features<br>• Increase polynomial degree<br>• Use a more complex model</div>
+</div>
+<div class="cd" style="border-top:3px solid var(--green)">
+<h4><span class="ico io">✅</span> Good Fit (Balance)</h4>
+<p class="desc">Model captures the true pattern without memorizing noise.</p>
+<div class="sb"><div class="sl">Symptoms</div>Low training error. Low test error. Small <strong>generalization gap</strong>.</div>
+<div class="sb"><div class="sl">This is the goal</div>Bias² + Variance is minimized. The model <em>generalizes</em>.</div>
+</div>
+<div class="cd" style="border-top:3px solid var(--blue)">
+<h4><span class="ico ib">🔵</span> Overfitting (High Variance)</h4>
+<p class="desc">Model too complex — memorizes training noise.</p>
+<div class="sb"><div class="sl">Symptoms</div>Very low training error but <strong>high test error</strong>. Large generalization gap.</div>
+<div class="sb"><div class="sl">Fix</div>• Regularization (L1/L2)<br>• More training data<br>• Reduce features / degree<br>• Cross-validation</div>
+</div>
+</div>
+
+<div class="cd">
+<h4><span class="ico ip">📋</span> Bias-Variance Decomposition</h4>
+<div class="fb"><span class="hl">Total Error</span> = Bias² + Variance + <span class="cm">Irreducible Noise</span><br><br>
+<span class="cm">// Bias: error from wrong assumptions (too simple)</span><br>
+<span class="cm">// Variance: error from sensitivity to training data (too complex)</span><br>
+<span class="cm">// Noise: inherent randomness in data (cannot reduce)</span></div>
+</div>
+</section>
+
+<!-- 9. REGULARIZATION -->
+<section id="s-reg">
+<h2>Regularization</h2>
+<p class="sub">Add a penalty term to the loss function to prevent overfitting by shrinking coefficients.</p>
+
+<div class="tabs" id="regTabs">
+<div class="tab on" data-p="regOverview">📖 Overview</div>
+<div class="tab" data-p="regGeometry">🔷 Geometry</div>
+<div class="tab" data-p="regCoeffs">📊 Coefficients</div>
+<div class="tab" data-p="regPaths">📈 Reg. Paths</div>
+<div class="tab" data-p="regCompare">⚔️ Compare</div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="tpanel on" id="regOverview">
+<div class="cd">
+<h4><span class="ico io">🎯</span> What is Regularization?</h4>
+<p class="desc">Regularization adds a <strong>penalty term</strong> to the loss function to prevent overfitting. It discourages complex models by shrinking coefficients toward zero.</p>
+</div>
+<div class="g2">
+<div class="cd" style="border-top:3px solid var(--green)">
+<h4><span class="ico io">🟢</span> Ridge (L2)</h4>
+<div class="fb">Loss = RSS + λ · Σ βⱼ²</div>
+<p class="desc">Adds the <strong>sum of squared coefficients</strong>. Shrinks toward zero but <strong>never exactly to zero</strong>.</p>
+<p class="desc"><span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:700;background:rgba(46,125,50,0.1);color:var(--green);margin:2px">Keeps all features</span> <span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:700;background:rgba(46,125,50,0.1);color:var(--green);margin:2px">Smooth shrinkage</span></p>
+</div>
+<div class="cd" style="border-top:3px solid var(--orange)">
+<h4><span class="ico iw">🌿</span> Lasso (L1)</h4>
+<div class="fb">Loss = RSS + λ · Σ |βⱼ|</div>
+<p class="desc">Adds the <strong>sum of absolute coefficients</strong>. Can shrink coefficients <strong>exactly to zero</strong> — automatic feature selection!</p>
+<p class="desc"><span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:700;background:rgba(230,81,0,0.1);color:var(--orange);margin:2px">Feature selection</span> <span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:700;background:rgba(230,81,0,0.1);color:var(--orange);margin:2px">Sparse models</span></p>
+</div>
+</div>
+<div class="cd">
+<h4><span class="ico ib">💡</span> Key Insight</h4>
+<p class="desc">Lasso produces <strong>sparse models</strong> (some coefficients become exactly zero). Ridge keeps all features with smaller values. This comes from the <strong>geometry of their constraint regions</strong> — explore the Geometry tab to see why!</p>
+</div>
+<div class="cd">
+<h4><span class="ico ib">📊</span> Immoscout24 Example</h4>
+<table><tr><th>Model</th><th>R² Train</th><th>R² Test</th><th>MSE Test</th></tr>
+<tr><td>Linear (no reg.)</td><td>0.77</td><td style="color:var(--red);font-weight:700">−7.5 × 10²³</td><td style="color:var(--red)">Huge</td></tr>
+<tr><td style="color:var(--green);font-weight:600">Ridge (L2)</td><td>0.75</td><td><strong>0.72</strong></td><td>37,027</td></tr>
+<tr><td style="color:var(--orange);font-weight:600">Lasso (L1)</td><td>0.76</td><td><strong>0.72</strong></td><td>37,255</td></tr></table>
+<div class="warn">Without regularization, the model <strong>completely failed</strong> on test data (R² = −10²³!). Ridge and Lasso both rescued it to R² ≈ 0.72.</div>
+</div>
+</div>
+
+<!-- GEOMETRY -->
+<div class="tpanel" id="regGeometry">
+<div class="cd">
+<h4><span class="ico io">🔷</span> Geometric Interpretation</h4>
+<p class="desc">Regularization is a <strong>constrained optimization</strong>: minimize RSS subject to coefficients inside a constraint region. The solution is where the <span style="color:#b45309;font-weight:600;">RSS contour ellipses</span> first touch the constraint region.</p>
+<div class="note"><strong>How to read:</strong> <span style="color:#b45309;font-weight:bold;">Amber ellipses</span> = RSS contours (center = OLS). <span style="color:var(--green);font-weight:bold;">Green circle</span> = Ridge constraint. <span style="color:var(--orange);font-weight:bold;">Orange diamond</span> = Lasso constraint. <span style="color:#dc2626;font-weight:bold;">Red dot</span> = regularized solution.<br>🔑 The diamond's <strong>sharp corners sit on the axes</strong> (where one β = 0). Ellipses are far more likely to hit a corner → Lasso produces <strong>zeros!</strong></div>
+<div class="g2">
+<div><label>🎛️ Constraint budget: <span class="val" id="geomLamVal">0.50</span></label>
+<input type="range" id="geomLam" min="0.15" max="1.3" step="0.01" value="0.5"></div>
+<div><label>🔄 Rotate RSS ellipses: <span class="val" id="geomAngVal">25°</span></label>
+<input type="range" id="geomAng" min="0" max="85" step="1" value="25"></div>
+</div>
+</div>
+<div class="g2">
+<div class="cd" style="border-top:3px solid var(--green);text-align:center">
+<h4 style="justify-content:center"><span class="ico io">🟢</span> Ridge — Circle</h4>
+<div class="viz"><canvas id="ridgeGeomCv" height="340"></canvas></div>
+<div id="ridgeInfo" class="sb" style="text-align:left"></div>
+</div>
+<div class="cd" style="border-top:3px solid var(--orange);text-align:center">
+<h4 style="justify-content:center"><span class="ico iw">🌿</span> Lasso — Diamond</h4>
+<div class="viz"><canvas id="lassoGeomCv" height="340"></canvas></div>
+<div id="lassoInfo" class="sb" style="text-align:left"></div>
+</div>
+</div>
+<div class="cd">
+<h4><span class="ico ib">🧠</span> Why does the shape matter?</h4>
+<p class="desc">Try rotating the RSS ellipses with the slider. The <strong style="color:var(--orange)">diamond's corners</strong> "catch" the ellipse across many angles, giving a solution where one coefficient is exactly zero. The <strong style="color:var(--green)">circle</strong> is smooth, so contact almost always has <strong>both coefficients nonzero</strong>. This is why Lasso does automatic feature selection!</p>
+</div>
+</div>
+
+<!-- COEFFICIENTS -->
+<div class="tpanel" id="regCoeffs">
+<div class="cd">
+<h4><span class="ico io">📊</span> Coefficient Shrinkage — 8 Features</h4>
+<p class="desc">Drag λ to see how increasing regularization shrinks coefficients differently. Lasso drives small coefficients <strong>to exactly zero</strong>, while Ridge only approaches zero.</p>
+<label>🎛️ Regularization strength λ: <span class="val" id="coeffLamVal">0.00</span></label>
+<input type="range" id="coeffLamSlider" min="0" max="5" step="0.05" value="0">
+</div>
+<div class="g2">
+<div class="cd" style="border-top:3px solid var(--green)">
+<h4><span class="ico io">🟢</span> Ridge Coefficients</h4>
+<div id="ridgeCoeffBars"></div>
+</div>
+<div class="cd" style="border-top:3px solid var(--orange)">
+<h4><span class="ico iw">🌿</span> Lasso Coefficients</h4>
+<div id="lassoCoeffBars"></div>
+</div>
+</div>
+<div class="cd">
+<h4><span class="ico ib">🔢</span> Summary</h4>
+<div class="g2">
+<div class="sb"><div class="sl">Ridge</div><span id="ridgeActive">8</span>/8 features active — all kept</div>
+<div class="sb"><div class="sl">Lasso</div><span id="lassoActive">8</span>/8 features active</div>
+</div>
+</div>
+</div>
+
+<!-- PATHS -->
+<div class="tpanel" id="regPaths">
+<div class="cd">
+<h4><span class="ico io">📈</span> Regularization Paths</h4>
+<p class="desc">How each coefficient changes as λ increases (left → right). <strong style="color:var(--green)">Ridge</strong> decays smoothly. <strong style="color:var(--orange)">Lasso</strong> coefficients hit zero at specific λ values — showing clear feature elimination.</p>
+</div>
+<div class="g2">
+<div class="cd" style="border-top:3px solid var(--green);text-align:center">
+<h4 style="justify-content:center"><span class="ico io">🟢</span> Ridge Path</h4>
+<div class="viz"><canvas id="ridgePathCv" height="250"></canvas></div>
+</div>
+<div class="cd" style="border-top:3px solid var(--orange);text-align:center">
+<h4 style="justify-content:center"><span class="ico iw">🌿</span> Lasso Path</h4>
+<div class="viz"><canvas id="lassoPathCv" height="250"></canvas></div>
+</div>
+</div>
+</div>
+
+<!-- COMPARE -->
+<div class="tpanel" id="regCompare">
+<div class="cd">
+<h4><span class="ico io">⚔️</span> Side-by-Side Comparison</h4>
+<table>
+<tr><th>Aspect</th><th style="color:var(--green)">Ridge (L2)</th><th style="color:var(--orange)">Lasso (L1)</th></tr>
+<tr><td>Penalty</td><td>Σ βⱼ²</td><td>Σ |βⱼ|</td></tr>
+<tr><td>Geometry</td><td>🟢 Circle / Sphere</td><td>🌿 Diamond / Polytope</td></tr>
+<tr><td>Feature Selection</td><td>❌ No — keeps all</td><td>✅ Yes — zeros out some</td></tr>
+<tr><td>Solution Form</td><td>Closed form</td><td>Iterative (no closed form)</td></tr>
+<tr><td>Correlated Features</td><td>Shares weight evenly</td><td>Picks one, zeros others</td></tr>
+<tr><td>Best When</td><td>Many small effects</td><td>Few important features</td></tr>
+</table>
+</div>
+<div class="cd">
+<h4><span class="ico ib">🤔</span> When to use which?</h4>
+<p class="desc"><strong style="color:var(--green)">Use Ridge</strong> when most features contribute and you want to shrink all evenly. Great with correlated features.</p>
+<p class="desc"><strong style="color:var(--orange)">Use Lasso</strong> when many features are irrelevant and you want automatic feature selection.</p>
+<p class="desc"><strong>🌟 Elastic Net</strong> combines both: λ₁·Σ|βⱼ| + λ₂·Σβⱼ², giving feature selection plus grouped handling of correlated features.</p>
+</div>
+<div class="cd">
+<h4><span class="ico ip">🧪</span> Quick Quiz</h4>
+<div id="regQuiz"></div>
+</div>
+</div>
+</section>
+
+<!-- 10. CROSS-VALIDATION -->
+<section id="s-cv">
+<h2>K-Fold Cross-Validation</h2>
+<p class="sub">Every data point gets to be in the validation set exactly once — robust model evaluation.</p>
+
+<div class="cd">
+<h4><span class="ico io">🎮</span> Interactive K-Fold Visualization</h4>
+<p class="desc">Each row shows one fold iteration. The <span style="color:var(--red);font-weight:700">red block</span> is the validation fold; <span style="color:var(--green);font-weight:700">green blocks</span> are training. After K iterations, every data point has been validated exactly once.</p>
+<label>Number of folds (K): <span class="val" id="cv-k-v">5</span></label>
+<input type="range" id="cv-k" min="2" max="10" value="5">
+<div class="viz"><div class="viz-lbl">K-Fold Cross-Validation</div><canvas id="cv-canvas" height="380"></canvas></div>
+<div id="cv-info" class="rb"></div>
+</div>
+
+<div class="cd">
+<h4><span class="ico ib">📋</span> Why Cross-Validation?</h4>
+<div class="g2">
+<div>
+<div class="sb"><div class="sl">Problem with single split</div>• What if the validation set doesn't represent the full distribution?<br>• With limited data, a single split wastes valuable training samples<br>• Results depend on which data ended up in which set</div>
+</div>
+<div>
+<div class="sb"><div class="sl">K-Fold solves this</div>• Every sample is validated exactly once<br>• Final score = <strong>average of K scores</strong> → more reliable<br>• Reduces variance of the performance estimate<br>• Standard: K=5 or K=10 in practice</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 11. GRID SEARCH -->
+<section id="s-grid">
+<h2>Grid Search & Hyperparameter Tuning</h2>
+<p class="sub">Systematically find the best hyperparameters using cross-validation.</p>
+
+<div class="cd">
+<h4><span class="ico io">🔍</span> Parameters vs Hyperparameters</h4>
+<div class="g2">
+<div class="sb"><div class="sl">Parameters (learned from data)</div>Determined <strong>during training</strong> automatically.<br>Examples: weights β₀, β₁, …, βₘ<br><em>You don't choose these — the algorithm finds them.</em></div>
+<div class="sb"><div class="sl">Hyperparameters (set by you)</div>Set <strong>before training</strong> — control the learning process.<br>Examples: λ (regularization strength), polynomial degree, K in KNN, learning rate<br><em>How to choose? → Grid Search + Cross-Validation!</em></div>
+</div>
+</div>
+
+<div class="cd">
+<h4><span class="ico io">🎮</span> Interactive Grid Search — Find Best λ for Ridge Regression</h4>
+<p class="desc">This simulates grid search with 5-fold CV for 8 different λ values. Each bar shows the <strong>average CV R²</strong> across 5 folds. The best λ is highlighted. Click any bar to see that λ's fold-by-fold scores.</p>
+<div class="viz"><div class="viz-lbl">Grid Search: Average 5-Fold CV R² per λ</div><canvas id="grid-canvas" height="300"></canvas></div>
+<div id="grid-detail" class="sb" style="min-height:40px"></div>
+<div id="grid-result" class="rb"></div>
+</div>
+
+<div class="cd">
+<h4><span class="ico ib">📋</span> Full Pipeline: Grid Search + K-Fold CV — Step by Step</h4>
+<p class="desc">This diagram shows the complete workflow from raw data to final deployed model. Follow the numbered steps and the arrows. The test set stays <strong>sealed</strong> until the very last step.</p>
+<div class="viz"><div class="viz-lbl">Complete Hyperparameter Tuning Pipeline</div><canvas id="grid-flow" height="580"></canvas></div>
+</div>
+
+<div class="g2">
+<div class="cd">
+<h4><span class="ico iw">⚠️</span> Why Not Use the Test Set for Tuning?</h4>
+<p class="desc">If you evaluate hyperparameters on the test set, you're <strong>indirectly training on it</strong> — choosing hyperparameters that happen to work well on those specific test points. The test set becomes "seen" data, and your final performance estimate is <strong>overly optimistic</strong>.</p>
+<div class="note">The test set must remain <strong>completely sealed</strong> until the final evaluation. This is why we need a separate <strong>validation</strong> mechanism — and K-fold CV is the most robust approach.</div>
+</div>
+<div class="cd">
+<h4><span class="ico ir">💰</span> Computational Cost</h4>
+<p class="desc">Grid search trains <strong>K × G</strong> models, where G = number of grid points and K = folds.</p>
+<div class="fb"><span class="cm">// Example: 8 λ values × 5 folds = 40 models!</span><br>
+<span class="cm">// With 2 hyperparameters (e.g., λ and degree):</span><br>
+<span class="cm">// 8 × 5 × 5 folds = 200 models</span><br><br>
+<span class="cm">// Alternatives:</span><br>
+<span class="hl">Random Search</span>: sample randomly from param space<br>
+<span class="hl">Bayesian Optimization</span>: smart sequential search<br>
+<span class="hl">Evolutionary Algorithms</span>: population-based search</div>
+</div>
+</div>
+</section>
+
+</main>
+</div>
+<script>
+
+
+// ===== NAVIGATION =====
+document.querySelectorAll('.tb').forEach(b=>{b.onclick=()=>{document.querySelectorAll('.tb').forEach(x=>x.classList.remove('on'));document.querySelectorAll('main section').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.getElementById(b.dataset.t).classList.add('on');setTimeout(initSection.bind(null,b.dataset.t),60)}});
+function qa(id,msg){document.getElementById(id).innerHTML=msg}
+function initSection(t){
+if(t==='s-slr')drawSLR();if(t==='s-sse'){drawSSEBars();drawSSEContour()}
+if(t==='s-split')drawSplit();if(t==='s-metrics')calcMet();if(t==='s-outlier')drawOutlier();
+if(t==='s-multi')drawMulti();if(t==='s-poly')drawPoly();if(t==='s-biasvar')drawBV();
+if(t==='s-reg'){drawRegGeometry();updateRegCoeffs();drawRegPaths()};if(t==='s-cv')drawCV();if(t==='s-grid'){drawGrid();drawGridFlow()}}
+
+// ===== HELPERS =====
+function randN(m,s){let u=0,v=0;while(!u)u=Math.random();v=Math.random();return m+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+const DPR=window.devicePixelRatio||1;
+function hiDPI(cv,w,h){cv.width=w*DPR;cv.height=h*DPR;cv.style.width=w+'px';cv.style.height=h+'px';const c=cv.getContext('2d');c.scale(DPR,DPR);return c}
+function meanA(a){return a.reduce((s,v)=>s+v,0)/a.length}
+function linReg(pts){const n=pts.length;let sx=0,sy=0,sxy=0,sxx=0;pts.forEach(p=>{sx+=p.x;sy+=p.y;sxy+=p.x*p.y;sxx+=p.x*p.x});const d=n*sxx-sx*sx;const w1=d?((n*sxy-sx*sy)/d):0;const w0=(sy-w1*sx)/n;return{w0,w1}}
+function r2Score(pts,pred){const ym=meanA(pts.map(p=>p.y));let sse=0,sst=0;pts.forEach(p=>{sse+=(p.y-pred(p.x))**2;sst+=(p.y-ym)**2});return 1-sse/(sst||1)}
+
+function plot(cvId,W,H,xR,yR,pad){
+const cv=document.getElementById(cvId);if(!cv)return null;
+const cw=cv.parentElement.clientWidth-16;W=Math.min(W,cw);
+const c=hiDPI(cv,W,H);c.clearRect(0,0,W,H);c.fillStyle='#fff';c.fillRect(0,0,W,H);
+const p=pad||{l:52,r:18,t:22,b:38};
+const pW=W-p.l-p.r,pH=H-p.t-p.b;
+const tx=v=>p.l+(v-xR[0])/(xR[1]-xR[0])*pW;
+const ty=v=>p.t+pH-(v-yR[0])/(yR[1]-yR[0])*pH;
+// Grid
+c.strokeStyle='#e8f5e9';c.lineWidth=.5;
+for(let i=0;i<=5;i++){const x=p.l+i*pW/5,y=p.t+i*pH/5;c.beginPath();c.moveTo(x,p.t);c.lineTo(x,H-p.b);c.stroke();c.beginPath();c.moveTo(p.l,y);c.lineTo(W-p.r,y);c.stroke()}
+// Axes
+c.strokeStyle='#a5d6a7';c.lineWidth=1;c.beginPath();c.moveTo(p.l,p.t);c.lineTo(p.l,H-p.b);c.lineTo(W-p.r,H-p.b);c.stroke();
+// Tick labels
+c.fillStyle='#5a7a5a';c.font='9px monospace';c.textAlign='center';
+for(let i=0;i<=5;i++){const v=xR[0]+i*(xR[1]-xR[0])/5;c.fillText(v%1?v.toFixed(1):Math.round(v),tx(v),H-p.b+14)}
+c.textAlign='right';for(let i=0;i<=5;i++){const v=yR[0]+i*(yR[1]-yR[0])/5;c.fillText(v%1?v.toFixed(1):Math.round(v),p.l-5,ty(v)+3)}
+return{c,tx,ty,W,H,p,pW,pH}}
+
+// ===== DATA =====
+const SLR_DATA=[];for(let i=0;i<30;i++){const x=150+Math.random()*200;SLR_DATA.push({x,y:0.08*x+2+randN(0,2)})}
+
+// ===== 1. SLR =====
+function drawSLR(){
+const w0=+document.getElementById('b0s').value,w1=+document.getElementById('b1s').value;
+document.getElementById('b0v').textContent=w0.toFixed(1);document.getElementById('b1v').textContent=w1.toFixed(3);
+const P=plot('slr-canvas',700,340,[130,370],[-5,40]);if(!P)return;
+const{c,tx,ty}=P;
+// Residual lines
+SLR_DATA.forEach(pt=>{const yh=w0+w1*pt.x;c.strokeStyle='rgba(198,40,40,0.35)';c.lineWidth=1;c.beginPath();c.moveTo(tx(pt.x),ty(pt.y));c.lineTo(tx(pt.x),ty(yh));c.stroke()});
+// Regression line
+c.strokeStyle='#c62828';c.lineWidth=2.5;c.beginPath();c.moveTo(tx(130),ty(w0+w1*130));c.lineTo(tx(370),ty(w0+w1*370));c.stroke();
+// Points
+SLR_DATA.forEach(pt=>{c.fillStyle='#2e7d32';c.globalAlpha=.7;c.beginPath();c.arc(tx(pt.x),ty(pt.y),5,0,Math.PI*2);c.fill();c.globalAlpha=1});
+// Axis labels
+c.fillStyle='#5a7a5a';c.font='11px sans-serif';c.textAlign='center';c.fillText('Wall Area (m²)',P.W/2,P.H-3);
+c.save();c.translate(12,P.H/2);c.rotate(-Math.PI/2);c.fillText('Heating Load (W/m²)',0,0);c.restore();
+// Metrics
+const ym=meanA(SLR_DATA.map(p=>p.y));let sse=0,sae=0,sst=0;
+SLR_DATA.forEach(pt=>{const e=pt.y-(w0+w1*pt.x);sse+=e*e;sae+=Math.abs(e);sst+=(pt.y-ym)**2});
+const n=SLR_DATA.length,mse=sse/n,r2=1-sse/sst;
+document.getElementById('slr-cards').innerHTML=[{k:'SSE',v:sse},{k:'MSE',v:mse},{k:'RMSE',v:Math.sqrt(mse)},{k:'R²',v:r2}].map(m=>'<div class="metric"><div class="k">'+m.k+'</div><div class="v" style="color:'+(m.k==='R²'?(r2>.7?'var(--green)':'var(--red)'):'var(--accent)')+'">'+m.v.toFixed(2)+'</div></div>').join('');
+// Residual plot
+const P2=plot('slr-resid',700,160,[130,370],[-12,12]);if(!P2)return;
+P2.c.strokeStyle='#c8e6c9';P2.c.lineWidth=1.5;P2.c.beginPath();P2.c.moveTo(P2.tx(130),P2.ty(0));P2.c.lineTo(P2.tx(370),P2.ty(0));P2.c.stroke();
+SLR_DATA.forEach(pt=>{const e=pt.y-(w0+w1*pt.x);P2.c.fillStyle=e>0?'#2e7d32':'#c62828';P2.c.beginPath();P2.c.arc(P2.tx(pt.x),P2.ty(e),4,0,Math.PI*2);P2.c.fill()});
+// Insight
+const rr=linReg(SLR_DATA);const optR2=r2Score(SLR_DATA,x=>rr.w0+rr.w1*x);
+document.getElementById('slr-insight').innerHTML='<div class="rl">Current vs Optimal</div>Your R² = <strong>'+r2.toFixed(3)+'</strong> | OLS optimal R² = <strong>'+optR2.toFixed(3)+'</strong>'+(Math.abs(r2-optR2)<0.01?' — <strong style="color:var(--green)">Excellent fit!</strong>':' — try adjusting the sliders to match the optimal.')}
+document.getElementById('b0s').oninput=drawSLR;document.getElementById('b1s').oninput=drawSLR;
+document.getElementById('olsBtn').onclick=()=>{const r=linReg(SLR_DATA);document.getElementById('b0s').value=r.w0;document.getElementById('b1s').value=r.w1;drawSLR()};
+document.getElementById('resetBtn').onclick=()=>{document.getElementById('b0s').value=5;document.getElementById('b1s').value=0.05;drawSLR()};
+drawSLR();
+
+// ===== 2. SSE =====
+// ===== 2. SSE =====
+const SSE_PTS=[{x:150,y:14},{x:180,y:10},{x:220,y:22},{x:260,y:19},{x:300,y:28},{x:340,y:32}];
+function drawSSEBars(){
+const w0=+document.getElementById('sse-b0').value,w1=+document.getElementById('sse-b1').value;
+document.getElementById('sse-b0v').textContent=w0.toFixed(1);document.getElementById('sse-b1v').textContent=w1.toFixed(3);
+// Scatter plot with line
+const cv1=document.getElementById('sse-scatter');if(!cv1)return;
+const W1=cv1.parentElement.clientWidth-16,H1=240,c1=hiDPI(cv1,W1,H1);
+const P=plot('sse-scatter',W1,H1,[130,360],[0,40]);if(!P)return;
+// Line
+P.c.strokeStyle='#c62828';P.c.lineWidth=2;P.c.beginPath();P.c.moveTo(P.tx(130),P.ty(w0+w1*130));P.c.lineTo(P.tx(360),P.ty(w0+w1*360));P.c.stroke();
+// Residual lines + points
+SSE_PTS.forEach(pt=>{const yh=w0+w1*pt.x;P.c.strokeStyle='rgba(198,40,40,0.4)';P.c.lineWidth=1.5;P.c.beginPath();P.c.moveTo(P.tx(pt.x),P.ty(pt.y));P.c.lineTo(P.tx(pt.x),P.ty(yh));P.c.stroke();P.c.fillStyle='#2e7d32';P.c.beginPath();P.c.arc(P.tx(pt.x),P.ty(pt.y),5,0,Math.PI*2);P.c.fill()});
+P.c.fillStyle='#c62828';P.c.font='10px sans-serif';P.c.textAlign='left';P.c.fillText('ŷ = '+w0.toFixed(1)+' + '+w1.toFixed(3)+'·x',P.W-200,24);
+// Bar chart of residuals
+const cv2=document.getElementById('sse-bars');if(!cv2)return;
+const W2=cv2.parentElement.clientWidth-16,H2=180,c2=hiDPI(cv2,W2,H2);c2.clearRect(0,0,W2,H2);c2.fillStyle='#fff';c2.fillRect(0,0,W2,H2);
+const pad2={l:30,r:15,t:10,b:30};const bw=(W2-pad2.l-pad2.r)/SSE_PTS.length-6;
+const maxAbsE=Math.max(...SSE_PTS.map(pt=>Math.abs(pt.y-(w0+w1*pt.x))),1);
+const zeroY=pad2.t+(H2-pad2.t-pad2.b)*0.5;
+let se=0,sse=0;
+SSE_PTS.forEach((pt,i)=>{
+const yh=w0+w1*pt.x;const e=pt.y-yh;se+=e;sse+=e*e;
+const x=pad2.l+i*(bw+6)+3;const barH=Math.abs(e)/maxAbsE*(H2-pad2.t-pad2.b)*0.42;
+c2.fillStyle=e>=0?'#66bb6a':'#ef9a9a';
+c2.fillRect(x,e>=0?zeroY-barH:zeroY,bw,barH);
+c2.strokeStyle=e>=0?'#2e7d32':'#c62828';c2.lineWidth=1.5;c2.strokeRect(x,e>=0?zeroY-barH:zeroY,bw,barH);
+c2.fillStyle='#1b2e1b';c2.font='bold 9px monospace';c2.textAlign='center';
+c2.fillText((e>=0?'+':'')+e.toFixed(1),x+bw/2,e>=0?zeroY-barH-5:zeroY+barH+12);
+c2.fillStyle='#5a7a5a';c2.font='8px sans-serif';c2.fillText('x='+pt.x,x+bw/2,H2-pad2.b+12)});
+c2.strokeStyle='#1b2e1b';c2.lineWidth=1;c2.setLineDash([4,3]);c2.beginPath();c2.moveTo(pad2.l,zeroY);c2.lineTo(W2-pad2.r,zeroY);c2.stroke();c2.setLineDash([]);
+// Metrics
+document.getElementById('sse-se').textContent=se.toFixed(1);
+document.getElementById('sse-se').style.color=Math.abs(se)<2?'var(--red)':'var(--accent)';
+document.getElementById('sse-sse').textContent=sse.toFixed(1);
+// Table
+document.getElementById('sse-table').innerHTML='<table><tr><th>i</th><th>xᵢ</th><th>yᵢ</th><th>ŷᵢ</th><th>eᵢ</th><th>eᵢ²</th></tr>'+SSE_PTS.map((pt,i)=>{const yh=w0+w1*pt.x;const e=pt.y-yh;return'<tr><td>'+(i+1)+'</td><td>'+pt.x+'</td><td>'+pt.y+'</td><td>'+yh.toFixed(1)+'</td><td style="color:'+(e>=0?'var(--green)':'var(--red)')+'">'+(e>=0?'+':'')+e.toFixed(1)+'</td><td>'+e*e.toFixed(1)+'</td></tr>'}).join('')+'<tr style="font-weight:700;background:var(--greenLight)"><td>Σ</td><td></td><td></td><td></td><td style="color:'+(Math.abs(se)<2?'var(--red)':'var(--accent)')+'">'+se.toFixed(1)+'</td><td style="color:var(--green)">'+sse.toFixed(1)+'</td></tr></table>';
+// Verdict
+const isCancelling=Math.abs(se)<5&&sse>50;
+document.getElementById('sse-verdict').innerHTML=isCancelling?'⚠️ <strong>Cancellation trap!</strong> Sum of Errors ≈ '+se.toFixed(1)+' looks good, but SSE = '+sse.toFixed(1)+' reveals the truth — the model has large errors that cancel each other.':Math.abs(se)<2&&sse<20?'✅ Both metrics are low — this is a genuinely good fit.':'Sum of Errors = '+se.toFixed(1)+', SSE = '+sse.toFixed(1)+'. '+(sse>200?'Very poor fit.':'Moderate fit.')}
+document.getElementById('sse-b0').oninput=drawSSEBars;document.getElementById('sse-b1').oninput=drawSSEBars;
+drawSSEBars();
+
+// SSE Contour with click exploration
+let _clickW0=null,_clickW1=null;
+let contourState={};
+function drawSSEContour(){
+const cv=document.getElementById('sse-contour');if(!cv)return;
+const parentW=cv.parentElement.clientWidth;if(parentW<50)return; // hidden section guard
+const W=parentW-16,H=300,c=hiDPI(cv,W,H);
+c.clearRect(0,0,W,H);c.fillStyle='#fff';c.fillRect(0,0,W,H);
+const pad={l:60,r:20,t:25,b:44};const pW=W-pad.l-pad.r,pH=H-pad.t-pad.b;
+const r=linReg(SLR_DATA);const w0c=r.w0,w1c=r.w1;
+const w0R=20,w1R=0.12;const steps=50;
+let minSSE=Infinity,maxSSE=0;
+const grid=[];
+for(let i=0;i<steps;i++){grid[i]=[];for(let j=0;j<steps;j++){
+const w0=w0c-w0R+i*2*w0R/steps,w1=w1c-w1R+j*2*w1R/steps;
+let sse=0;SLR_DATA.forEach(p=>{sse+=(p.y-(w0+w1*p.x))**2});
+grid[i][j]=sse;minSSE=Math.min(minSSE,sse);maxSSE=Math.max(maxSSE,sse)}}
+// Store state for click handler (preserve click position!)
+contourState={w0c,w1c,w0R,w1R,steps,pad,pW,pH,minSSE,maxSSE,grid,W,H};
+// Draw heatmap
+for(let i=0;i<steps;i++)for(let j=0;j<steps;j++){
+const t=(grid[i][j]-minSSE)/(maxSSE-minSSE);
+c.fillStyle='hsl('+Math.round(120-t*100)+','+Math.round(50+t*20)+'%,'+Math.round(25+t*45)+'%)';
+c.fillRect(pad.l+i*pW/steps,pad.t+j*pH/steps,pW/steps+1,pH/steps+1)}
+// Mark OLS minimum
+const mx=pad.l+steps/2*pW/steps,my=pad.t+steps/2*pH/steps;
+c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.arc(mx,my,10,0,Math.PI*2);c.stroke();
+c.fillStyle='#fff';c.beginPath();c.arc(mx,my,3,0,Math.PI*2);c.fill();
+c.fillStyle='#fff';c.font='bold 10px sans-serif';c.textAlign='left';c.fillText('OLS minimum',mx+14,my+4);
+// Mark clicked point if any
+if(_clickW0!==null){
+const ci=((_clickW0-(w0c-w0R))/(2*w0R))*steps;
+const cj=((_clickW1-(w1c-w1R))/(2*w1R))*steps;
+const cx2=pad.l+ci*pW/steps,cy2=pad.t+cj*pH/steps;
+c.strokeStyle='#c62828';c.lineWidth=2.5;c.beginPath();c.arc(cx2,cy2,9,0,Math.PI*2);c.stroke();
+c.fillStyle='#c62828';c.beginPath();c.arc(cx2,cy2,4,0,Math.PI*2);c.fill();
+c.fillStyle='#fff';c.font='bold 10px sans-serif';c.textAlign='left';c.fillText('YOUR PICK',cx2+13,cy2+4)}
+// ---- AXIS TICK LABELS (dark color!) ----
+c.fillStyle='#1b2e1b';c.font='9px monospace';c.textAlign='center';
+for(let i=0;i<=4;i++){const v=w0c-w0R+i*2*w0R/4;c.fillText(v.toFixed(1),pad.l+i*pW/4,H-pad.b+14)}
+c.textAlign='right';
+for(let i=0;i<=4;i++){const v=w1c-w1R+i*2*w1R/4;c.fillText(v.toFixed(4),pad.l-4,pad.t+pH-i*pH/4+3)}
+// Axis titles
+c.fillStyle='#1b2e1b';c.font='bold 10px sans-serif';c.textAlign='center';
+c.fillText('w\u2080 (intercept)',W/2,H-2);
+c.save();c.translate(12,H/2);c.rotate(-Math.PI/2);c.fillText('w\u2081 (slope)',0,0);c.restore();
+// ---- INFO BOX ----
+let info='<div class="sl">Optimal Parameters (OLS)</div>w\u2080 = '+w0c.toFixed(2)+', w\u2081 = '+w1c.toFixed(4)+' | Min SSE = '+minSSE.toFixed(1);
+if(_clickW0!==null){
+let clickSSE=0;SLR_DATA.forEach(p=>{clickSSE+=(p.y-(_clickW0+_clickW1*p.x))**2});
+info+='<br><strong style="color:var(--red)">Your pick:</strong> w\u2080 = '+_clickW0.toFixed(2)+', w\u2081 = '+_clickW1.toFixed(4)+' | SSE = '+clickSSE.toFixed(1)+' (<strong>+'+(clickSSE-minSSE).toFixed(1)+' worse</strong>)'}
+else{info+='<br><em>Click anywhere on the heatmap to explore different (w\u2080, w\u2081) combinations and see their SSE.</em>'}
+document.getElementById('sse-contour-info').innerHTML=info}
+
+// Contour click handler
+document.getElementById('sse-contour').addEventListener('click',function(e){
+const rect=this.getBoundingClientRect();
+const S=contourState;if(!S.pW)return;
+const fracX=((e.clientX-rect.left)/rect.width*S.W-S.pad.l)/S.pW;
+const fracY=((e.clientY-rect.top)/rect.height*S.H-S.pad.t)/S.pH;
+if(fracX<0||fracX>1||fracY<0||fracY>1)return;
+_clickW0=S.w0c-S.w0R+fracX*2*S.w0R;
+_clickW1=S.w1c+S.w1R-(fracY)*2*S.w1R;
+drawSSEContour()});
+drawSSEContour();
+
+// ===== 3. SPLIT =====
+const SPLIT_DATA=[];for(let i=0;i<60;i++){const x=10+Math.random()*80;SPLIT_DATA.push({x,y:0.4*x+8+randN(0,4)})}
+SPLIT_DATA.sort(()=>Math.random()-.5);
+function drawSplit(){
+const ratio=+document.getElementById('sp-slider').value;document.getElementById('sp-val').textContent=ratio;
+const n=SPLIT_DATA.length,nTr=Math.round(n*ratio/100);
+const train=SPLIT_DATA.slice(0,nTr),test=SPLIT_DATA.slice(nTr);
+const reg=linReg(train);const pred=x=>reg.w0+reg.w1*x;
+const P=plot('sp-canvas',700,340,[5,95],[0,55]);if(!P)return;
+const{c,tx,ty}=P;
+// Line
+c.strokeStyle='#c62828';c.lineWidth=2;c.beginPath();c.moveTo(tx(5),ty(pred(5)));c.lineTo(tx(95),ty(pred(95)));c.stroke();
+// Points
+train.forEach(pt=>{c.fillStyle='#2e7d32';c.globalAlpha=.6;c.beginPath();c.arc(tx(pt.x),ty(pt.y),5,0,Math.PI*2);c.fill()});
+test.forEach(pt=>{c.fillStyle='#1565c0';c.globalAlpha=.6;c.beginPath();c.arc(tx(pt.x),ty(pt.y),6,0,Math.PI*2);c.fill();c.globalAlpha=1;c.strokeStyle='#1565c0';c.lineWidth=1.5;c.stroke()});
+c.globalAlpha=1;
+// Legend
+c.fillStyle='#2e7d32';c.beginPath();c.arc(P.W-160,18,5,0,Math.PI*2);c.fill();c.fillStyle='#1b2e1b';c.font='10px sans-serif';c.textAlign='left';c.fillText('Train ('+nTr+')',P.W-150,22);
+c.fillStyle='#1565c0';c.beginPath();c.arc(P.W-160,34,5,0,Math.PI*2);c.fill();c.fillStyle='#1b2e1b';c.fillText('Test ('+(n-nTr)+')',P.W-150,38);
+// Metrics
+const trR2=r2Score(train,pred),teR2=r2Score(test,pred);
+document.getElementById('sp-metrics').innerHTML='<div class="metric"><div class="k">Train R²</div><div class="v" style="color:var(--green)">'+trR2.toFixed(3)+'</div></div><div class="metric"><div class="k">Test R²</div><div class="v" style="color:var(--blue)">'+teR2.toFixed(3)+'</div></div><div class="metric"><div class="k">Gap</div><div class="v">'+(trR2-teR2).toFixed(3)+'</div></div><div class="metric"><div class="k">Train n / Test n</div><div class="v">'+nTr+' / '+(n-nTr)+'</div></div>';
+// Bar
+const cv2=document.getElementById('sp-bar');if(!cv2)return;
+const W2=cv2.parentElement.clientWidth-16,H2=80,c2=hiDPI(cv2,W2,H2);
+const trW=((W2-40)*ratio/100),teW=(W2-40)*(100-ratio)/100;
+c2.fillStyle='#2e7d32';c2.fillRect(20,20,trW,40);c2.fillStyle='#1565c0';c2.fillRect(20+trW,20,teW,40);
+c2.fillStyle='#fff';c2.font='bold 12px sans-serif';c2.textAlign='center';
+c2.fillText('Train '+ratio+'%',20+trW/2,45);c2.fillText('Test '+(100-ratio)+'%',20+trW+teW/2,45)}
+document.getElementById('sp-slider').oninput=drawSplit;drawSplit();
+
+// ===== 4. METRICS =====
+function calcMet(){
+const y=document.getElementById('met-y').value.split(',').map(Number).filter(v=>!isNaN(v));
+const yh=document.getElementById('met-yh').value.split(',').map(Number).filter(v=>!isNaN(v));
+const n=Math.min(y.length,yh.length);if(n<2)return;
+const ym=meanA(y.slice(0,n));let sae=0,sse=0,sst=0;
+for(let i=0;i<n;i++){sae+=Math.abs(y[i]-yh[i]);sse+=(y[i]-yh[i])**2;sst+=(y[i]-ym)**2}
+const mae=sae/n,mse=sse/n,rmse=Math.sqrt(mse),r2=1-sse/(sst||1);
+document.getElementById('met-cards').innerHTML=[{k:'MAE',v:mae},{k:'MSE',v:mse},{k:'RMSE',v:rmse},{k:'R²',v:r2}].map(m=>'<div class="metric"><div class="k">'+m.k+'</div><div class="v">'+m.v.toFixed(3)+'</div></div>').join('');
+let h='<table><tr><th>i</th><th>yᵢ</th><th>ŷᵢ</th><th>eᵢ = yᵢ−ŷᵢ</th><th>|eᵢ|</th><th>eᵢ²</th><th>(yᵢ−ȳ)²</th></tr>';
+for(let i=0;i<n;i++){const e=y[i]-yh[i];h+='<tr><td>'+(i+1)+'</td><td>'+y[i]+'</td><td>'+yh[i]+'</td><td>'+(e>=0?'+':'')+e.toFixed(1)+'</td><td>'+Math.abs(e).toFixed(1)+'</td><td>'+e*e+'</td><td>'+(y[i]-ym).toFixed(1)+'² = '+((y[i]-ym)**2).toFixed(1)+'</td></tr>'}
+h+='<tr style="font-weight:700;background:var(--greenLight)"><td>Σ</td><td></td><td></td><td></td><td>'+sae.toFixed(1)+'</td><td>'+sse.toFixed(1)+'</td><td>'+sst.toFixed(1)+'</td></tr></table>';
+h+='<div class="sb"><div class="sl">Step-by-step</div>ȳ = '+ym.toFixed(1)+' | SSE = '+sse.toFixed(1)+' | SST = '+sst.toFixed(1)+'<br>R² = 1 − SSE/SST = 1 − '+sse.toFixed(1)+'/'+sst.toFixed(1)+' = <strong>'+r2.toFixed(3)+'</strong></div>';
+document.getElementById('met-steps').innerHTML=h}
+calcMet();
+
+// ===== 5. OUTLIER =====
+const OUT_BASE=[];for(let i=0;i<25;i++){const x=8+i*3.2+randN(0,1);OUT_BASE.push({x,y:0.5*x+5+randN(0,1.5)})}
+let outPt=null;
+function drawOutlier(){
+const pts=[...OUT_BASE];if(outPt)pts.push(outPt);
+const P=plot('out-canvas',900,380,[0,100],[-10,60]);if(!P)return;
+const{c,tx,ty}=P;
+const rClean=linReg(OUT_BASE),rDirty=linReg(pts);
+c.strokeStyle='#2e7d3280';c.lineWidth=2;c.setLineDash([6,4]);c.beginPath();c.moveTo(tx(0),ty(rClean.w0));c.lineTo(tx(100),ty(rClean.w0+rClean.w1*100));c.stroke();c.setLineDash([]);
+if(outPt){c.strokeStyle='#c62828';c.lineWidth=2.5;c.beginPath();c.moveTo(tx(0),ty(rDirty.w0));c.lineTo(tx(100),ty(rDirty.w0+rDirty.w1*100));c.stroke()}
+OUT_BASE.forEach(pt=>{c.fillStyle='#2e7d32';c.globalAlpha=.6;c.beginPath();c.arc(tx(pt.x),ty(pt.y),5,0,Math.PI*2);c.fill()});c.globalAlpha=1;
+if(outPt){c.fillStyle='#c62828';c.beginPath();c.arc(tx(outPt.x),ty(outPt.y),9,0,Math.PI*2);c.fill();c.strokeStyle='#fff';c.lineWidth=2;c.stroke();c.fillStyle='#c62828';c.font='bold 10px sans-serif';c.textAlign='left';c.fillText('OUTLIER ('+outPt.x.toFixed(0)+', '+outPt.y.toFixed(0)+')',tx(outPt.x)+14,ty(outPt.y)-6)}
+c.fillStyle='#5a7a5a';c.font='10px sans-serif';c.textAlign='center';c.fillText('--- Clean fit    — With outlier    Click anywhere to place outlier!',P.W/2,P.H-4);
+const cleanR2=r2Score(OUT_BASE,x=>rClean.w0+rClean.w1*x);
+document.getElementById('out-clean').innerHTML='<div class="k">Clean Fit R²</div><div class="v" style="color:var(--green)">'+cleanR2.toFixed(3)+'</div>';
+document.getElementById('out-dirty').innerHTML='<div class="k">With Outlier R²</div><div class="v" style="color:'+(outPt?'var(--red)':'#999')+'">'+(outPt?r2Score(pts,x=>rDirty.w0+rDirty.w1*x).toFixed(3):'— click to add')+'</div>'}
+document.getElementById('out-canvas').onclick=function(e){const rect=this.getBoundingClientRect();const mx=(e.clientX-rect.left)/rect.width*100;const my=-10+(1-(e.clientY-rect.top)/rect.height)*70;outPt={x:mx,y:my};drawOutlier()};
+drawOutlier();
+
+// ===== 6. MULTIPLE =====
+function drawMulti(){
+const w0=+document.getElementById('mb0').value,w1=+document.getElementById('mb1').value,w2=+document.getElementById('mb2').value;
+document.getElementById('mb0v').textContent=w0;document.getElementById('mb1v').textContent=w1.toFixed(1);document.getElementById('mb2v').textContent=w2.toFixed(1);
+const cv=document.getElementById('multi-heat');if(!cv)return;
+const parentW=cv.parentElement.clientWidth;if(parentW<50)return;
+const W=parentW-16,H=260,c=hiDPI(cv,W,H);
+c.clearRect(0,0,W,H);c.fillStyle='#fff';c.fillRect(0,0,W,H);
+const pad={l:50,r:70,t:22,b:42};const pW=W-pad.l-pad.r,pH=H-pad.t-pad.b;const steps=50;
+// Compute ŷ grid and find range
+let mnY=Infinity,mxY=-Infinity;
+for(let i=0;i<steps;i++)for(let j=0;j<steps;j++){
+const x1=i/steps*10,x2=j/steps*10;
+const y=w0+w1*x1+w2*x2;mnY=Math.min(mnY,y);mxY=Math.max(mxY,y)}
+// Draw heatmap — i→x1 (left to right), j→x2 (bottom to top)
+for(let i=0;i<steps;i++)for(let j=0;j<steps;j++){
+const x1=i/steps*10,x2=j/steps*10;
+const y=w0+w1*x1+w2*x2;
+const t=(y-mnY)/(mxY-mnY||1);
+c.fillStyle='hsl('+Math.round(240-t*240)+',65%,'+Math.round(35+t*25)+'%)';
+// j=0 is x2=0 → draw at BOTTOM (pad.t+pH), j=steps is x2=10 → draw at TOP (pad.t)
+c.fillRect(pad.l+i*pW/steps, pad.t+(steps-1-j)*pH/steps, pW/steps+1, pH/steps+1)}
+// Axis tick values — x1 along bottom
+c.fillStyle='#1b2e1b';c.font='9px monospace';c.textAlign='center';
+for(let i=0;i<=5;i++){const v=(i*2).toFixed(0);c.fillText(v,pad.l+i*pW/5,H-pad.b+14)}
+// x2 along left — 0 at bottom, 10 at top
+c.textAlign='right';
+for(let i=0;i<=5;i++){const v=(i*2).toFixed(0);
+c.fillText(v,pad.l-5, pad.t+pH-i*pH/5+3)}
+// Axis titles
+c.fillStyle='#1b2e1b';c.font='bold 10px sans-serif';c.textAlign='center';
+c.fillText('x\u2081 (Feature 1)',pad.l+pW/2,H-2);
+c.save();c.translate(10,pad.t+pH/2);c.rotate(-Math.PI/2);c.fillText('x\u2082 (Feature 2)',0,0);c.restore();
+// Colorbar — top=max, bottom=min
+for(let i=0;i<pH;i++){
+const t=1-i/pH; // i=0 at top → t=1 (max), i=pH at bottom → t=0 (min)
+c.fillStyle='hsl('+Math.round(240-t*240)+',65%,'+Math.round(35+t*25)+'%)';
+c.fillRect(W-pad.r+10,pad.t+i,14,2)}
+c.fillStyle='#1b2e1b';c.font='9px monospace';c.textAlign='left';
+c.fillText('\u0177='+mxY.toFixed(1),W-pad.r+28,pad.t+8);
+c.fillText('\u0177='+((mxY+mnY)/2).toFixed(1),W-pad.r+28,pad.t+pH/2+3);
+c.fillText('\u0177='+mnY.toFixed(1),W-pad.r+28,H-pad.b-2);
+// Crosshair example: mark x1=5, x2=5 with its value
+const ex1=5,ex2=5;const eyh=w0+w1*ex1+w2*ex2;
+const epx=pad.l+ex1/10*pW,epy=pad.t+(1-ex2/10)*pH;
+c.strokeStyle='#fff';c.lineWidth=1.5;c.setLineDash([3,3]);
+c.beginPath();c.moveTo(epx,pad.t);c.lineTo(epx,pad.t+pH);c.stroke();
+c.beginPath();c.moveTo(pad.l,epy);c.lineTo(pad.l+pW,epy);c.stroke();c.setLineDash([]);
+c.fillStyle='#fff';c.beginPath();c.arc(epx,epy,4,0,Math.PI*2);c.fill();
+c.strokeStyle='#1b2e1b';c.lineWidth=1;c.stroke();
+c.fillStyle='#fff';c.font='bold 9px monospace';c.textAlign='left';
+c.fillText('(5,5)\u2192\u0177='+eyh.toFixed(1),epx+6,epy-6);
+// Equation display
+document.getElementById('multi-eq').innerHTML='\u0177 = <span class="hl">'+w0+'</span> + <span class="hl">'+w1.toFixed(1)+'</span>\u00b7x\u2081 + <span class="hl">'+w2.toFixed(1)+'</span>\u00b7x\u2082 &nbsp;&nbsp; | &nbsp; Example: x\u2081=5, x\u2082=5 \u2192 \u0177 = '+eyh.toFixed(1)+' &nbsp;|&nbsp; Range: ['+mnY.toFixed(1)+', '+mxY.toFixed(1)+']'}
+['mb0','mb1','mb2'].forEach(id=>document.getElementById(id).oninput=drawMulti);drawMulti();
+
+// ===== 7. POLYNOMIAL =====
+const polyTrue=x=>1+2*x+3*x*x;
+const POLY_TRAIN=[{x:-2.9394,y:25.0429},{x:-2.8788,y:29.8921},{x:-2.8182,y:41.5990},{x:-2.6970,y:7.6542},{x:-2.6364,y:26.0794},{x:-2.5758,y:14.2385},{x:-2.5152,y:13.9155},{x:-2.3333,y:27.2094},{x:-2.2121,y:12.4729},{x:-2.1515,y:15.0227},{x:-2.0303,y:24.2466},{x:-1.9697,y:6.6481},{x:-1.8485,y:-0.9872},{x:-1.7879,y:-18.5161},{x:-1.7273,y:13.0321},{x:-1.6061,y:-1.8955},{x:-1.5455,y:27.7719},{x:-1.4848,y:-9.8990},{x:-1.3636,y:1.9794},{x:-1.3030,y:18.8154},{x:-1.2424,y:17.8396},{x:-1.0606,y:-6.6244},{x:-0.9394,y:-1.7105},{x:-0.8788,y:3.1227},{x:-0.8182,y:13.6748},{x:-0.7576,y:13.2304},{x:-0.6970,y:-2.8099},{x:-0.5152,y:-13.4343},{x:-0.3939,y:20.1854},{x:-0.2121,y:-11.8172},{x:-0.1515,y:8.5407},{x:-0.0909,y:-15.2960},{x:-0.0303,y:-1.1853},{x:0.0303,y:-7.8913},{x:0.0909,y:5.0756},{x:0.1515,y:-3.7362},{x:0.2727,y:1.4868},{x:0.3939,y:2.9186},{x:0.4545,y:5.5536},{x:0.5152,y:-3.5168},{x:0.5758,y:-0.4814},{x:0.6364,y:-3.2370},{x:0.6970,y:0.2557},{x:0.7576,y:-3.8945},{x:0.8182,y:-12.6182},{x:0.8788,y:6.8486},{x:0.9394,y:1.5084},{x:1.0000,y:-10.3020},{x:1.0606,y:11.1237},{x:1.1212,y:-2.0592},{x:1.3030,y:9.9896},{x:1.4848,y:14.6074},{x:1.5455,y:4.4081},{x:1.7273,y:10.2894},{x:1.7879,y:14.7269},{x:1.9091,y:24.7603},{x:1.9697,y:21.2351},{x:2.0909,y:33.1800},{x:2.1515,y:38.1490},{x:2.2121,y:31.8925},{x:2.2727,y:19.2421},{x:2.3939,y:33.5252},{x:2.5152,y:37.2327},{x:2.5758,y:28.1378},{x:2.6364,y:36.8904},{x:2.6970,y:31.7785},{x:2.7576,y:36.3936},{x:2.8788,y:49.4785},{x:2.9394,y:34.0680},{x:3.0000,y:38.0199}];
+const POLY_TEST=[{x:-3.0000,y:39.6405},{x:-2.7576,y:36.9731},{x:-2.4545,y:18.2713},{x:-2.3939,y:14.8454},{x:-2.2727,y:19.5608},{x:-2.0909,y:13.2706},{x:-1.9091,y:11.2464},{x:-1.6667,y:14.6444},{x:-1.4242,y:4.6945},{x:-1.1818,y:4.3759},{x:-1.1212,y:6.3106},{x:-1.0000,y:-17.8080},{x:-0.6364,y:-2.0809},{x:-0.5758,y:-9.6426},{x:-0.4545,y:-16.3520},{x:-0.3333,y:-4.4299},{x:-0.2727,y:-3.7031},{x:0.2121,y:-10.2471},{x:0.3333,y:6.2833},{x:1.1818,y:8.0732},{x:1.2424,y:15.4066},{x:1.3636,y:20.6998},{x:1.4242,y:-2.4144},{x:1.6061,y:3.2424},{x:1.6667,y:6.8782},{x:1.8485,y:3.2962},{x:2.0303,y:2.0646},{x:2.3333,y:11.2925},{x:2.4545,y:19.9517},{x:2.8182,y:30.5678}];
+const EXACT_TRAIN_MSE=[237.4269,88.7105,88.2690,87.7826,81.4357,81.3030,80.6053,80.5709,80.5277];
+const EXACT_TEST_MSE=[237.8814,85.6676,87.3888,91.4489,109.9191,110.8104,118.2951,118.3107,118.6018];
+
+function polyFit(pts,deg){
+const n=pts.length,m=deg+1;
+const X=pts.map(p=>{const r=[];for(let d=0;d<=deg;d++)r.push(Math.pow(p.x,d));return r});
+const XtX=Array.from({length:m},()=>Array(m).fill(0)),Xty=Array(m).fill(0);
+for(let i=0;i<n;i++)for(let j=0;j<m;j++){Xty[j]+=X[i][j]*pts[i].y;for(let k=0;k<m;k++)XtX[j][k]+=X[i][j]*X[i][k]}
+const A=XtX.map((r,i)=>[...r,Xty[i]]);
+for(let i=0;i<m;i++){let mx=i;for(let j=i+1;j<m;j++)if(Math.abs(A[j][i])>Math.abs(A[mx][i]))mx=j;[A[i],A[mx]]=[A[mx],A[i]];if(Math.abs(A[i][i])<1e-14)continue;for(let j=i+1;j<m;j++){const f=A[j][i]/A[i][i];for(let k=i;k<=m;k++)A[j][k]-=f*A[i][k]}}
+const w=Array(m).fill(0);for(let i=m-1;i>=0;i--){w[i]=A[i][m];for(let j=i+1;j<m;j++)w[i]-=A[i][j]*w[j];w[i]/=(A[i][i]||1)}
+return x=>{let y=0;for(let d=0;d<=deg;d++)y+=w[d]*Math.pow(x,d);return y}}
+
+function drawPoly(){
+const deg=+document.getElementById('poly-deg').value;
+document.getElementById('poly-deg-v').textContent=deg;document.getElementById('poly-deg-lbl').textContent=deg;
+const fit=polyFit(POLY_TRAIN,deg);
+const cv=document.getElementById('poly-canvas');if(!cv)return;
+const cw=cv.parentElement.clientWidth-16;const W=Math.min(900,cw),H=380;
+const c=hiDPI(cv,W,H);c.clearRect(0,0,W,H);c.fillStyle='#fff';c.fillRect(0,0,W,H);
+const half=Math.floor(W/2)-6;const xR=[-3.3,3.3],yR=[-25,55];
+// Helper to draw one panel
+function drawPanel(ox,data,title,isTest){
+const pad={l:48,r:8,t:30,b:36};const pW=half-pad.l-pad.r,pH=H-pad.t-pad.b;
+const txl=v=>ox+pad.l+(v-xR[0])/(xR[1]-xR[0])*pW;
+const tyl=v=>pad.t+pH-(v-yR[0])/(yR[1]-yR[0])*pH;
+// Background
+c.fillStyle='#fafffe';c.fillRect(ox,0,half,H);
+c.strokeStyle='#e8f5e9';c.lineWidth=.5;
+for(let i=0;i<=5;i++){const x=txl(xR[0]+i*(xR[1]-xR[0])/5),y=pad.t+i*pH/5;
+c.beginPath();c.moveTo(x,pad.t);c.lineTo(x,H-pad.b);c.stroke();
+c.beginPath();c.moveTo(ox+pad.l,y);c.lineTo(ox+pad.l+pW,y);c.stroke()}
+c.strokeStyle='#a5d6a7';c.lineWidth=1;c.beginPath();c.moveTo(ox+pad.l,pad.t);c.lineTo(ox+pad.l,H-pad.b);c.lineTo(ox+pad.l+pW,H-pad.b);c.stroke();
+// Tick labels
+c.fillStyle='#5a7a5a';c.font='9px monospace';c.textAlign='center';
+for(let i=0;i<=6;i++){const v=-3+i;c.fillText(v,txl(v),H-pad.b+14)}
+c.textAlign='right';for(let i=0;i<=4;i++){const v=yR[0]+i*(yR[1]-yR[0])/4;c.fillText(Math.round(v),ox+pad.l-4,tyl(v)+3)}
+// Title
+c.fillStyle='#1b2e1b';c.font='bold 12px sans-serif';c.textAlign='center';c.fillText('Model degree  '+deg,ox+pad.l+pW/2,16);
+// Axis labels
+c.fillStyle='#5a7a5a';c.font='10px sans-serif';c.fillText('Feature (x)',ox+pad.l+pW/2,H-3);
+c.save();c.translate(ox+10,pad.t+pH/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('Target (y)',0,0);c.restore();
+// Data points (blue)
+data.forEach(pt=>{c.fillStyle='#1565c0';c.globalAlpha=.6;c.beginPath();c.arc(txl(pt.x),tyl(pt.y),3.5,0,Math.PI*2);c.fill()});c.globalAlpha=1;
+// Predicted points (red)
+data.forEach(pt=>{const yh=clamp(fit(pt.x),-40,70);c.fillStyle='#c62828';c.globalAlpha=.7;c.beginPath();c.arc(txl(pt.x),tyl(yh),3.5,0,Math.PI*2);c.fill()});c.globalAlpha=1;
+// Legend
+const lx=ox+pad.l+8,ly=isTest?H-pad.b-30:pad.t+28;
+c.fillStyle='#1565c0';c.beginPath();c.arc(lx,ly,4,0,Math.PI*2);c.fill();
+c.fillStyle='#1b2e1b';c.font='9px sans-serif';c.textAlign='left';c.fillText(isTest?'Testing Set':'Training Set',lx+8,ly+3);
+c.fillStyle='#c62828';c.beginPath();c.arc(lx,ly+14,4,0,Math.PI*2);c.fill();
+c.fillStyle='#1b2e1b';c.fillText('predicted',lx+8,ly+17)}
+drawPanel(0,POLY_TRAIN,'Training Set',false);
+drawPanel(half+12,POLY_TEST,'Testing Set',true);
+// Divider
+c.strokeStyle='#c8e6c9';c.lineWidth=1;c.beginPath();c.moveTo(half+6,10);c.lineTo(half+6,H-10);c.stroke();
+// Use exact precomputed MSE
+const trMSE=EXACT_TRAIN_MSE[deg-1],teMSE=EXACT_TEST_MSE[deg-1];
+document.getElementById('poly-train-m').innerHTML='<div class="metric"><div class="k">Train MSE</div><div class="v" style="color:var(--green)">'+trMSE.toFixed(2)+'</div></div><div class="metric"><div class="k">Train (70 pts)</div><div class="v" style="color:var(--green)">Degree '+deg+'</div></div>';
+document.getElementById('poly-test-m').innerHTML='<div class="metric"><div class="k">Test MSE</div><div class="v" style="color:'+(teMSE>trMSE*1.15?'var(--red)':'var(--blue)')+'">'+teMSE.toFixed(2)+'</div></div><div class="metric"><div class="k">Test (30 pts)</div><div class="v" style="color:var(--blue)">Degree '+deg+'</div></div>';
+const gap=teMSE-trMSE;
+const fb=deg===1?'🔴 <strong>Underfitting (High Bias)</strong> — Degree 1 is a straight line. Cannot capture the quadratic y = 1+2x+3x². Train MSE ≈ 237, Test MSE ≈ 238 — both very high.':deg===2?'✅ <strong>Excellent fit!</strong> — Degree 2 matches the true quadratic. Train MSE ≈ 89, Test MSE ≈ 86. The test error is actually <em>lower</em> than training — great generalization.':deg<=4?'✅ <strong>Good fit</strong> — Extra terms beyond degree 2 don\'t help much. MSEs are similar to degree 2. Gap is small ('+gap.toFixed(1)+').':deg<=6?'⚠️ <strong>Starting to overfit</strong> — Train MSE dropped to ~81 but Test MSE jumped to ~'+Math.round(teMSE)+'. Gap = '+gap.toFixed(1)+'. The model is fitting training noise.':'🔵 <strong>Overfitting</strong> — Train MSE ≈ '+Math.round(trMSE)+' but Test MSE ≈ '+Math.round(teMSE)+'. Gap = '+gap.toFixed(1)+'. High-degree terms create instability on unseen data.';
+document.getElementById('poly-feedback').innerHTML='<div class="rl">Diagnosis (Degree '+deg+')</div>'+fb}
+document.getElementById('poly-deg').oninput=drawPoly;drawPoly();
+
+// ===== 8. BIAS-VARIANCE =====
+function drawBV(){
+// Use exact MSE values from sklearn (degrees 1-9)
+const degs=[1,2,3,4,5,6,7,8,9];
+const trErr=EXACT_TRAIN_MSE.slice();
+const teErr=EXACT_TEST_MSE.slice();
+const maxY=Math.max(...trErr,...teErr)*1.1;
+const P=plot('bv-canvas',900,380,[0.5,9.5],[0,maxY]);if(!P)return;
+const{c,tx,ty}=P;
+// Zones
+c.fillStyle='rgba(239,154,154,0.12)';c.fillRect(tx(0.5),P.p.t,tx(1.5)-tx(0.5),P.pH);
+c.fillStyle='rgba(200,230,201,0.18)';c.fillRect(tx(1.5),P.p.t,tx(4.5)-tx(1.5),P.pH);
+c.fillStyle='rgba(187,222,251,0.12)';c.fillRect(tx(4.5),P.p.t,tx(9.5)-tx(4.5),P.pH);
+c.fillStyle='#c6282860';c.font='10px sans-serif';c.textAlign='center';c.fillText('UNDERFIT',tx(1),P.p.t+16);
+c.fillStyle='#2e7d3280';c.fillText('SWEET SPOT',tx(3),P.p.t+16);
+c.fillStyle='#1565c060';c.fillText('OVERFIT',tx(7),P.p.t+16);
+// Training Error curve (blue like matplotlib)
+c.strokeStyle='#1565c0';c.lineWidth=2.5;c.beginPath();
+degs.forEach((d,i)=>{if(i===0)c.moveTo(tx(d),ty(trErr[i]));else c.lineTo(tx(d),ty(trErr[i]))});c.stroke();
+degs.forEach((d,i)=>{c.fillStyle='#1565c0';c.beginPath();c.arc(tx(d),ty(trErr[i]),5,0,Math.PI*2);c.fill()});
+// Testing Error curve (orange like matplotlib)
+c.strokeStyle='#e65100';c.lineWidth=2.5;c.beginPath();
+degs.forEach((d,i)=>{if(i===0)c.moveTo(tx(d),ty(teErr[i]));else c.lineTo(tx(d),ty(teErr[i]))});c.stroke();
+degs.forEach((d,i)=>{c.fillStyle='#e65100';c.beginPath();c.arc(tx(d),ty(teErr[i]),5,0,Math.PI*2);c.fill();
+// Square marker for test (like matplotlib)
+c.strokeStyle='#e65100';c.lineWidth=1.5;c.strokeRect(tx(d)-4,ty(teErr[i])-4,8,8)});
+// MSE values near dots
+c.font='8px monospace';degs.forEach((d,i)=>{
+c.fillStyle='#1565c0';c.textAlign='center';c.fillText(trErr[i].toFixed(1),tx(d),ty(trErr[i])+16);
+c.fillStyle='#e65100';c.fillText(teErr[i].toFixed(1),tx(d),ty(teErr[i])-10)});
+// Min test error marker
+const minTeIdx=teErr.indexOf(Math.min(...teErr));
+c.strokeStyle='#2e7d32';c.lineWidth=1.5;c.setLineDash([3,3]);c.beginPath();c.moveTo(tx(degs[minTeIdx]),P.p.t);c.lineTo(tx(degs[minTeIdx]),P.p.t+P.pH);c.stroke();c.setLineDash([]);
+c.fillStyle='#2e7d32';c.font='bold 10px sans-serif';c.textAlign='center';c.fillText('★ Best: degree '+degs[minTeIdx],tx(degs[minTeIdx]),P.p.t+P.pH+28);
+// X tick labels
+degs.forEach(d=>{c.fillStyle='#5a7a5a';c.font='10px monospace';c.textAlign='center';c.fillText(d,tx(d),P.p.t+P.pH+14)});
+// Axis labels
+c.fillStyle='#5a7a5a';c.font='11px sans-serif';c.textAlign='center';c.fillText('Degree of Polynomial',P.W/2,P.H-3);
+c.save();c.translate(12,P.H/2);c.rotate(-Math.PI/2);c.fillText('Mean Squared Error',0,0);c.restore();
+// Legend (matching matplotlib colors)
+c.fillStyle='#1565c0';c.beginPath();c.arc(P.W-170,P.p.t+8,5,0,Math.PI*2);c.fill();
+c.fillStyle='#1b2e1b';c.font='10px sans-serif';c.textAlign='left';c.fillText('Training Error',P.W-160,P.p.t+12);
+c.fillStyle='#e65100';c.beginPath();c.arc(P.W-170,P.p.t+26,5,0,Math.PI*2);c.fill();
+c.strokeStyle='#e65100';c.lineWidth=1.5;c.strokeRect(P.W-174,P.p.t+22,8,8);
+c.fillStyle='#1b2e1b';c.fillText('Testing Error',P.W-160,P.p.t+30)}
+drawBV();
+
+// ===== 9. REGULARIZATION =====
+// Tab handling for regularization sub-tabs
+document.querySelectorAll('#regTabs .tab').forEach(t=>{t.onclick=function(){
+document.querySelectorAll('#regTabs .tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+const sec=document.getElementById('s-reg');sec.querySelectorAll('.tpanel').forEach(x=>x.classList.remove('on'));
+sec.querySelector('#'+t.dataset.p).classList.add('on');
+if(t.dataset.p==='regGeometry')setTimeout(drawRegGeometry,50);
+if(t.dataset.p==='regCoeffs')updateRegCoeffs();
+if(t.dataset.p==='regPaths')setTimeout(drawRegPaths,50);
+if(t.dataset.p==='regCompare')initRegQuiz()}});
+
+// --- GEOMETRY ---
+document.getElementById('geomLam').oninput=drawRegGeometry;
+document.getElementById('geomAng').oninput=drawRegGeometry;
+
+function drawRegGeometry(){
+const s=parseFloat(document.getElementById('geomLam').value);
+const angDeg=parseFloat(document.getElementById('geomAng').value);
+const ang=angDeg*Math.PI/180;
+document.getElementById('geomLamVal').textContent=s.toFixed(2);
+document.getElementById('geomAngVal').textContent=angDeg+'°';
+drawGeomCv('ridgeGeomCv','ridge',s,ang,'ridgeInfo');
+drawGeomCv('lassoGeomCv','lasso',s,ang,'lassoInfo')}
+
+function drawGeomCv(cid,type,s,angle,infoId){
+const cv=document.getElementById(cid);if(!cv)return;
+const cw=cv.parentElement.clientWidth-20;if(cw<50)return;
+const size=Math.max(Math.min(cw,440),200);
+const d=window.devicePixelRatio||1;cv.width=size*d;cv.height=size*d;cv.style.width=size+'px';cv.style.height=size+'px';
+const c=cv.getContext('2d');c.scale(d,d);
+const cx=size/2,cy=size/2,sc=size*0.32;
+c.fillStyle='#f0f8f0';c.fillRect(0,0,size,size);
+// Grid
+c.strokeStyle='rgba(46,125,50,0.06)';c.lineWidth=0.5;
+for(let i=-5;i<=5;i++){const o=i*sc*0.3;c.beginPath();c.moveTo(cx+o,0);c.lineTo(cx+o,size);c.stroke();c.beginPath();c.moveTo(0,cy+o);c.lineTo(size,cy+o);c.stroke()}
+// Axes
+c.strokeStyle='#a5d6a7';c.lineWidth=1.5;
+c.beginPath();c.moveTo(10,cy);c.lineTo(size-10,cy);c.stroke();
+c.beginPath();c.moveTo(cx,10);c.lineTo(cx,size-10);c.stroke();
+c.fillStyle='#2e7d32';c.font='bold '+Math.max(12,size*0.035)+'px sans-serif';
+c.fillText('β₁',size-30,cy-10);c.fillText('β₂',cx+10,24);
+const olsB1=0.8,olsB2=0.55;
+const olsPx=cx+olsB1*sc,olsPy=cy-olsB2*sc;
+const eA=0.65,eB=0.35,cosA=Math.cos(angle),sinA=Math.sin(angle);
+// RSS ellipses
+for(let r=0.12;r<=3;r+=0.18){c.beginPath();c.strokeStyle='rgba(180,83,9,'+Math.max(0.05,0.25-r*0.06)+')';c.lineWidth=1.2;
+for(let t=0;t<=6.35;t+=0.03){const ex=r*eA*Math.cos(t),ey=r*eB*Math.sin(t);const rx=ex*cosA-ey*sinA,ry=ex*sinA+ey*cosA;
+const px=olsPx+rx*sc,py=olsPy-ry*sc;if(t===0)c.moveTo(px,py);else c.lineTo(px,py)}c.stroke()}
+// Constraint region
+c.fillStyle=type==='ridge'?'rgba(46,125,50,0.08)':'rgba(230,81,0,0.08)';
+c.strokeStyle=type==='ridge'?'#2e7d32':'#e65100';c.lineWidth=2.5;c.beginPath();
+if(type==='ridge'){c.arc(cx,cy,s*sc,0,6.3)}else{const dd=s*sc;c.moveTo(cx+dd,cy);c.lineTo(cx,cy-dd);c.lineTo(cx-dd,cy);c.lineTo(cx,cy+dd);c.closePath()}
+c.fill();c.stroke();
+// Diamond corners
+if(type==='lasso'){const dd=s*sc;[[cx+dd,cy],[cx,cy-dd],[cx-dd,cy],[cx,cy+dd]].forEach(function(p){
+c.fillStyle='#e65100';c.beginPath();c.arc(p[0],p[1],4,0,6.3);c.fill()});
+c.fillStyle='#e65100';c.font=Math.max(9,size*0.025)+'px sans-serif';c.fillText('corner',cx+dd+5,cy+15);c.fillText('β₁=0',cx+6,cy-dd-6)}
+// Find solution (closest point on constraint to OLS in ellipse metric)
+let bestD=Infinity,bestB1=0,bestB2=0;
+for(let i=0;i<2000;i++){const t=(i/2000)*6.2832;let b1,b2;
+if(type==='ridge'){b1=s*Math.cos(t);b2=s*Math.sin(t)}else{const ct=Math.cos(t),st=Math.sin(t);const den=Math.abs(ct)+Math.abs(st);b1=s*ct/den;b2=s*st/den}
+const d1=b1-olsB1,d2=b2-olsB2;const u=d1*cosA+d2*sinA,v=-d1*sinA+d2*cosA;const dist=(u/eA)**2+(v/eB)**2;
+if(dist<bestD){bestD=dist;bestB1=b1;bestB2=b2}}
+const solPx=cx+bestB1*sc,solPy=cy-bestB2*sc;
+// Dashed line OLS→solution
+c.setLineDash([5,4]);c.strokeStyle='rgba(46,125,50,0.25)';c.lineWidth=1.5;c.beginPath();c.moveTo(olsPx,olsPy);c.lineTo(solPx,solPy);c.stroke();c.setLineDash([]);
+// Tangent ellipse
+c.beginPath();c.strokeStyle='rgba(180,83,9,0.55)';c.lineWidth=2.5;const rT=Math.sqrt(bestD);
+for(let t=0;t<=6.35;t+=0.03){const ex=rT*eA*Math.cos(t),ey=rT*eB*Math.sin(t);const rx=ex*cosA-ey*sinA,ry=ex*sinA+ey*cosA;
+const px=olsPx+rx*sc,py=olsPy-ry*sc;if(t===0)c.moveTo(px,py);else c.lineTo(px,py)}c.stroke();
+// OLS point
+c.fillStyle='#d97706';c.beginPath();c.arc(olsPx,olsPy,7,0,6.3);c.fill();c.strokeStyle='#fff';c.lineWidth=2;c.stroke();
+c.fillStyle='#92400e';c.font='bold '+Math.max(11,size*0.032)+'px sans-serif';c.fillText('OLS',olsPx+10,olsPy-10);
+// Solution point
+c.fillStyle='#dc2626';c.beginPath();c.arc(solPx,solPy,8,0,6.3);c.fill();c.strokeStyle='#fff';c.lineWidth=2.5;c.stroke();
+c.fillStyle='#991b1b';c.font='bold '+Math.max(11,size*0.03)+'px sans-serif';
+c.fillText('Solution',solPx+11,solPy+(solPy<cy?20:-14));
+// Info
+const isB1Z=Math.abs(bestB1)<0.025,isB2Z=Math.abs(bestB2)<0.025,sparse=isB1Z||isB2Z;
+let info='<div class="sl">'+type.charAt(0).toUpperCase()+type.slice(1)+' Solution</div>β₁ = <strong>'+bestB1.toFixed(3)+'</strong>, β₂ = <strong>'+bestB2.toFixed(3)+'</strong>';
+if(sparse){const which=isB1Z?'β₁':'β₂';info+=' — ⭐ <strong style="color:var(--green)">'+which+' ≈ 0 (sparse!)</strong>'}else{info+=' — both nonzero'}
+document.getElementById(infoId).innerHTML=info}
+drawRegGeometry();
+
+// --- COEFFICIENTS ---
+const REG_ORIG=[2.5,-1.8,1.2,-0.8,0.5,-0.3,0.15,-0.08];
+const REG_NAMES=['β₁','β₂','β₃','β₄','β₅','β₆','β₇','β₈'];
+function ridgeC(b,l){return b/(1+l)}function lassoC(b,l){const a=Math.abs(b);return a<=l?0:Math.sign(b)*(a-l)}
+function buildBars(cid,colors){const el=document.getElementById(cid);el.innerHTML='';REG_ORIG.forEach(function(_,i){
+el.innerHTML+='<div style="display:flex;align-items:center;gap:6px;margin:3px 0;font-size:.8rem"><span style="width:28px;text-align:right;color:#2e7d32;font-weight:600">'+REG_NAMES[i]+'</span><div style="flex:1;height:16px;background:#eef6ee;border-radius:8px;overflow:hidden"><div id="'+cid+'_b'+i+'" style="height:100%;border-radius:8px;width:0%;background:'+colors[i]+';transition:width .4s"></div></div><span id="'+cid+'_v'+i+'" style="width:50px;font-size:.72rem;color:#3a6a3a;font-family:monospace"></span></div>'})}
+const RC=['#15803d','#16a34a','#22c55e','#4ade80','#86efac','#a7f3d0','#bbf7d0','#d1fae5'];
+const LC=['#064e3b','#065f46','#047857','#059669','#10b981','#34d399','#6ee7b7','#a7f3d0'];
+buildBars('ridgeCoeffBars',RC);buildBars('lassoCoeffBars',LC);
+document.getElementById('coeffLamSlider').oninput=updateRegCoeffs;
+function updateRegCoeffs(){
+const lam=parseFloat(document.getElementById('coeffLamSlider').value);
+document.getElementById('coeffLamVal').textContent=lam.toFixed(2);
+const mx=Math.max(...REG_ORIG.map(Math.abs));let rA=0,lA=0;
+REG_ORIG.forEach(function(co,i){
+const rc=ridgeC(co,lam),lc=lassoC(co,lam);
+document.getElementById('ridgeCoeffBars_b'+i).style.width=(Math.abs(rc)/mx*100)+'%';
+document.getElementById('ridgeCoeffBars_v'+i).textContent=rc.toFixed(3);
+document.getElementById('lassoCoeffBars_b'+i).style.width=(Math.abs(lc)/mx*100)+'%';
+document.getElementById('lassoCoeffBars_v'+i).textContent=lc.toFixed(3);
+if(Math.abs(rc)>0.001)rA++;if(Math.abs(lc)>0.001)lA++});
+document.getElementById('ridgeActive').textContent=rA;document.getElementById('lassoActive').textContent=lA}
+updateRegCoeffs();
+
+// --- PATHS ---
+function drawRegPaths(){drawPC('ridgePathCv','ridge');drawPC('lassoPathCv','lasso')}
+function drawPC(cid,type){
+const cv=document.getElementById(cid);if(!cv)return;
+const cw=cv.parentElement.clientWidth-20;if(cw<50)return;
+const w=Math.max(Math.min(cw,560),200),h=w*0.6;
+const d=window.devicePixelRatio||1;cv.width=w*d;cv.height=h*d;cv.style.width=w+'px';cv.style.height=h+'px';
+const c=cv.getContext('2d');c.scale(d,d);c.fillStyle='#f0f8f0';c.fillRect(0,0,w,h);
+const pad={l:42,r:12,t:14,b:32},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;const maxLam=5,maxBeta=3;
+c.strokeStyle='rgba(46,125,50,0.08)';c.lineWidth=0.5;
+for(let i=0;i<=5;i++){const x=pad.l+(i/5)*pw;c.beginPath();c.moveTo(x,pad.t);c.lineTo(x,pad.t+ph);c.stroke()}
+const zY=pad.t+ph/2;c.strokeStyle='rgba(46,125,50,0.2)';c.lineWidth=1;c.beginPath();c.moveTo(pad.l,zY);c.lineTo(pad.l+pw,zY);c.stroke();
+// Axes
+c.strokeStyle='#a5d6a7';c.lineWidth=1;c.beginPath();c.moveTo(pad.l,pad.t);c.lineTo(pad.l,pad.t+ph);c.lineTo(pad.l+pw,pad.t+ph);c.stroke();
+c.fillStyle='#5a7a5a';c.font='9px monospace';c.textAlign='center';
+for(let i=0;i<=5;i++)c.fillText((i).toFixed(0),pad.l+(i/5)*pw,h-6);
+c.fillText('λ →',pad.l+pw/2,h-16);c.textAlign='right';c.fillText('0',pad.l-6,zY+3);
+c.fillText('+'+maxBeta,pad.l-6,pad.t+8);c.fillText('-'+maxBeta,pad.l-6,pad.t+ph-2);
+const cls=type==='ridge'?RC:LC;const steps=300;
+REG_ORIG.forEach(function(co,i){c.beginPath();c.strokeStyle=cls[i];c.lineWidth=2.5;
+for(let si=0;si<=steps;si++){const lam=(si/steps)*maxLam;
+const val=type==='ridge'?ridgeC(co,lam):lassoC(co,lam);
+const x=pad.l+(si/steps)*pw,y=zY-(val/maxBeta)*(ph/2);
+if(si===0)c.moveTo(x,y);else c.lineTo(x,y)}c.stroke();
+c.fillStyle=cls[i];c.font='bold 9px sans-serif';c.textAlign='left';
+const sy=zY-(co/maxBeta)*(ph/2);c.fillText(REG_NAMES[i],pad.l-28,Math.max(pad.t+8,Math.min(sy+3,pad.t+ph-2)))})}
+drawRegPaths();
+
+// --- QUIZ ---
+const regQs=[{q:"Which regularization can set coefficients exactly to zero?",o:["Ridge","Lasso","Both"],a:1},{q:"Which penalty uses the sum of squared coefficients?",o:["Ridge (L2)","Lasso (L1)","Neither"],a:0},{q:"If features are highly correlated, which handles them better?",o:["Lasso","Ridge","Neither"],a:1},{q:"Which method performs automatic feature selection?",o:["Ridge","Lasso","Both"],a:1},{q:"What shape is the L1 constraint region in 2D?",o:["Circle","Diamond","Square"],a:1}];
+let rqI=0,rqInit=false;
+function initRegQuiz(){if(rqInit)return;rqInit=true;rqI=0;showRQ()}
+function showRQ(){const el=document.getElementById('regQuiz');if(rqI>=regQs.length){el.innerHTML='<p style="text-align:center;font-size:1.1rem">🎉 <strong>All done!</strong> Great understanding!</p>';return}
+const q=regQs[rqI];el.innerHTML='<p style="font-weight:600;margin-bottom:8px">Q'+(rqI+1)+'/'+regQs.length+': '+q.q+'</p>'+q.o.map(function(o,i){return'<button class="btn wh" style="display:block;width:100%;margin:4px 0;text-align:left" onclick="checkRQ('+i+','+q.a+')">'+o+'</button>'}).join('')}
+window.checkRQ=function(p,a){const btns=document.querySelectorAll('#regQuiz button');btns.forEach(function(b,i){b.disabled=true;b.style.cursor='default';
+if(i===a){b.style.background='#e8f5e9';b.style.borderColor='#2e7d32';b.style.color='#1b5e20'}
+else if(i===p){b.style.background='#fce4ec';b.style.borderColor='#c62828';b.style.color='#c62828'}});
+setTimeout(function(){rqI++;showRQ()},1100)};
+
+
+// ===== 10. CROSS-VALIDATION =====
+function drawCV(){
+const K=+document.getElementById('cv-k').value;document.getElementById('cv-k-v').textContent=K;
+const cv=document.getElementById('cv-canvas');if(!cv)return;
+const W=cv.parentElement.clientWidth-16,H=Math.max(300,K*42+80),c=hiDPI(cv,W,H);c.clearRect(0,0,W,H);c.fillStyle='#fff';c.fillRect(0,0,W,H);
+const pad={l:70,r:100,t:50,b:50};const pW=W-pad.l-pad.r;const fW=pW/K;const rH=30,gap=6;
+c.fillStyle='#1b5e20';c.font='bold 13px sans-serif';c.textAlign='left';c.fillText(K+'-Fold Cross-Validation',pad.l,30);
+// Column headers
+c.fillStyle='#5a7a5a';c.font='9px monospace';c.textAlign='center';
+for(let f=0;f<K;f++)c.fillText('Part '+(f+1),pad.l+f*fW+fW/2,pad.t-8);
+// Simulated scores
+const scores=[];
+for(let fold=0;fold<K;fold++){
+const y=pad.t+fold*(rH+gap);
+const score=(0.75+Math.random()*0.2).toFixed(3);scores.push(+score);
+c.fillStyle='#5a7a5a';c.font='10px sans-serif';c.textAlign='right';c.fillText('Fold '+(fold+1),pad.l-8,y+rH/2+4);
+for(let f=0;f<K;f++){const x=pad.l+f*fW;const isVal=f===fold;
+c.fillStyle=isVal?'#c62828':'#2e7d32';
+c.fillRect(x+2,y,fW-4,rH);
+if(isVal){c.fillStyle='#fff';c.font='bold 9px sans-serif';c.textAlign='center';c.fillText('VAL',x+fW/2,y+rH/2+3)}}
+// Score on right
+c.fillStyle='#1b2e1b';c.font='bold 10px monospace';c.textAlign='left';c.fillText('R²='+score,W-pad.r+8,y+rH/2+4)}
+// Average
+const avg=meanA(scores);const ly=pad.t+K*(rH+gap)+10;
+c.fillStyle='#2e7d32';c.fillRect(pad.l,ly,20,16);c.fillStyle='#1b2e1b';c.font='10px sans-serif';c.textAlign='left';c.fillText('Training',pad.l+25,ly+13);
+c.fillStyle='#c62828';c.fillRect(pad.l+100,ly,20,16);c.fillText('Validation',pad.l+125,ly+13);
+c.fillStyle='#1b5e20';c.font='bold 12px sans-serif';c.textAlign='left';c.fillText('Average CV Score: R² = '+avg.toFixed(3)+' ± '+(Math.sqrt(scores.reduce((s,v)=>s+(v-avg)**2,0)/K)).toFixed(3),pad.l,ly+38);
+document.getElementById('cv-info').innerHTML='<div class="rl">K='+K+' Fold Summary</div>Each fold uses <strong>'+(K-1)+'/'+K+'</strong> ('+(((K-1)/K)*100).toFixed(0)+'%) for training and <strong>1/'+K+'</strong> ('+((1/K)*100).toFixed(0)+'%) for validation.<br>Every data point is validated <strong>exactly once</strong>. Final score = average of '+K+' folds = <strong>'+avg.toFixed(3)+'</strong>.'}
+document.getElementById('cv-k').oninput=drawCV;drawCV();
+
+// ===== 11. GRID SEARCH =====
+const GRID_LAMBDAS=[0.001,0.01,0.1,0.5,1,2,5,10];
+// Pre-generate 5-fold scores per lambda (deterministic)
+const GRID_FOLDS=GRID_LAMBDAS.map((l,li)=>{
+const base=0.72+0.15*Math.exp(-Math.abs(Math.log(l+0.001)-Math.log(0.5)));
+const seeds=[0.012,-0.008,0.015,-0.005,0.003];
+return seeds.map((s,fi)=>base+s*(1+li*0.1)+(fi-2)*0.008)});
+const GRID_AVG=GRID_FOLDS.map(f=>meanA(f));
+const GRID_BEST=GRID_AVG.indexOf(Math.max(...GRID_AVG));
+let gridSelected=GRID_BEST;
+
+function drawGrid(){
+const cv=document.getElementById('grid-canvas');if(!cv)return;
+const parentW=cv.parentElement.clientWidth;if(parentW<50)return;
+const W=parentW-16,H=300,c=hiDPI(cv,W,H);c.clearRect(0,0,W,H);c.fillStyle='#fff';c.fillRect(0,0,W,H);
+const pad={l:55,r:20,t:30,b:54};const pW=W-pad.l-pad.r;const bW=pW/GRID_LAMBDAS.length-6;
+const maxS=Math.max(...GRID_AVG)*1.02,minS=Math.min(...GRID_AVG)*0.97;
+// Grid lines
+c.strokeStyle='#e8f5e9';c.lineWidth=0.5;
+for(let i=0;i<=5;i++){const y=pad.t+i*(H-pad.t-pad.b)/5;c.beginPath();c.moveTo(pad.l,y);c.lineTo(W-pad.r,y);c.stroke();
+c.fillStyle='#5a7a5a';c.font='8px monospace';c.textAlign='right';
+c.fillText((maxS-(maxS-minS)*i/5).toFixed(3),pad.l-4,y+3)}
+c.strokeStyle='#a5d6a7';c.lineWidth=1;c.beginPath();c.moveTo(pad.l,pad.t);c.lineTo(pad.l,H-pad.b);c.lineTo(W-pad.r,H-pad.b);c.stroke();
+// Bars
+GRID_LAMBDAS.forEach((l,i)=>{
+const x=pad.l+i*(bW+6)+3;const bh=(GRID_AVG[i]-minS)/(maxS-minS)*(H-pad.t-pad.b-20);
+const isBest=i===GRID_BEST,isSel=i===gridSelected;
+c.fillStyle=isBest?'#2e7d32':isSel?'#66bb6a':'#a5d6a7';
+c.fillRect(x,H-pad.b-bh,bW,bh);
+c.strokeStyle=isBest?'#1b5e20':isSel?'#2e7d32':'#5a7a5a50';c.lineWidth=isBest||isSel?2:1;
+c.strokeRect(x,H-pad.b-bh,bW,bh);
+// Score label
+c.fillStyle='#1b2e1b';c.font=(isBest?'bold ':'')+'9px monospace';c.textAlign='center';
+c.fillText(GRID_AVG[i].toFixed(3),x+bW/2,H-pad.b-bh-6);
+// Lambda label
+c.fillStyle='#5a7a5a';c.font='9px monospace';c.fillText('\u03bb='+l,x+bW/2,H-pad.b+14);
+// Best star
+if(isBest){c.fillStyle='#2e7d32';c.font='bold 10px sans-serif';c.fillText('\u2605 BEST',x+bW/2,H-pad.b+28)}
+// Selection indicator
+if(isSel&&!isBest){c.fillStyle='#66bb6a';c.font='9px sans-serif';c.fillText('\u25B2 selected',x+bW/2,H-pad.b+28)}
+});
+// Error bars (std across folds)
+GRID_LAMBDAS.forEach((l,i)=>{
+const x=pad.l+i*(bW+6)+3+bW/2;
+const avg=GRID_AVG[i];const stdv=Math.sqrt(GRID_FOLDS[i].reduce((s,v)=>s+(v-avg)**2,0)/5);
+const yAvg=H-pad.b-(avg-minS)/(maxS-minS)*(H-pad.t-pad.b-20);
+const errPx=stdv/(maxS-minS)*(H-pad.t-pad.b-20);
+c.strokeStyle='#1b2e1b';c.lineWidth=1.5;
+c.beginPath();c.moveTo(x,yAvg-errPx);c.lineTo(x,yAvg+errPx);c.stroke();
+c.beginPath();c.moveTo(x-5,yAvg-errPx);c.lineTo(x+5,yAvg-errPx);c.stroke();
+c.beginPath();c.moveTo(x-5,yAvg+errPx);c.lineTo(x+5,yAvg+errPx);c.stroke()});
+// Axis labels
+c.fillStyle='#5a7a5a';c.font='11px sans-serif';c.textAlign='center';c.fillText('Regularization parameter \u03bb',W/2,H-3);
+c.save();c.translate(12,H/2);c.rotate(-Math.PI/2);c.fillText('Average CV R\u00b2',0,0);c.restore();
+// Detail for selected lambda
+const folds=GRID_FOLDS[gridSelected];const avg=GRID_AVG[gridSelected];const stdv=Math.sqrt(folds.reduce((s,v)=>s+(v-avg)**2,0)/5);
+document.getElementById('grid-detail').innerHTML='<div class="sl">\u03bb = '+GRID_LAMBDAS[gridSelected]+' — 5-Fold Scores</div>'+folds.map((f,i)=>'Fold '+(i+1)+': <strong>'+f.toFixed(4)+'</strong>').join(' &nbsp;|&nbsp; ')+'<br>Average: <strong>'+avg.toFixed(4)+'</strong> \u00b1 '+stdv.toFixed(4);
+// Overall result
+document.getElementById('grid-result').innerHTML='<div class="rl">Grid Search Result</div>Tested '+GRID_LAMBDAS.length+' \u03bb values \u00d7 5 folds = <strong>'+GRID_LAMBDAS.length*5+' models trained</strong>.<br>Best \u03bb = <strong>'+GRID_LAMBDAS[GRID_BEST]+'</strong> with avg CV R\u00b2 = <strong>'+GRID_AVG[GRID_BEST].toFixed(4)+'</strong>.<br>\u2192 Retrain on <em>full training set</em> with \u03bb='+GRID_LAMBDAS[GRID_BEST]+', then final evaluation on test set.'}
+// Click handler
+document.getElementById('grid-canvas').onclick=function(e){
+const rect=this.getBoundingClientRect();const px=(e.clientX-rect.left)/rect.width;
+const pad2={l:55,r:20};const pW2=W-pad2.l-pad2.r;const bW2=pW2/GRID_LAMBDAS.length-6;
+const relX=(px*W-pad2.l);const idx=Math.floor(relX/(bW2+6));
+if(idx>=0&&idx<GRID_LAMBDAS.length){gridSelected=idx;drawGrid()}};
+
+function drawGridFlow(){
+const cv=document.getElementById('grid-flow');if(!cv)return;
+const parentW=cv.parentElement.clientWidth;if(parentW<50)return;
+const W=parentW-16,H=580,c=hiDPI(cv,W,H);c.clearRect(0,0,W,H);c.fillStyle='#fafffe';c.fillRect(0,0,W,H);
+
+const cx=W/2,bw=Math.min(W*0.7,500),bh=38;
+function box(x,y,w,h,text,color,textColor,round){
+c.fillStyle=color;c.beginPath();
+if(round){const r=8;c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
+else{c.rect(x,y,w,h)}c.fill();
+c.strokeStyle=textColor+'40';c.lineWidth=1;c.stroke();
+c.fillStyle=textColor;c.font='bold 11px sans-serif';c.textAlign='center';c.textBaseline='middle';
+c.fillText(text,x+w/2,y+h/2);c.textBaseline='alphabetic'}
+function arrow(x1,y1,x2,y2,color){
+c.strokeStyle=color||'#5a7a5a';c.lineWidth=2;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();
+const a=Math.atan2(y2-y1,x2-x1);const hs=8;
+c.fillStyle=color||'#5a7a5a';c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-hs*Math.cos(a-0.4),y2-hs*Math.sin(a-0.4));c.lineTo(x2-hs*Math.cos(a+0.4),y2-hs*Math.sin(a+0.4));c.closePath();c.fill()}
+function stepLabel(x,y,num){
+c.fillStyle='#2e7d32';c.beginPath();c.arc(x,y,12,0,Math.PI*2);c.fill();
+c.fillStyle='#fff';c.font='bold 11px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(num,x,y);c.textBaseline='alphabetic'}
+function sideNote(x,y,text){c.fillStyle='#5a7a5a';c.font='italic 9px sans-serif';c.textAlign='left';c.fillText(text,x,y)}
+
+const lx=cx-bw/2;let y=10;
+
+// Step 1: Full Dataset
+stepLabel(lx-18,y+bh/2,1);
+box(lx,y,bw,bh,'100% Dataset (e.g., 100 samples)','#e8f5e9','#1b5e20',true);
+sideNote(lx+bw+10,y+bh/2+4,'All available data');
+y+=bh;arrow(cx,y,cx,y+16,'#2e7d32');y+=16;
+
+// Step 2: Train/Test Split
+stepLabel(lx-18,y+bh/2,2);
+const trW=bw*0.75,teW=bw*0.25;
+box(lx,y,trW,bh,'Training Set (80%)','#2e7d32','#fff',true);
+box(lx+trW+4,y,teW-4,bh,'Test (20%)','#1565c0','#fff',true);
+// Lock icon on test
+c.fillStyle='#fff';c.font='12px sans-serif';c.textAlign='center';c.fillText('\uD83D\uDD12',lx+trW+teW/2,y+bh+14);
+sideNote(lx+bw+10,y+4,'train_test_split()');
+sideNote(lx+bw+10,y+18,'test_size=0.2');
+y+=bh+8;
+c.fillStyle='#c62828';c.font='bold 9px sans-serif';c.textAlign='center';c.fillText('TEST SET SEALED \u2014 do NOT use until Step 6!',lx+trW+(teW/2),y+6);
+y+=14;arrow(cx-bw*0.12,y,cx-bw*0.12,y+16,'#2e7d32');y+=16;
+
+// Step 3: Define Grid
+stepLabel(lx-18,y+bh/2,3);
+box(lx,y,trW,bh,'Define Hyperparameter Grid','#fff3e0','#e65100',true);
+sideNote(lx+bw+10,y+4,'\u03bb = [0.001, 0.01, 0.1,');
+sideNote(lx+bw+10,y+16,'     0.5, 1, 2, 5, 10]');
+y+=bh;arrow(cx-bw*0.12,y,cx-bw*0.12,y+16,'#e65100');y+=16;
+
+// Step 4: K-Fold CV for each lambda — the big box
+stepLabel(lx-18,y+14,4);
+const cvBoxH=170;
+c.fillStyle='#f9fdf9';c.strokeStyle='#c8e6c9';c.lineWidth=2;c.setLineDash([6,3]);
+c.beginPath();c.rect(lx,y,trW,cvBoxH);c.fill();c.stroke();c.setLineDash([]);
+c.fillStyle='#1b5e20';c.font='bold 11px sans-serif';c.textAlign='left';
+c.fillText('For each \u03bb: run K-Fold CV on Training Set',lx+10,y+18);
+// Draw mini fold diagram inside
+const miniY=y+30,miniH=20,K=5,foldGap=3;
+const miniW=(trW-40)/K;
+for(let row=0;row<3;row++){
+const ry=miniY+row*(miniH+foldGap);
+const lam=row===0?'\u03bb=0.001':row===1?'\u03bb=0.1':'\u03bb=10';
+c.fillStyle='#5a7a5a';c.font='8px monospace';c.textAlign='right';c.fillText(lam,lx+38,ry+miniH/2+3);
+for(let f=0;f<K;f++){const fx=lx+42+f*(miniW+2);
+c.fillStyle=f===row%K?'#c62828':'#2e7d32';c.fillRect(fx,ry,miniW,miniH);
+if(f===row%K){c.fillStyle='#fff';c.font='bold 7px sans-serif';c.textAlign='center';c.fillText('VAL',fx+miniW/2,ry+miniH/2+3)}}}
+c.fillStyle='#5a7a5a';c.font='9px sans-serif';c.textAlign='left';
+c.fillText('\u22EE (repeat for all '+GRID_LAMBDAS.length+' \u03bb values)',lx+42,miniY+3*(miniH+foldGap)+10);
+c.fillText('Each \u03bb \u2192 5 scores \u2192 average = CV score for that \u03bb',lx+42,miniY+3*(miniH+foldGap)+24);
+sideNote(lx+bw+10,y+10,GRID_LAMBDAS.length+' \u03bb \u00d7 5 folds');
+sideNote(lx+bw+10,y+24,'= '+GRID_LAMBDAS.length*5+' models trained!');
+y+=cvBoxH;arrow(cx-bw*0.12,y,cx-bw*0.12,y+16,'#2e7d32');y+=16;
+
+// Step 5: Select best
+stepLabel(lx-18,y+bh/2,5);
+box(lx,y,trW,bh,'Select \u03bb with Best Avg CV Score \u2192 \u03bb*='+GRID_LAMBDAS[GRID_BEST],'#e8f5e9','#1b5e20',true);
+sideNote(lx+bw+10,y+4,'Best avg R\u00b2 =');
+sideNote(lx+bw+10,y+16,GRID_AVG[GRID_BEST].toFixed(4));
+y+=bh;arrow(cx-bw*0.12,y,cx-bw*0.12,y+16,'#2e7d32');y+=16;
+
+// Step 6: Retrain on full training set
+stepLabel(lx-18,y+bh/2,6);
+box(lx,y,trW,bh,'Retrain on FULL Training Set with \u03bb*','#2e7d32','#fff',true);
+sideNote(lx+bw+10,y+4,'model.fit(X_train, y_train)');
+sideNote(lx+bw+10,y+16,'using \u03bb* = '+GRID_LAMBDAS[GRID_BEST]);
+y+=bh;arrow(cx,y,cx,y+16,'#1565c0');y+=16;
+
+// Step 7: Final evaluation on test
+stepLabel(lx-18,y+bh/2,7);
+box(lx,y,bw,bh+4,'Final Evaluation on Test Set (ONLY NOW!)','#1565c0','#fff',true);
+c.fillStyle='#1565c0';c.font='12px sans-serif';c.textAlign='center';c.fillText('\uD83D\uDD13',lx+bw+14,y+bh/2+4);
+sideNote(lx+bw+30,y+4,'Unseal test set');
+sideNote(lx+bw+30,y+16,'Report final R\u00b2, MSE');
+}
+drawGrid();drawGridFlow();
+
+// Init first section
+initSection('s-slr');
+
+</script>
+</body>
+</html>
