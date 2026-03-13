@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bias–Variance, Overfitting & Underfitting Explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- MathJax -->
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --secondary: #34495e;
+      --accent: #3498db;
+      --accent-dark: #2980b9;
+      --bg: #f8f9fa;
+      --muted: #eef2f5;
+      --danger: #e74c3c;
+      --success: #27ae60;
+      --warning: #f39c12;
+      --purple: #9b59b6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--primary);
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    h1 {
+      margin: 0 0 8px 0;
+      text-align: center;
+      color: var(--primary);
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--secondary);
+      margin-bottom: 16px;
+    }
+    h2 {
+      margin: 18px 0 4px 0;
+      font-size: 1.05rem;
+      color: var(--secondary);
+    }
+    .description {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .formula-box {
+      background-color: var(--muted);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+    }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .controls-main {
+      flex: 1 1 260px;
+      background-color: var(--muted);
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+    .controls-main label {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+      accent-color: var(--accent);
+      margin-top: 6px;
+    }
+    .badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .underfit { background-color: var(--danger); }
+    .optimal  { background-color: var(--success); }
+    .overfit  { background-color: var(--purple); }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 6px;
+    }
+    button {
+      border: none;
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: #fff;
+      background-color: var(--accent);
+      transition: background-color 0.2s;
+      white-space: nowrap;
+    }
+    button.secondary {
+      background-color: var(--secondary);
+    }
+    button:hover {
+      background-color: var(--accent-dark);
+    }
+    button.secondary:hover {
+      background-color: #2c3e50;
+    }
+    .mode-label {
+      font-size: 0.8rem;
+      color: var(--secondary);
+    }
+
+    .text-panel {
+      background-color: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #dde3ea;
+      padding: 10px;
+      font-size: 0.86rem;
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+    .text-panel strong {
+      color: var(--secondary);
+    }
+
+    .chart-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .chart-box {
+      flex: 1 1 340px;
+      min-width: 280px;
+      height: 320px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      padding: 6px;
+      position: relative;
+    }
+    .chart-title {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--secondary);
+      margin: 4px 0 0 0;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+    .legend-inline {
+      font-size: 0.8rem;
+      margin-top: 4px;
+      color: var(--secondary);
+    }
+    .legend-color {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    @media (max-width: 800px) {
+      .chart-box {
+        height: 260px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Bias–Variance & Generalization Explorer</h1>
+  <div class="subtitle">
+    Inspired by Raschka, <em>STAT 479: Model Evaluation 1 – Overfitting and Underfitting</em>
+  </div>
+
+  <div class="description">
+    This app links three ideas from the notes:
+    <ul>
+      <li><strong>Overfitting vs. underfitting</strong> via training and test errors.</li>
+      <li><strong>Bias–variance decomposition</strong> of the squared loss.</li>
+      <li>Intuition from multiple training sets: <em>high bias</em> vs. <em>high variance</em> models.</li>
+    </ul>
+  </div>
+
+  <div class="formula-box">
+    \[
+      \mathbb{E}\big[(y - \hat{y})^2\big]
+      = \underbrace{\big(f(x) - \mathbb{E}[\hat{f}(x)]\big)^2}_{\text{Bias}^2}
+      + \underbrace{\mathbb{E}\big[(\hat{f}(x) - \mathbb{E}[\hat{f}(x)])^2\big]}_{\text{Variance}}
+      + \underbrace{\sigma^2}_{\text{Noise (irreducible)}}
+    \]
+  </div>
+
+  <div class="controls-row">
+    <div class="controls-main">
+      <label for="degreeSlider">
+        Model Capacity (Polynomial Degree): <span id="degreeValue">1</span>
+      </label>
+      <input type="range" id="degreeSlider" min="1" max="9" value="1" step="1">
+      <div id="statusBadge">
+        <span class="badge underfit">Underfitting (High Bias)</span>
+      </div>
+      <div class="btn-row">
+        <button id="newDataBtn">New Training & Test Sets</button>
+        <span class="mode-label">Capacity controls hypothesis space size (capacity).</span>
+      </div>
+    </div>
+    <div class="controls-main">
+      <div style="font-size:0.9rem;font-weight:600;margin-bottom:4px;">Visualization Mode (Left Plot)</div>
+      <div class="btn-row">
+        <button id="modeSingle" class="secondary">Single Fit</button>
+        <button id="modeEnsemble">Many Fits</button>
+      </div>
+      <div class="description" style="margin-top:4px;">
+        <strong>Single fit:</strong> One training set, one model.<br>
+        <strong>Many fits:</strong> Several training sets, several models – illustrates high bias vs. high variance.
+      </div>
+    </div>
+  </div>
+
+  <div id="explanationPanel" class="text-panel"></div>
+
+  <h2>1. Data, True Function, and Fitted Models</h2>
+  <div class="description">
+    We assume a true regression function \(f(x)\). Each training set is drawn as
+    \(y = f(x) + \epsilon\) with noise \(\epsilon\). We fit a polynomial of degree \(d\) and compare:
+    <ul>
+      <li>True function (green, dashed)</li>
+      <li>Noisy training points (gray)</li>
+      <li>Model fit(s) (red): one or many fits depending on the selected mode</li>
+    </ul>
+  </div>
+
+  <div class="chart-box" style="height: 360px;">
+    <div class="chart-title" id="fitTitle">Single Fit: One Training Set</div>
+    <canvas id="fitChart"></canvas>
+    <div class="legend-inline">
+      <span class="legend-color" style="background:#2ecc71"></span>True function
+      &nbsp;
+      <span class="legend-color" style="background:#777"></span>Training points
+      &nbsp;
+      <span class="legend-color" style="background:#e74c3c"></span>Model fit(s)
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-box">
+      <div class="chart-title">Training vs. Test Error (Conceptual)</div>
+      <canvas id="genErrorChart"></canvas>
+      <div class="legend-inline">
+        <span class="legend-color" style="background:#3498db"></span>Train error
+        &nbsp;
+        <span class="legend-color" style="background:#e67e22"></span>Test (generalization) error
+        <br>
+        Left: underfitting (high bias), right: overfitting (high variance).
+      </div>
+    </div>
+
+    <div class="chart-box">
+      <div class="chart-title">Bias–Variance Decomposition (Conceptual)</div>
+      <canvas id="biasVarChart"></canvas>
+      <div class="legend-inline">
+        <span class="legend-color" style="background:#3498db"></span>Bias²
+        &nbsp;
+        <span class="legend-color" style="background:#e67e22"></span>Variance
+        &nbsp;
+        <span class="legend-color" style="background:#9b59b6"></span>Total error (with noise)
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Enforce English locale universally for Chart.js so numbers display as "0.2" instead of "0,2"
+  // regardless of the user's browser language/region settings.
+  Chart.defaults.locale = 'en-US';
+
+  // ---------- Linear algebra for polynomial regression ----------
+  function solveMatrix(matrix, target) {
+    const m = matrix.map((row, i) => [...row, target[i]]);
+    const n = m.length;
+
+    for (let i = 0; i < n; i++) {
+      let maxRow = i;
+      for (let k = i + 1; k < n; k++) {
+        if (Math.abs(m[k][i]) > Math.abs(m[maxRow][i])) maxRow = k;
+      }
+      [m[i], m[maxRow]] = [m[maxRow], m[i]];
+      const pivot = m[i][i];
+      if (Math.abs(pivot) < 1e-10) continue;
+
+      for (let j = i; j <= n; j++) m[i][j] /= pivot;
+      for (let k = 0; k < n; k++) {
+        if (k === i) continue;
+        const factor = m[k][i];
+        for (let j = i; j <= n; j++) m[k][j] -= factor * m[i][j];
+      }
+    }
+    return m.map(row => row[n]);
+  }
+
+  function polynomialFit(x, y, degree) {
+    const n = x.length;
+    const m = degree + 1;
+    const A = Array.from({ length: m }, () => Array(m).fill(0));
+    const b = Array(m).fill(0);
+    for (let i = 0; i < m; i++) {
+      for (let j = 0; j < m; j++) {
+        let sum = 0;
+        for (let k = 0; k < n; k++) sum += Math.pow(x[k], i + j);
+        A[i][j] = sum;
+      }
+      let sumY = 0;
+      for (let k = 0; k < n; k++) sumY += y[k] * Math.pow(x[k], i);
+      b[i] = sumY;
+    }
+    return solveMatrix(A, b);
+  }
+
+  function evalPoly(coeffs, x) {
+    return coeffs.reduce((acc, c, p) => acc + c * Math.pow(x, p), 0);
+  }
+
+  // ---------- Data generation ----------
+  const numTrain = 20;
+  const noiseStd = 0.4;
+  function fTrue(x) {
+    // smooth non-linear target function
+    return Math.sin(1.2 * Math.PI * x) + 0.3 * x;
+  }
+
+  let trainData = [];
+  let trueCurve = [];
+  let currentDegree = 1;
+  let mode = "single"; // "single" or "ensemble"
+
+  function generateTrainingData() {
+    const data = [];
+    for (let i = 0; i < numTrain; i++) {
+      const x = Math.random() * 2 - 1; // [-1,1]
+      const noise = noiseStd * (Math.random() - 0.5) * 2;
+      const y = fTrue(x) + noise;
+      data.push({ x, y });
+    }
+    data.sort((a,b) => a.x - b.x);
+    return data;
+  }
+
+  function generateTrueCurve() {
+    const curve = [];
+    for (let x = -1; x <= 1.0001; x += 0.02) curve.push({ x, y: fTrue(x) });
+    return curve;
+  }
+
+  // ---------- Conceptual curves ----------
+  const capacities = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const conceptualBias2 = [0.85, 0.6, 0.3, 0.12, 0.05, 0.03, 0.02, 0.02, 0.02];
+  const conceptualVar   = [0.02, 0.03, 0.06, 0.1, 0.18, 0.28, 0.45, 0.65, 0.9];
+  const noiseTerm = 0.08;
+  const conceptualTotal = conceptualBias2.map((b, i) => b + conceptualVar[i] + noiseTerm);
+  const conceptualTrain = [0.6, 0.45, 0.35, 0.25, 0.18, 0.14, 0.1, 0.08, 0.06];
+  const conceptualTest  = [0.7, 0.5, 0.32, 0.25, 0.28, 0.36, 0.5, 0.7, 0.9];
+
+  // ---------- Charts ----------
+  let fitChart, genErrorChart, biasVarChart;
+
+  function initCharts() {
+    const fitCtx = document.getElementById("fitChart").getContext("2d");
+    fitChart = new Chart(fitCtx, {
+      type: "scatter",
+      data: {
+        datasets: [
+          {
+            label: "Training Data",
+            data: trainData,
+            backgroundColor: "rgba(100,100,100,0.7)",
+            borderColor: "rgba(100,100,100,1)",
+            pointRadius: 4
+          },
+          {
+            type: "line",
+            label: "True Function",
+            data: trueCurve,
+            borderColor: "rgba(46,204,113,0.9)",
+            borderWidth: 2,
+            borderDash: [5,5],
+            pointRadius: 0,
+            fill: false,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        locale: 'en-US',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: "linear",
+            min: -1,
+            max: 1,
+            title: { display: true, text: "Input x" },
+            ticks: { color: "#2c3e50" },
+            grid: { color: "rgba(0,0,0,0.05)" }
+          },
+          y: {
+            min: -2.5,
+            max: 2.5,
+            title: { display: true, text: "y" },
+            ticks: { color: "#2c3e50" },
+            grid: { color: "rgba(0,0,0,0.05)" }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+
+    const genCtx = document.getElementById("genErrorChart").getContext("2d");
+    genErrorChart = new Chart(genCtx, {
+      type: "line",
+      data: {
+        labels: capacities,
+        datasets: [
+          {
+            label: "Train Error",
+            data: conceptualTrain,
+            borderColor: "#3498db",
+            backgroundColor: "#3498db",
+            borderWidth: 2,
+            tension: 0.35
+          },
+          {
+            label: "Test Error",
+            data: conceptualTest,
+            borderColor: "#e67e22",
+            backgroundColor: "#e67e22",
+            borderWidth: 2,
+            tension: 0.35
+          }
+        ]
+      },
+      options: {
+        locale: 'en-US',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: { display: true, text: "Model Capacity (Degree)" },
+            ticks: { color: "#2c3e50" },
+            grid: { color: "rgba(0,0,0,0.05)" }
+          },
+          y: {
+            min: 0,
+            max: 1.0,
+            title: { display: true, text: "Error (conceptual)" },
+            ticks: { color: "#2c3e50" },
+            grid: { color: "rgba(0,0,0,0.05)" }
+          }
+        },
+        elements: {
+          point: {
+            radius: ctx => ctx.dataIndex + 1 === currentDegree ? 7 : 3,
+            hoverRadius: 9
+          }
+        },
+        plugins: {
+          legend: { labels: { color: "#2c3e50" } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const biasCtx = document.getElementById("biasVarChart").getContext("2d");
+    biasVarChart = new Chart(biasCtx, {
+      type: "line",
+      data: {
+        labels: capacities,
+        datasets: [
+          {
+            label: "Bias²",
+            data: conceptualBias2,
+            borderColor: "#3498db",
+            backgroundColor: "#3498db",
+            borderWidth: 2,
+            tension: 0.35
+          },
+          {
+            label: "Variance",
+            data: conceptualVar,
+            borderColor: "#e67e22",
+            backgroundColor: "#e67e22",
+            borderWidth: 2,
+            tension: 0.35
+          },
+          {
+            label: "Total Error",
+            data: conceptualTotal,
+            borderColor: "#9b59b6",
+            backgroundColor: "#9b59b6",
+            borderWidth: 3,
+            tension: 0.35
+          }
+        ]
+      },
+      options: {
+        locale: 'en-US',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: { display: true, text: "Model Capacity (Degree)" },
+            ticks: { color: "#2c3e50" },
+            grid: { color: "rgba(0,0,0,0.05)" }
+          },
+          y: {
+            min: 0,
+            max: 1.2,
+            title: { display: true, text: "Error components (conceptual)" },
+            ticks: { color: "#2c3e50" },
+            grid: { color: "rgba(0,0,0,0.05)" }
+          }
+        },
+        elements: {
+          point: {
+            radius: ctx => ctx.dataIndex + 1 === currentDegree ? 7 : 3,
+            hoverRadius: 9
+          }
+        },
+        plugins: {
+          legend: { labels: { color: "#2c3e50" } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // ---------- Explanation text ----------
+  function updateExplanation() {
+    const panel = document.getElementById("explanationPanel");
+    let text = "";
+    if (currentDegree <= 2) {
+      text += "<strong>High bias / underfitting:</strong> "
+           + "The hypothesis space (low-degree polynomials) is too simple to approximate the true function well. "
+           + "Training and test error are both relatively high, and the bias² term dominates in the decomposition. "
+           + "In Raschka’s terms: the model ‘cannot capture the underlying structure’.";
+    } else if (currentDegree <= 5) {
+      text += "<strong>Good bias–variance tradeoff:</strong> "
+           + "The capacity is sufficient to approximate the true function while keeping the variance moderate. "
+           + "Test error is low, and bias² and variance are both modest. "
+           + "This corresponds to the ‘sweet spot’ of good generalization.";
+    } else {
+      text += "<strong>High variance / overfitting:</strong> "
+           + "The model class (high-degree polynomials) is very flexible and fits the noise in the training set. "
+           + "Train error becomes very small, but test error increases. "
+           + "Variance dominates, which is what Raschka associates with overfitting.";
+    }
+    if (mode === "ensemble") {
+      text += " In <strong>many-fits mode</strong>, you can see how different training sets "
+           + "lead to very different hypotheses for high-capacity models, illustrating large variance as in Raschka’s high-variance figure.";
+    } else {
+      text += " In <strong>single-fit mode</strong>, you see one realization of the learned hypothesis for the current training set.";
+    }
+    panel.innerHTML = text;
+  }
+
+  // ---------- Fit chart update ----------
+  function updateFitChart() {
+    // Clear all model datasets beyond the first two (data + true function)
+    fitChart.data.datasets = fitChart.data.datasets.slice(0, 2);
+
+    const degree = currentDegree;
+
+    if (mode === "single") {
+      const xTrain = trainData.map(d => d.x);
+      const yTrain = trainData.map(d => d.y);
+      const coeffs = polynomialFit(xTrain, yTrain, degree);
+      const curve = [];
+      for (let x = -1; x <= 1.0001; x += 0.02) {
+        curve.push({ x, y: evalPoly(coeffs, x) });
+      }
+      fitChart.data.datasets.push({
+        type: "line",
+        label: "Model Fit",
+        data: curve,
+        borderColor: "rgba(231,76,60,1)",
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false,
+        tension: 0.3
+      });
+      document.getElementById("fitTitle").textContent = "Single Fit: One Training Set";
+    } else {
+      const numFits = 10;
+      const colors = [];
+      for (let i = 0; i < numFits; i++) {
+        colors.push(`rgba(231,76,60,${0.25 + 0.05 * i})`);
+      }
+
+      for (let f = 0; f < numFits; f++) {
+        const data = generateTrainingData();
+        const xTrain = data.map(d => d.x);
+        const yTrain = data.map(d => d.y);
+        const coeffs = polynomialFit(xTrain, yTrain, degree);
+        const curve = [];
+        for (let x = -1; x <= 1.0001; x += 0.02) {
+          curve.push({ x, y: evalPoly(coeffs, x) });
+        }
+        fitChart.data.datasets.push({
+          type: "line",
+          label: f === 0 ? "Model Fits (many)" : undefined,
+          data: curve,
+          borderColor: colors[f],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          tension: 0.25
+        });
+      }
+      document.getElementById("fitTitle").textContent =
+        "Many Fits: Different Training Sets (Variance Illustration)";
+    }
+
+    fitChart.data.datasets[0].data = trainData;
+    fitChart.data.datasets[1].data = trueCurve;
+    fitChart.update();
+  }
+
+  // ---------- Badge ----------
+  function updateBadge() {
+    const badgeDiv = document.getElementById("statusBadge");
+    if (currentDegree <= 2) {
+      badgeDiv.innerHTML = '<span class="badge underfit">Underfitting (High Bias)</span>';
+    } else if (currentDegree <= 5) {
+      badgeDiv.innerHTML = '<span class="badge optimal">Good Tradeoff</span>';
+    } else {
+      badgeDiv.innerHTML = '<span class="badge overfit">Overfitting (High Variance)</span>';
+    }
+  }
+
+  // ---------- Global update ----------
+  function updateAll() {
+    updateFitChart();
+    genErrorChart.update();
+    biasVarChart.update();
+    updateBadge();
+    updateExplanation();
+  }
+
+  // ---------- Event listeners ----------
+  document.getElementById("degreeSlider").addEventListener("input", e => {
+    currentDegree = parseInt(e.target.value, 10);
+    document.getElementById("degreeValue").textContent = currentDegree;
+    updateAll();
+  });
+
+  document.getElementById("newDataBtn").addEventListener("click", () => {
+    trainData = generateTrainingData();
+    trueCurve = generateTrueCurve();
+    updateAll();
+  });
+
+  document.getElementById("modeSingle").addEventListener("click", () => {
+    mode = "single";
+    document.getElementById("modeSingle").classList.add("secondary");
+    document.getElementById("modeEnsemble").classList.remove("secondary");
+    updateAll();
+  });
+
+  document.getElementById("modeEnsemble").addEventListener("click", () => {
+    mode = "ensemble";
+    document.getElementById("modeEnsemble").classList.add("secondary");
+    document.getElementById("modeSingle").classList.remove("secondary");
+    updateAll();
+  });
+
+  // ---------- Bootstrap ----------
+  trainData = generateTrainingData();
+  trueCurve = generateTrueCurve();
+  initCharts();
+  updateAll();
+</script>
+</body>
+</html>
