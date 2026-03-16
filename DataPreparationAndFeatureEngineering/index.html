@@ -213,7 +213,7 @@ table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.9rem}th,td{bor
 <p class="e-desc">How does a numerical feature differ across categories? <strong>Grouped box plots</strong> are ideal for this — they show the median, quartiles, and outliers for each group side by side. If the boxes barely overlap, the categorical feature is likely <strong>predictive</strong>.</p>
 <div class="e-cr">
 <div class="e-igrp"><label>Numerical Feature</label><select id="seg-num" onchange="drawSeg()"><option value="Age">Age</option><option value="MaxHR" selected>MaxHR</option><option value="RestingBP">RestingBP</option><option value="Cholesterol">Cholesterol</option><option value="Oldpeak">Oldpeak</option></select></div>
-<div class="e-igrp"><label>Group by</label><select id="seg-cat" onchange="drawSeg()"><option value="HeartDisease" selected>HeartDisease (0/1)</option><option value="Sex">Sex (M/F)</option><option value="ChestPainType">ChestPainType</option><option value="ExerciseAngina">ExerciseAngina (Y/N)</option></select></div>
+<div class="e-igrp"><label>Group by</label><select id="seg-cat" onchange="drawSeg()"><option value="HeartDisease" selected>HeartDisease (0/1)</option><option value="Gender">Gender (M/F)</option><option value="ChestPainType">ChestPainType</option><option value="ExerciseAngina">ExerciseAngina (Y/N)</option></select></div>
 </div>
 <div class="e-viz"><div class="e-viz-label">Grouped Box Plots — compare distributions across categories</div><canvas id="seg-canvas" height="230"></canvas></div>
 <div id="seg-insight"></div>
@@ -224,7 +224,7 @@ table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.9rem}th,td{bor
 <div class="e-ct"><span class="e-ic e-ir">📋</span> Categorical Feature Summary</div>
 <p class="e-desc">For categorical features, we look at <strong>value counts and frequencies</strong> instead of mean/std. An imbalanced category distribution (e.g., 90% one class) can cause models to be biased.</p>
 <div class="e-cr"><div class="e-igrp"><label>Categorical Feature</label><select id="cat-feat" onchange="drawCatBar()">
-<option value="Sex">Sex</option><option value="ChestPainType">ChestPainType</option><option value="FastingBS">FastingBS (0/1)</option><option value="RestingECG">RestingECG</option><option value="ExerciseAngina">ExerciseAngina</option><option value="HeartDisease">HeartDisease (target)</option>
+<option value="Gender">Gender</option><option value="ChestPainType">ChestPainType</option><option value="FastingBS">FastingBS (0/1)</option><option value="RestingECG">RestingECG</option><option value="ExerciseAngina">ExerciseAngina</option><option value="HeartDisease">HeartDisease (target)</option>
 </select></div></div>
 <div class="e-g2">
 <div id="cat-summary"></div>
@@ -236,7 +236,7 @@ table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.9rem}th,td{bor
 <div class="e-ct"><span class="e-ic e-io">💾</span> The Heart Failure Dataset at a Glance</div>
 <p class="e-desc">50 patients (sample), 11 features, binary target. Here are the first rows:</p>
 <div class="e-dw"><table class="e-dt" id="hf-preview"></table></div>
-<div class="e-sb"><div class="sl">Features</div><strong>Numerical:</strong> Age, RestingBP, Cholesterol, MaxHR, Oldpeak &nbsp;|&nbsp; <strong>Categorical:</strong> Sex, ChestPainType, FastingBS, RestingECG, ExerciseAngina &nbsp;|&nbsp; <strong>Target:</strong> HeartDisease (0/1)</div>
+<div class="e-sb"><div class="sl">Features</div><strong>Numerical:</strong> Age, RestingBP, Cholesterol, MaxHR, Oldpeak &nbsp;|&nbsp; <strong>Categorical:</strong> Gender, ChestPainType, FastingBS, RestingECG, ExerciseAngina &nbsp;|&nbsp; <strong>Target:</strong> HeartDisease (0/1)</div>
 </div>
 
 </section>
@@ -653,56 +653,56 @@ drawTypeTree();
 
 // ===== HEART FAILURE DATASET =====
 const HF=[
-{Age:40,Sex:'M',ChestPainType:'ATA',RestingBP:140,Cholesterol:289,FastingBS:0,RestingECG:'Normal',MaxHR:172,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:49,Sex:'F',ChestPainType:'NAP',RestingBP:160,Cholesterol:180,FastingBS:0,RestingECG:'Normal',MaxHR:156,ExerciseAngina:'N',Oldpeak:1,HeartDisease:1},
-{Age:37,Sex:'M',ChestPainType:'ATA',RestingBP:130,Cholesterol:283,FastingBS:0,RestingECG:'ST',MaxHR:98,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:48,Sex:'F',ChestPainType:'ASY',RestingBP:138,Cholesterol:214,FastingBS:0,RestingECG:'Normal',MaxHR:108,ExerciseAngina:'Y',Oldpeak:1.5,HeartDisease:1},
-{Age:54,Sex:'M',ChestPainType:'NAP',RestingBP:150,Cholesterol:195,FastingBS:0,RestingECG:'Normal',MaxHR:122,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:39,Sex:'M',ChestPainType:'NAP',RestingBP:120,Cholesterol:339,FastingBS:0,RestingECG:'Normal',MaxHR:170,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:45,Sex:'F',ChestPainType:'ATA',RestingBP:130,Cholesterol:237,FastingBS:0,RestingECG:'Normal',MaxHR:170,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:54,Sex:'M',ChestPainType:'ATA',RestingBP:110,Cholesterol:208,FastingBS:0,RestingECG:'Normal',MaxHR:142,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:37,Sex:'M',ChestPainType:'ASY',RestingBP:140,Cholesterol:207,FastingBS:0,RestingECG:'Normal',MaxHR:130,ExerciseAngina:'Y',Oldpeak:1.5,HeartDisease:1},
-{Age:48,Sex:'F',ChestPainType:'ATA',RestingBP:120,Cholesterol:284,FastingBS:0,RestingECG:'Normal',MaxHR:120,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:58,Sex:'M',ChestPainType:'ASY',RestingBP:100,Cholesterol:234,FastingBS:0,RestingECG:'Normal',MaxHR:156,ExerciseAngina:'N',Oldpeak:0.1,HeartDisease:1},
-{Age:61,Sex:'M',ChestPainType:'ASY',RestingBP:150,Cholesterol:243,FastingBS:1,RestingECG:'Normal',MaxHR:137,ExerciseAngina:'Y',Oldpeak:1,HeartDisease:1},
-{Age:40,Sex:'M',ChestPainType:'ASY',RestingBP:110,Cholesterol:167,FastingBS:0,RestingECG:'ST',MaxHR:114,ExerciseAngina:'Y',Oldpeak:2,HeartDisease:1},
-{Age:60,Sex:'F',ChestPainType:'ASY',RestingBP:150,Cholesterol:258,FastingBS:0,RestingECG:'Normal',MaxHR:157,ExerciseAngina:'N',Oldpeak:2.6,HeartDisease:1},
-{Age:55,Sex:'M',ChestPainType:'ATA',RestingBP:135,Cholesterol:204,FastingBS:1,RestingECG:'Normal',MaxHR:126,ExerciseAngina:'N',Oldpeak:1.1,HeartDisease:0},
-{Age:63,Sex:'M',ChestPainType:'ASY',RestingBP:130,Cholesterol:330,FastingBS:1,RestingECG:'ST',MaxHR:132,ExerciseAngina:'Y',Oldpeak:1.8,HeartDisease:1},
-{Age:47,Sex:'M',ChestPainType:'NAP',RestingBP:138,Cholesterol:257,FastingBS:0,RestingECG:'Normal',MaxHR:156,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:52,Sex:'M',ChestPainType:'ATA',RestingBP:120,Cholesterol:325,FastingBS:0,RestingECG:'Normal',MaxHR:172,ExerciseAngina:'N',Oldpeak:0.2,HeartDisease:0},
-{Age:68,Sex:'M',ChestPainType:'ASY',RestingBP:180,Cholesterol:274,FastingBS:1,RestingECG:'ST',MaxHR:150,ExerciseAngina:'Y',Oldpeak:1.6,HeartDisease:1},
-{Age:36,Sex:'F',ChestPainType:'NAP',RestingBP:120,Cholesterol:245,FastingBS:0,RestingECG:'Normal',MaxHR:180,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:53,Sex:'M',ChestPainType:'ASY',RestingBP:142,Cholesterol:226,FastingBS:0,RestingECG:'Normal',MaxHR:111,ExerciseAngina:'Y',Oldpeak:0,HeartDisease:1},
-{Age:51,Sex:'M',ChestPainType:'ATA',RestingBP:125,Cholesterol:213,FastingBS:0,RestingECG:'Normal',MaxHR:125,ExerciseAngina:'Y',Oldpeak:1.4,HeartDisease:1},
-{Age:66,Sex:'M',ChestPainType:'ASY',RestingBP:120,Cholesterol:302,FastingBS:0,RestingECG:'Normal',MaxHR:151,ExerciseAngina:'N',Oldpeak:0.4,HeartDisease:0},
-{Age:43,Sex:'F',ChestPainType:'TA',RestingBP:132,Cholesterol:341,FastingBS:1,RestingECG:'ST',MaxHR:136,ExerciseAngina:'Y',Oldpeak:3,HeartDisease:1},
-{Age:69,Sex:'M',ChestPainType:'NAP',RestingBP:140,Cholesterol:254,FastingBS:0,RestingECG:'Normal',MaxHR:146,ExerciseAngina:'N',Oldpeak:2,HeartDisease:1},
-{Age:59,Sex:'M',ChestPainType:'ASY',RestingBP:135,Cholesterol:234,FastingBS:0,RestingECG:'Normal',MaxHR:161,ExerciseAngina:'N',Oldpeak:0.5,HeartDisease:1},
-{Age:44,Sex:'M',ChestPainType:'ATA',RestingBP:130,Cholesterol:233,FastingBS:0,RestingECG:'Normal',MaxHR:179,ExerciseAngina:'Y',Oldpeak:0.4,HeartDisease:0},
-{Age:42,Sex:'M',ChestPainType:'ATA',RestingBP:148,Cholesterol:244,FastingBS:0,RestingECG:'Normal',MaxHR:178,ExerciseAngina:'N',Oldpeak:0.8,HeartDisease:0},
-{Age:57,Sex:'F',ChestPainType:'ASY',RestingBP:128,Cholesterol:303,FastingBS:0,RestingECG:'Normal',MaxHR:159,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:71,Sex:'M',ChestPainType:'ASY',RestingBP:110,Cholesterol:265,FastingBS:1,RestingECG:'ST',MaxHR:130,ExerciseAngina:'N',Oldpeak:0,HeartDisease:1},
-{Age:46,Sex:'M',ChestPainType:'ASY',RestingBP:140,Cholesterol:311,FastingBS:0,RestingECG:'Normal',MaxHR:120,ExerciseAngina:'Y',Oldpeak:1.8,HeartDisease:1},
-{Age:50,Sex:'F',ChestPainType:'ATA',RestingBP:120,Cholesterol:219,FastingBS:0,RestingECG:'Normal',MaxHR:158,ExerciseAngina:'N',Oldpeak:1.6,HeartDisease:0},
-{Age:56,Sex:'M',ChestPainType:'NAP',RestingBP:130,Cholesterol:221,FastingBS:0,RestingECG:'ST',MaxHR:163,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:64,Sex:'M',ChestPainType:'ASY',RestingBP:120,Cholesterol:246,FastingBS:0,RestingECG:'Normal',MaxHR:96,ExerciseAngina:'Y',Oldpeak:2.2,HeartDisease:1},
-{Age:35,Sex:'M',ChestPainType:'ATA',RestingBP:120,Cholesterol:198,FastingBS:0,RestingECG:'Normal',MaxHR:130,ExerciseAngina:'Y',Oldpeak:1.6,HeartDisease:1},
-{Age:41,Sex:'M',ChestPainType:'ATA',RestingBP:110,Cholesterol:235,FastingBS:0,RestingECG:'Normal',MaxHR:153,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:62,Sex:'F',ChestPainType:'ASY',RestingBP:140,Cholesterol:268,FastingBS:0,RestingECG:'ST',MaxHR:160,ExerciseAngina:'N',Oldpeak:3.6,HeartDisease:1},
-{Age:38,Sex:'M',ChestPainType:'NAP',RestingBP:120,Cholesterol:231,FastingBS:0,RestingECG:'Normal',MaxHR:182,ExerciseAngina:'Y',Oldpeak:3.8,HeartDisease:1},
-{Age:65,Sex:'M',ChestPainType:'ASY',RestingBP:110,Cholesterol:248,FastingBS:0,RestingECG:'Normal',MaxHR:158,ExerciseAngina:'N',Oldpeak:0.6,HeartDisease:1},
-{Age:77,Sex:'M',ChestPainType:'ASY',RestingBP:125,Cholesterol:304,FastingBS:0,RestingECG:'Normal',MaxHR:162,ExerciseAngina:'Y',Oldpeak:0,HeartDisease:1},
-{Age:33,Sex:'M',ChestPainType:'NAP',RestingBP:115,Cholesterol:246,FastingBS:0,RestingECG:'Normal',MaxHR:154,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:70,Sex:'M',ChestPainType:'ASY',RestingBP:145,Cholesterol:282,FastingBS:1,RestingECG:'ST',MaxHR:112,ExerciseAngina:'Y',Oldpeak:2.4,HeartDisease:1},
-{Age:29,Sex:'F',ChestPainType:'ATA',RestingBP:110,Cholesterol:189,FastingBS:0,RestingECG:'Normal',MaxHR:186,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:67,Sex:'M',ChestPainType:'ASY',RestingBP:160,Cholesterol:286,FastingBS:0,RestingECG:'ST',MaxHR:108,ExerciseAngina:'Y',Oldpeak:1.5,HeartDisease:1},
-{Age:46,Sex:'F',ChestPainType:'ATA',RestingBP:115,Cholesterol:258,FastingBS:0,RestingECG:'Normal',MaxHR:165,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:74,Sex:'M',ChestPainType:'ASY',RestingBP:155,Cholesterol:310,FastingBS:0,RestingECG:'Normal',MaxHR:112,ExerciseAngina:'Y',Oldpeak:3.2,HeartDisease:1},
-{Age:34,Sex:'F',ChestPainType:'NAP',RestingBP:118,Cholesterol:210,FastingBS:0,RestingECG:'Normal',MaxHR:175,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
-{Age:58,Sex:'M',ChestPainType:'ASY',RestingBP:132,Cholesterol:258,FastingBS:1,RestingECG:'Normal',MaxHR:141,ExerciseAngina:'Y',Oldpeak:2.8,HeartDisease:1},
-{Age:43,Sex:'M',ChestPainType:'NAP',RestingBP:122,Cholesterol:213,FastingBS:0,RestingECG:'Normal',MaxHR:165,ExerciseAngina:'N',Oldpeak:0.2,HeartDisease:0},
-{Age:72,Sex:'M',ChestPainType:'ASY',RestingBP:160,Cholesterol:292,FastingBS:1,RestingECG:'ST',MaxHR:105,ExerciseAngina:'Y',Oldpeak:2.0,HeartDisease:1}
+{Age:40,Gender:'M',ChestPainType:'ATA',RestingBP:140,Cholesterol:289,FastingBS:0,RestingECG:'Normal',MaxHR:172,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:49,Gender:'F',ChestPainType:'NAP',RestingBP:160,Cholesterol:180,FastingBS:0,RestingECG:'Normal',MaxHR:156,ExerciseAngina:'N',Oldpeak:1,HeartDisease:1},
+{Age:37,Gender:'M',ChestPainType:'ATA',RestingBP:130,Cholesterol:283,FastingBS:0,RestingECG:'ST',MaxHR:98,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:48,Gender:'F',ChestPainType:'ASY',RestingBP:138,Cholesterol:214,FastingBS:0,RestingECG:'Normal',MaxHR:108,ExerciseAngina:'Y',Oldpeak:1.5,HeartDisease:1},
+{Age:54,Gender:'M',ChestPainType:'NAP',RestingBP:150,Cholesterol:195,FastingBS:0,RestingECG:'Normal',MaxHR:122,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:39,Gender:'M',ChestPainType:'NAP',RestingBP:120,Cholesterol:339,FastingBS:0,RestingECG:'Normal',MaxHR:170,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:45,Gender:'F',ChestPainType:'ATA',RestingBP:130,Cholesterol:237,FastingBS:0,RestingECG:'Normal',MaxHR:170,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:54,Gender:'M',ChestPainType:'ATA',RestingBP:110,Cholesterol:208,FastingBS:0,RestingECG:'Normal',MaxHR:142,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:37,Gender:'M',ChestPainType:'ASY',RestingBP:140,Cholesterol:207,FastingBS:0,RestingECG:'Normal',MaxHR:130,ExerciseAngina:'Y',Oldpeak:1.5,HeartDisease:1},
+{Age:48,Gender:'F',ChestPainType:'ATA',RestingBP:120,Cholesterol:284,FastingBS:0,RestingECG:'Normal',MaxHR:120,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:58,Gender:'M',ChestPainType:'ASY',RestingBP:100,Cholesterol:234,FastingBS:0,RestingECG:'Normal',MaxHR:156,ExerciseAngina:'N',Oldpeak:0.1,HeartDisease:1},
+{Age:61,Gender:'M',ChestPainType:'ASY',RestingBP:150,Cholesterol:243,FastingBS:1,RestingECG:'Normal',MaxHR:137,ExerciseAngina:'Y',Oldpeak:1,HeartDisease:1},
+{Age:40,Gender:'M',ChestPainType:'ASY',RestingBP:110,Cholesterol:167,FastingBS:0,RestingECG:'ST',MaxHR:114,ExerciseAngina:'Y',Oldpeak:2,HeartDisease:1},
+{Age:60,Gender:'F',ChestPainType:'ASY',RestingBP:150,Cholesterol:258,FastingBS:0,RestingECG:'Normal',MaxHR:157,ExerciseAngina:'N',Oldpeak:2.6,HeartDisease:1},
+{Age:55,Gender:'M',ChestPainType:'ATA',RestingBP:135,Cholesterol:204,FastingBS:1,RestingECG:'Normal',MaxHR:126,ExerciseAngina:'N',Oldpeak:1.1,HeartDisease:0},
+{Age:63,Gender:'M',ChestPainType:'ASY',RestingBP:130,Cholesterol:330,FastingBS:1,RestingECG:'ST',MaxHR:132,ExerciseAngina:'Y',Oldpeak:1.8,HeartDisease:1},
+{Age:47,Gender:'M',ChestPainType:'NAP',RestingBP:138,Cholesterol:257,FastingBS:0,RestingECG:'Normal',MaxHR:156,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:52,Gender:'M',ChestPainType:'ATA',RestingBP:120,Cholesterol:325,FastingBS:0,RestingECG:'Normal',MaxHR:172,ExerciseAngina:'N',Oldpeak:0.2,HeartDisease:0},
+{Age:68,Gender:'M',ChestPainType:'ASY',RestingBP:180,Cholesterol:274,FastingBS:1,RestingECG:'ST',MaxHR:150,ExerciseAngina:'Y',Oldpeak:1.6,HeartDisease:1},
+{Age:36,Gender:'F',ChestPainType:'NAP',RestingBP:120,Cholesterol:245,FastingBS:0,RestingECG:'Normal',MaxHR:180,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:53,Gender:'M',ChestPainType:'ASY',RestingBP:142,Cholesterol:226,FastingBS:0,RestingECG:'Normal',MaxHR:111,ExerciseAngina:'Y',Oldpeak:0,HeartDisease:1},
+{Age:51,Gender:'M',ChestPainType:'ATA',RestingBP:125,Cholesterol:213,FastingBS:0,RestingECG:'Normal',MaxHR:125,ExerciseAngina:'Y',Oldpeak:1.4,HeartDisease:1},
+{Age:66,Gender:'M',ChestPainType:'ASY',RestingBP:120,Cholesterol:302,FastingBS:0,RestingECG:'Normal',MaxHR:151,ExerciseAngina:'N',Oldpeak:0.4,HeartDisease:0},
+{Age:43,Gender:'F',ChestPainType:'TA',RestingBP:132,Cholesterol:341,FastingBS:1,RestingECG:'ST',MaxHR:136,ExerciseAngina:'Y',Oldpeak:3,HeartDisease:1},
+{Age:69,Gender:'M',ChestPainType:'NAP',RestingBP:140,Cholesterol:254,FastingBS:0,RestingECG:'Normal',MaxHR:146,ExerciseAngina:'N',Oldpeak:2,HeartDisease:1},
+{Age:59,Gender:'M',ChestPainType:'ASY',RestingBP:135,Cholesterol:234,FastingBS:0,RestingECG:'Normal',MaxHR:161,ExerciseAngina:'N',Oldpeak:0.5,HeartDisease:1},
+{Age:44,Gender:'M',ChestPainType:'ATA',RestingBP:130,Cholesterol:233,FastingBS:0,RestingECG:'Normal',MaxHR:179,ExerciseAngina:'Y',Oldpeak:0.4,HeartDisease:0},
+{Age:42,Gender:'M',ChestPainType:'ATA',RestingBP:148,Cholesterol:244,FastingBS:0,RestingECG:'Normal',MaxHR:178,ExerciseAngina:'N',Oldpeak:0.8,HeartDisease:0},
+{Age:57,Gender:'F',ChestPainType:'ASY',RestingBP:128,Cholesterol:303,FastingBS:0,RestingECG:'Normal',MaxHR:159,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:71,Gender:'M',ChestPainType:'ASY',RestingBP:110,Cholesterol:265,FastingBS:1,RestingECG:'ST',MaxHR:130,ExerciseAngina:'N',Oldpeak:0,HeartDisease:1},
+{Age:46,Gender:'M',ChestPainType:'ASY',RestingBP:140,Cholesterol:311,FastingBS:0,RestingECG:'Normal',MaxHR:120,ExerciseAngina:'Y',Oldpeak:1.8,HeartDisease:1},
+{Age:50,Gender:'F',ChestPainType:'ATA',RestingBP:120,Cholesterol:219,FastingBS:0,RestingECG:'Normal',MaxHR:158,ExerciseAngina:'N',Oldpeak:1.6,HeartDisease:0},
+{Age:56,Gender:'M',ChestPainType:'NAP',RestingBP:130,Cholesterol:221,FastingBS:0,RestingECG:'ST',MaxHR:163,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:64,Gender:'M',ChestPainType:'ASY',RestingBP:120,Cholesterol:246,FastingBS:0,RestingECG:'Normal',MaxHR:96,ExerciseAngina:'Y',Oldpeak:2.2,HeartDisease:1},
+{Age:35,Gender:'M',ChestPainType:'ATA',RestingBP:120,Cholesterol:198,FastingBS:0,RestingECG:'Normal',MaxHR:130,ExerciseAngina:'Y',Oldpeak:1.6,HeartDisease:1},
+{Age:41,Gender:'M',ChestPainType:'ATA',RestingBP:110,Cholesterol:235,FastingBS:0,RestingECG:'Normal',MaxHR:153,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:62,Gender:'F',ChestPainType:'ASY',RestingBP:140,Cholesterol:268,FastingBS:0,RestingECG:'ST',MaxHR:160,ExerciseAngina:'N',Oldpeak:3.6,HeartDisease:1},
+{Age:38,Gender:'M',ChestPainType:'NAP',RestingBP:120,Cholesterol:231,FastingBS:0,RestingECG:'Normal',MaxHR:182,ExerciseAngina:'Y',Oldpeak:3.8,HeartDisease:1},
+{Age:65,Gender:'M',ChestPainType:'ASY',RestingBP:110,Cholesterol:248,FastingBS:0,RestingECG:'Normal',MaxHR:158,ExerciseAngina:'N',Oldpeak:0.6,HeartDisease:1},
+{Age:77,Gender:'M',ChestPainType:'ASY',RestingBP:125,Cholesterol:304,FastingBS:0,RestingECG:'Normal',MaxHR:162,ExerciseAngina:'Y',Oldpeak:0,HeartDisease:1},
+{Age:33,Gender:'M',ChestPainType:'NAP',RestingBP:115,Cholesterol:246,FastingBS:0,RestingECG:'Normal',MaxHR:154,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:70,Gender:'M',ChestPainType:'ASY',RestingBP:145,Cholesterol:282,FastingBS:1,RestingECG:'ST',MaxHR:112,ExerciseAngina:'Y',Oldpeak:2.4,HeartDisease:1},
+{Age:29,Gender:'F',ChestPainType:'ATA',RestingBP:110,Cholesterol:189,FastingBS:0,RestingECG:'Normal',MaxHR:186,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:67,Gender:'M',ChestPainType:'ASY',RestingBP:160,Cholesterol:286,FastingBS:0,RestingECG:'ST',MaxHR:108,ExerciseAngina:'Y',Oldpeak:1.5,HeartDisease:1},
+{Age:46,Gender:'F',ChestPainType:'ATA',RestingBP:115,Cholesterol:258,FastingBS:0,RestingECG:'Normal',MaxHR:165,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:74,Gender:'M',ChestPainType:'ASY',RestingBP:155,Cholesterol:310,FastingBS:0,RestingECG:'Normal',MaxHR:112,ExerciseAngina:'Y',Oldpeak:3.2,HeartDisease:1},
+{Age:34,Gender:'F',ChestPainType:'NAP',RestingBP:118,Cholesterol:210,FastingBS:0,RestingECG:'Normal',MaxHR:175,ExerciseAngina:'N',Oldpeak:0,HeartDisease:0},
+{Age:58,Gender:'M',ChestPainType:'ASY',RestingBP:132,Cholesterol:258,FastingBS:1,RestingECG:'Normal',MaxHR:141,ExerciseAngina:'Y',Oldpeak:2.8,HeartDisease:1},
+{Age:43,Gender:'M',ChestPainType:'NAP',RestingBP:122,Cholesterol:213,FastingBS:0,RestingECG:'Normal',MaxHR:165,ExerciseAngina:'N',Oldpeak:0.2,HeartDisease:0},
+{Age:72,Gender:'M',ChestPainType:'ASY',RestingBP:160,Cholesterol:292,FastingBS:1,RestingECG:'ST',MaxHR:105,ExerciseAngina:'Y',Oldpeak:2.0,HeartDisease:1}
 ];
 function hfCol(f){return HF.map(r=>r[f]);}
 function hfNum(f){return hfCol(f).map(Number);}
@@ -782,7 +782,7 @@ function drawFeWhy(){const c=document.getElementById('feWhyCanvas').getContext('
 drawFeWhy();
 
 // Selection
-const fL=[{name:'Age',imp:.78},{name:'MaxHR',imp:.72},{name:'Chol',imp:.35},{name:'RestBP',imp:.40},{name:'Oldpeak',imp:.65},{name:'FastBS',imp:.30},{name:'RestECG',imp:.25},{name:'ExAngina',imp:.68},{name:'Sex',imp:.50}];
+const fL=[{name:'Age',imp:.78},{name:'MaxHR',imp:.72},{name:'Chol',imp:.35},{name:'RestBP',imp:.40},{name:'Oldpeak',imp:.65},{name:'FastBS',imp:.30},{name:'RestECG',imp:.25},{name:'ExAngina',imp:.68},{name:'Gender',imp:.50}];
 let selF=new Set(['Age','MaxHR','ExAngina']);
 function renderFC(){const c2=document.getElementById('feChips');c2.innerHTML='';fL.forEach(f=>{const ch=document.createElement('span');ch.className='feature-chip'+(selF.has(f.name)?' selected':'');ch.textContent=f.name+' ('+Math.round(f.imp*100)+'%)';ch.onclick=()=>{if(selF.has(f.name))selF.delete(f.name);else selF.add(f.name);renderFC();drawFeImp();updFM()};c2.appendChild(ch)})}
 function drawFeImp(){const c=document.getElementById('feImpCanvas').getContext('2d'),w=c.canvas.width,h=c.canvas.height;c.clearRect(0,0,w,h);c.fillStyle='#fff';c.fillRect(0,0,w,h);const sorted=[...fL].sort((a,b)=>b.imp-a.imp);const barH=25,gap=4,maxW=w-150;TB(c,'Feature Importance',10,16,'#1b5e20',12);sorted.forEach((f,i)=>{const y=30+i*(barH+gap),bw=f.imp*maxW;c.fillStyle=selF.has(f.name)?'#2e7d32':'#e0e0e0';c.fillRect(100,y,bw,barH);T(c,f.name,4,y+barH-5,selF.has(f.name)?'#1b5e20':'#999',10);T(c,Math.round(f.imp*100)+'%',105+bw,y+barH-5,selF.has(f.name)?'#1b5e20':'#999',10)})}
