@@ -2,17 +2,17 @@
 
 A collection of interactive web tools for exploring machine learning algorithms step by step. Each tool breaks down a core ML concept into transparent, visual calculations — no black boxes.
 
-🔗 **Live:** [abka0002.github.io/Machine-Learning-Selections](https://abka0002.github.io/Machine-Learning-Selections/)
+🔗 **Live:** [abka0002.github.io/Machine-Learning-Explained](https://abka0002.github.io/Machine-Learning-Explained/)
 
 ## Available Tools
 
 | Tool | Description |
 |------|-------------|
-| [Data Preparation & Feature Engineering](https://abka0002.github.io/Machine-Learning-Selections/DataPreparationAndFeatureEngineering/) | Interactive pipeline covering EDA, data types, imputation, scaling, encoding, and feature selection with the Heart Failure dataset |
-| [Linear Regression](https://abka0002.github.io/Machine-Learning-Selections/LinearRegression/) | Simple and multiple Linear regression Deployment |
-| [Bias and Variance tradeoff](https://abka0002.github.io/Machine-Learning-Selections/BiasAndVariance/) | Bias–Variance & Generalization Explorer |
-| [SMOTE & SMOTE-NC](https://abka0002.github.io/Machine-Learning-Selections/smote/) | Step-by-step walkthrough of synthetic oversampling for imbalanced datasets, covering both continuous and mixed-type features |
-| [Attention Is All You Need](https://abka0002.github.io/Machine-Learning-Selections/AttentionAndTransformer/) | Interactive guide to the Transformer architecture — self-attention, multi-head attention, positional encoding, encoder-decoder, and masking |
+| [Data Preparation & Feature Engineering](https://abka0002.github.io/Machine-Learning-Explained/DataPreparationAndFeatureEngineering/) | Interactive pipeline covering EDA, data types, imputation, scaling, encoding, and feature selection with the Heart Failure dataset |
+| [Linear Regression](https://abka0002.github.io/Machine-Learning-Explained/LinearRegression/) | Simple and multiple Linear regression Deployment |
+| [Bias and Variance tradeoff](https://abka0002.github.io/Machine-Learning-Explained/BiasAndVariance/) | Bias–Variance & Generalization Explorer |
+| [SMOTE & SMOTE-NC](https://abka0002.github.io/Machine-Learning-Explained/smote/) | Step-by-step walkthrough of synthetic oversampling for imbalanced datasets, covering both continuous and mixed-type features |
+| [Attention Is All You Need](https://abka0002.github.io/Machine-Learning-Explained/AttentionAndTransformer/) | Interactive guide to the Transformer architecture — self-attention, multi-head attention, positional encoding, encoder-decoder, and masking |
 
 ## About
 
