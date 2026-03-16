@@ -1,4 +1,4 @@
-# Machine Learning to Go
+# Machine Learning Explained
 
 A collection of interactive web tools for exploring machine learning algorithms step by step. Each tool breaks down a core ML concept into transparent, visual calculations — no black boxes.
 
