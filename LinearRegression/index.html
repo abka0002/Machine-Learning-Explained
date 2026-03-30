@@ -374,6 +374,7 @@ y = y_true + np.random.normal(scale=<span class="hl">10</span>, size=x.shape)<br
 <div class="tab" data-p="regGeometry">🔷 Geometry</div>
 <div class="tab" data-p="regCoeffs">📊 Coefficients</div>
 <div class="tab" data-p="regPaths">📈 Reg. Paths</div>
+<div class="tab" data-p="regElastic">🔗 ElasticNet</div>
 <div class="tab" data-p="regCompare">⚔️ Compare</div>
 </div>
 
@@ -401,14 +402,19 @@ y = y_true + np.random.normal(scale=<span class="hl">10</span>, size=x.shape)<br
 <h4><span class="ico ib">💡</span> Key Insight</h4>
 <p class="desc">Lasso produces <strong>sparse models</strong> (some coefficients become exactly zero). Ridge keeps all features with smaller values. This comes from the <strong>geometry of their constraint regions</strong> — explore the Geometry tab to see why!</p>
 </div>
+
 <div class="cd">
-<h4><span class="ico ib">📊</span> Immoscout24 Example</h4>
-<table><tr><th>Model</th><th>R² Train</th><th>R² Test</th><th>MSE Test</th></tr>
-<tr><td>Linear (no reg.)</td><td>0.77</td><td style="color:var(--red);font-weight:700">−7.5 × 10²³</td><td style="color:var(--red)">Huge</td></tr>
-<tr><td style="color:var(--green);font-weight:600">Ridge (L2)</td><td>0.75</td><td><strong>0.72</strong></td><td>37,027</td></tr>
-<tr><td style="color:var(--orange);font-weight:600">Lasso (L1)</td><td>0.76</td><td><strong>0.72</strong></td><td>37,255</td></tr></table>
-<div class="warn">Without regularization, the model <strong>completely failed</strong> on test data (R² = −10²³!). Ridge and Lasso both rescued it to R² ≈ 0.72.</div>
+<h4><span class="ico io">🔧</span> CNC Manufacturing Example (Bruchsal)</h4>
+<p class="desc">The Bruchsal subset has ~44 training samples and ~48 features after one-hot encoding (<em>p ≈ n</em>). This causes severe overfitting with plain linear regression:</p>
+<table><tr><th>Model</th><th>R² Train</th><th>R² Test</th><th>Non-zero Coefs</th></tr>
+<tr><td>Linear (no reg.)</td><td>1.00</td><td style="color:var(--red);font-weight:700">0.78</td><td>48/48</td></tr>
+<tr><td style="color:var(--green);font-weight:600">Ridge (α=0.1)</td><td>0.98</td><td><strong>0.84</strong></td><td>48/48</td></tr>
+<tr><td style="color:var(--orange);font-weight:600">Lasso (α=0.1)</td><td>0.97</td><td><strong>0.95</strong></td><td style="color:var(--orange);font-weight:700">25/48</td></tr>
+<tr><td style="color:#7b1fa2;font-weight:600">ElasticNetCV</td><td>0.98</td><td><strong>0.93</strong></td><td>31/48</td></tr></table>
+
 </div>
+
+
 </div>
 
 <!-- GEOMETRY -->
@@ -487,25 +493,104 @@ y = y_true + np.random.normal(scale=<span class="hl">10</span>, size=x.shape)<br
 </div>
 </div>
 
+<!-- ELASTIC NET -->
+<div class="tpanel" id="regElastic">
+<div class="cd">
+<h4><span class="ico ip">🔗</span> ElasticNet — Best of Both Worlds</h4>
+<p class="desc">ElasticNet was introduced by <strong>Zou & Hastie (2005)</strong> to address the limitations of both Ridge and Lasso. It combines L1 and L2 penalties in a single loss function.</p>
+</div>
+
+<div class="cd" style="border-top:3px solid #7b1fa2">
+<h4><span class="ico ip">📐</span> Cost Function</h4>
+<div class="fb">Loss = RSS + α · ρ · Σ|βⱼ| + α · (1−ρ)/2 · Σβⱼ²<br><br><span class="cm">where:</span><br>  <span class="hl">α (alpha)</span> = overall regularization strength<br>  <span class="hl">ρ (l1_ratio)</span> = mix between L1 and L2, ρ ∈ [0, 1]<br>  ρ = 1.0 → pure Lasso | ρ = 0.0 → pure Ridge | 0 &lt; ρ &lt; 1 → blend</div>
+</div>
+
+<div class="cd">
+<h4><span class="ico ip">❓</span> Why Not Just Lasso?</h4>
+<p class="desc">When features are <strong>highly correlated</strong> (e.g., the three vibration axes in our CNC dataset), Lasso has a fundamental problem:</p>
+<div class="g2">
+<div class="sb" style="border-left:3px solid var(--orange)">
+<div class="sl">Lasso's Problem</div>
+Lasso <strong>arbitrarily picks one</strong> correlated feature and zeros out the others. On a different random split, it might pick a different one. This makes the model <strong>unstable</strong>.
+<br><br>
+<em>Example:</em> If vibration_x ≈ vibration_y, Lasso might give (0.5, 0) or (0, 0.5) depending on the data split.
+</div>
+<div class="sb" style="border-left:3px solid var(--green)">
+<div class="sl">Ridge's Solution (partial)</div>
+Ridge <strong>distributes weight evenly</strong> among correlated features: (0.25, 0.25). This is stable, but Ridge <strong>never eliminates features</strong> — you still keep all 48 coefficients.
+</div>
+</div>
+<div class="sb" style="border-left:3px solid #7b1fa2">
+<div class="sl">ElasticNet's Solution</div>
+ElasticNet either <strong>keeps or drops correlated features as a group</strong> (the "grouping effect"). It won't arbitrarily pick one over another. You get sparsity AND stability.
+</div>
+</div>
+
+<div class="cd">
+<h4><span class="ico ip">🔷</span> Geometric Interpretation</h4>
+<p class="desc">The constraint region of ElasticNet is a <strong>rounded diamond</strong> — a blend between the L1 diamond and the L2 circle:</p>
+<div class="g3">
+<div style="text-align:center;padding:10px">
+<div style="width:80px;height:80px;border-radius:50%;border:3px solid var(--green);margin:0 auto 8px"></div>
+<strong style="color:var(--green)">Ridge</strong><br><span class="desc">Circle — no corners<br>→ no zeros</span>
+</div>
+<div style="text-align:center;padding:10px">
+<div style="width:70px;height:70px;border:3px solid #7b1fa2;transform:rotate(45deg);border-radius:12px;margin:0 auto 8px"></div>
+<strong style="color:#7b1fa2">ElasticNet</strong><br><span class="desc">Rounded diamond<br>→ some zeros, stable</span>
+</div>
+<div style="text-align:center;padding:10px">
+<div style="width:70px;height:70px;border:3px solid var(--orange);transform:rotate(45deg);margin:0 auto 8px"></div>
+<strong style="color:var(--orange)">Lasso</strong><br><span class="desc">Sharp diamond<br>→ many zeros, unstable</span>
+</div>
+</div>
+<p class="desc">The rounded corners still allow sparsity (coefficients can be zero), but the smoothing from L2 makes the solution less sensitive to small changes in the data.</p>
+</div>
+
+<div class="cd">
+<h4><span class="ico ip">🧪</span> CNC Dataset Results (Bruchsal)</h4>
+<p class="desc">ElasticNetCV automatically searches over both α and l1_ratio via 5-fold cross-validation:</p>
+<div class="g2">
+<div class="sb" style="border-left:3px solid #7b1fa2">
+<div class="sl">Best Parameters</div>
+<strong>α = 0.0095</strong> | <strong>l1_ratio = 0.60</strong><br>
+→ 60% Lasso / 40% Ridge blend
+</div>
+<div class="sb" style="border-left:3px solid #7b1fa2">
+<div class="sl">Performance</div>
+Train R² = 0.976 | <strong>Test R² = 0.932</strong><br>
+→ Best generalization of all models
+</div>
+</div>
+<div class="note"><strong>Interpretation:</strong> l1_ratio = 0.60 means the model prefers sparsity (feature selection) but still benefits from L2 stability for handling correlated features like the vibration axes. The small α means only mild regularization is needed.</div>
+</div>
+
+<div class="cd">
+<h4><span class="ico ip">🐍</span> Scikit-Learn Implementation</h4>
+<div class="fb"><span class="hl">from</span> sklearn.linear_model <span class="hl">import</span> ElasticNetCV<br><br>pipe = Pipeline([<br>  ('preprocessor', mergedtransf(cnc_br)),<br>  ('model', ElasticNetCV(<br>      l1_ratio=[0.1, 0.3, 0.5, 0.7, 0.9, 1.0],<br>      alphas=<span class="hl">None</span>,  <span class="cm"># auto alpha path</span><br>      cv=5, n_jobs=-1<br>  ))<br>])<br>pipe.fit(X_train, y_train)<br><br><span class="cm"># Best parameters found:</span><br>pipe['model'].alpha_     <span class="cm"># → 0.0095</span><br>pipe['model'].l1_ratio_  <span class="cm"># → 0.60</span></div>
+</div>
+</div>
+
 <!-- COMPARE -->
 <div class="tpanel" id="regCompare">
 <div class="cd">
 <h4><span class="ico io">⚔️</span> Side-by-Side Comparison</h4>
 <table>
-<tr><th>Aspect</th><th style="color:var(--green)">Ridge (L2)</th><th style="color:var(--orange)">Lasso (L1)</th></tr>
-<tr><td>Penalty</td><td>Σ βⱼ²</td><td>Σ |βⱼ|</td></tr>
-<tr><td>Geometry</td><td>🟢 Circle / Sphere</td><td>🌿 Diamond / Polytope</td></tr>
-<tr><td>Feature Selection</td><td>❌ No — keeps all</td><td>✅ Yes — zeros out some</td></tr>
-<tr><td>Solution Form</td><td>Closed form</td><td>Iterative (no closed form)</td></tr>
-<tr><td>Correlated Features</td><td>Shares weight evenly</td><td>Picks one, zeros others</td></tr>
-<tr><td>Best When</td><td>Many small effects</td><td>Few important features</td></tr>
+<tr><th>Aspect</th><th style="color:var(--green)">Ridge (L2)</th><th style="color:var(--orange)">Lasso (L1)</th><th style="color:#7b1fa2">ElasticNet (L1+L2)</th></tr>
+<tr><td>Penalty</td><td>α · Σ βⱼ²</td><td>α · Σ |βⱼ|</td><td>α·ρ·Σ|βⱼ| + α·(1−ρ)/2·Σβⱼ²</td></tr>
+<tr><td>Geometry</td><td>🟢 Circle / Sphere</td><td>🌿 Diamond / Polytope</td><td>🔗 Rounded Diamond</td></tr>
+<tr><td>Feature Selection</td><td>❌ No — keeps all</td><td>✅ Yes — zeros out some</td><td>✅ Yes — controlled by ρ</td></tr>
+<tr><td>Solution Form</td><td>Closed form</td><td>Iterative</td><td>Iterative</td></tr>
+<tr><td>Correlated Features</td><td>Shares weight evenly ✅</td><td>Picks one, zeros others ⚠️</td><td>Groups them together ✅</td></tr>
+<tr><td>Hyperparameters</td><td>α</td><td>α</td><td>α + ρ (l1_ratio)</td></tr>
+<tr><td>Best When</td><td>Many small effects</td><td>Few important features</td><td>Mixed + correlated features</td></tr>
 </table>
 </div>
 <div class="cd">
 <h4><span class="ico ib">🤔</span> When to use which?</h4>
-<p class="desc"><strong style="color:var(--green)">Use Ridge</strong> when most features contribute and you want to shrink all evenly. Great with correlated features.</p>
-<p class="desc"><strong style="color:var(--orange)">Use Lasso</strong> when many features are irrelevant and you want automatic feature selection.</p>
-<p class="desc"><strong>🌟 Elastic Net</strong> combines both: λ₁·Σ|βⱼ| + λ₂·Σβⱼ², giving feature selection plus grouped handling of correlated features.</p>
+<p class="desc"><strong style="color:var(--green)">Use Ridge</strong> when most features contribute and you want to shrink all evenly. Great with correlated features, but no feature selection.</p>
+<p class="desc"><strong style="color:var(--orange)">Use Lasso</strong> when many features are irrelevant and you want automatic feature selection. Caution: unstable with correlated features.</p>
+<p class="desc"><strong style="color:#7b1fa2">Use ElasticNet</strong> when you want sparsity (like Lasso) AND stability with correlated features (like Ridge).  Use <code style="background:#f3e5f5;padding:2px 6px;border-radius:4px;font-size:.82rem">ElasticNetCV</code> to automatically tune both α and ρ.</p>
+
 </div>
 <div class="cd">
 <h4><span class="ico ip">🧪</span> Quick Quiz</h4>
