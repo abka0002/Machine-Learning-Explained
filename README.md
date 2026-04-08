@@ -15,6 +15,7 @@ A collection of interactive web tools for exploring machine learning algorithms 
 | [Sklearn Pipeline](https://abka0002.github.io/Machine-Learning-Explained/SklearnPipeline/) | Explaining How can sklearn pipeline Chaining preprocessing steps and a model into a single, reproducible workflow. |
 | [SMOTE & SMOTE-NC](https://abka0002.github.io/Machine-Learning-Explained/smote/) | Step-by-step walkthrough of synthetic oversampling for imbalanced datasets, covering both continuous and mixed-type features |
 | [Attention Is All You Need](https://abka0002.github.io/Machine-Learning-Explained/AttentionAndTransformer/) | Interactive guide to the Transformer architecture — self-attention, multi-head attention, positional encoding, encoder-decoder, and masking |
+| [GPT-Decoder Simulator](https://abka0002.github.io/Machine-Learning-Explained/GPTDecoderSimulator/) | Complete data flow with mathematical examples |
 
 ## About
 
