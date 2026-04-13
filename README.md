@@ -17,6 +17,7 @@ A collection of interactive web tools for exploring machine learning algorithms 
 | [Attention Is All You Need](https://abka0002.github.io/Machine-Learning-Explained/AttentionAndTransformer/) | Interactive guide to the Transformer architecture — self-attention, multi-head attention, positional encoding, encoder-decoder, and masking |
 | [GPT-Decoder Simulator](https://abka0002.github.io/Machine-Learning-Explained/GPTDecoderSimulator/) | Complete data flow with mathematical examples |
 | [RAG-System Simulator](https://abka0002.github.io/Machine-Learning-Explained/RAGSystemSimulator/) | Retrieval-Augmented Generation· Step-by-Step |
+| [Low-Rank Adaptation (LoRA) LLMS](https://abka0002.github.io/Machine-Learning-Explained/LowRankAdaptationLLMS/) | LoRA (Low-Rank Adaptation, Hu et al. 2021) is a parameter-efficient fine-tuning method that freezes a pre-trained model's weights and learns a small rank-r update on the side. |
 
 ## About
 

@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoRA Fine-Tuning Simulator — Step-by-Step</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23fafaf7' stroke='%23e3e1d8'/><rect x='10' y='10' width='44' height='44' rx='6' fill='%236b728028' stroke='%236b7280' stroke-width='2'/><rect x='14' y='34' width='36' height='6' rx='2' fill='%23e11d4828' stroke='%23e11d48' stroke-width='2'/><rect x='14' y='44' width='6' height='6' rx='2' fill='%2315803d28' stroke='%2315803d' stroke-width='2'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fafaf7;--bg2:#f3f2ed;--bg3:#ffffff;--bg4:#ebe9e2;
+  --border:#e3e1d8;--border2:#cfccc0;
+  --txt:#1c1b18;--txt2:#56544c;--txt3:#928f84;
+  --frozen:#6b7280;--frozenbg:#6b728028;--frozenbrd:#6b728090;
+  --a:#e11d48;--abg:#e11d4828;--abrd:#e11d4890;
+  --b:#15803d;--bbg:#15803d28;--bbrd:#15803d90;
+  --acc:#6d28d9;--accbg:#6d28d928;--accbrd:#6d28d990;
+  --purple:#be185d;--purplebg:#be185d28;--purplebrd:#be185d90;
+  --teal:#0e7490;--tealbg:#0e749028;--tealbrd:#0e749090;
+  --gold:#b45309;--goldbg:#b4530928;--goldbrd:#b4530990;
+  --gray:#6b7280;
+  --on-acc:#ffffff;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --r:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--sans);background:var(--bg);color:var(--txt);line-height:1.6;min-height:100vh;}
+::selection{background:var(--acc);color:var(--on-acc);}
+.app{display:grid;grid-template-columns:240px 1fr;grid-template-rows:auto 1fr;min-height:100vh;}
+@media(max-width:860px){.app{grid-template-columns:1fr;}.sidebar{display:none;}}
+
+/* Header */
+.header{grid-column:1/-1;background:var(--bg2);border-bottom:1px solid var(--border);padding:0.7rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.logo{font-family:var(--mono);font-weight:500;font-size:0.85rem;color:var(--acc);letter-spacing:0.05em;display:flex;align-items:center;gap:0.55rem;}
+.logo-icon{width:26px;height:26px;flex-shrink:0;display:block;}
+.logo-suffix{color:var(--txt3);}
+.header-meta{font-size:0.7rem;color:var(--txt3);font-family:var(--mono);}
+.token-bar{display:flex;align-items:center;gap:0.5rem;margin-left:auto;flex-wrap:wrap;}
+.token-bar label{font-size:0.65rem;color:var(--txt3);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;}
+.token-bar input[type=range]{cursor:pointer;}
+.token-bar .val{font-family:var(--mono);font-size:0.74rem;color:var(--acc);font-weight:600;min-width:18px;text-align:center;}
+
+/* Sidebar */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:1rem 0;overflow-y:auto;}
+.side-label{font-family:var(--mono);font-size:0.58rem;color:var(--txt3);text-transform:uppercase;letter-spacing:0.08em;padding:0.5rem 1rem 0.3rem;font-weight:500;}
+.step-btn{display:flex;align-items:center;gap:0.6rem;width:100%;padding:0.45rem 1rem;border:none;background:none;color:var(--txt3);font-family:var(--sans);font-size:0.74rem;cursor:pointer;transition:all .12s;text-align:left;border-left:2px solid transparent;}
+.step-btn:hover{background:var(--bg3);color:var(--txt2);}
+.step-btn.on{background:var(--bg3);color:var(--acc);border-left-color:var(--acc);font-weight:600;}
+.step-btn.done{color:var(--txt2);}
+.step-num{font-family:var(--mono);font-size:0.62rem;width:20px;height:20px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:500;border:1px solid var(--border);}
+.step-btn.on .step-num{background:var(--acc);color:var(--on-acc);border-color:var(--acc);}
+.step-btn.done .step-num{background:var(--b);color:var(--on-acc);border-color:var(--b);}
+.step-divider{height:1px;background:var(--border);margin:0.5rem 1rem;}
+
+/* Main */
+.main{padding:1.5rem 2rem;overflow-y:auto;max-height:calc(100vh - 50px);}
+@media(max-width:860px){.main{padding:1rem;max-height:none;}}
+.stage-title{font-size:1.15rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:0.15rem;}
+.stage-title .tag{font-family:var(--mono);font-size:0.6rem;font-weight:500;padding:0.15rem 0.45rem;border-radius:4px;margin-left:0.5rem;vertical-align:middle;}
+.tf{background:var(--frozenbg);color:var(--frozen);border:1px solid var(--frozenbrd);}
+.ta{background:var(--abg);color:var(--a);border:1px solid var(--abrd);}
+.tb{background:var(--bbg);color:var(--b);border:1px solid var(--bbrd);}
+.tac{background:var(--accbg);color:var(--acc);border:1px solid var(--accbrd);}
+.tp{background:var(--purplebg);color:var(--purple);border:1px solid var(--purplebrd);}
+.tt{background:var(--tealbg);color:var(--teal);border:1px solid var(--tealbrd);}
+.tg{background:var(--goldbg);color:var(--gold);border:1px solid var(--goldbrd);}
+.stage-desc{font-size:0.84rem;color:var(--txt2);max-width:680px;margin-bottom:1.2rem;line-height:1.7;}
+.stage-desc strong{color:var(--txt);font-weight:600;}
+
+/* Matrix display */
+.mtx-wrap{margin:0.8rem 0;overflow-x:auto;}
+.mtx-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;justify-content:center;}
+.mtx-block{display:inline-block;vertical-align:middle;margin:0.3rem;}
+.mtx-label{font-family:var(--mono);font-size:0.62rem;color:var(--txt3);text-align:center;margin-bottom:0.25rem;font-weight:500;letter-spacing:0.03em;}
+.mtx{border-collapse:separate;border-spacing:2px;font-family:var(--mono);font-size:0.72rem;}
+.mtx td{padding:0.25rem 0.4rem;text-align:center;background:var(--bg3);border:1px solid var(--border);min-width:46px;border-radius:3px;transition:all .2s;color:var(--txt2);}
+.mtx td.cf{background:var(--frozenbg);color:var(--frozen);border-color:var(--frozenbrd);font-weight:500;}
+.mtx td.ca{background:var(--abg);color:var(--a);border-color:var(--abrd);font-weight:500;}
+.mtx td.cb{background:var(--bbg);color:var(--b);border-color:var(--bbrd);font-weight:500;}
+.mtx td.cba{background:var(--purplebg);color:var(--purple);border-color:var(--purplebrd);font-weight:500;}
+.mtx td.cacc{background:var(--accbg);color:var(--acc);border-color:var(--accbrd);font-weight:500;}
+.mtx td.ct{background:var(--tealbg);color:var(--teal);border-color:var(--tealbrd);font-weight:500;}
+.mtx td.cz{background:var(--bg4);color:var(--txt3);border-color:var(--border);font-weight:500;font-style:italic;}
+.mtx td.cheader{background:var(--bg4);color:var(--txt3);font-size:0.6rem;font-weight:500;border:none;}
+.op{font-family:var(--mono);font-size:1.2rem;color:var(--txt3);margin:0 0.4rem;vertical-align:middle;}
+
+/* Lock badge for frozen matrices */
+.locked{position:relative;}
+.locked::after{content:"🔒";position:absolute;top:-8px;right:-6px;font-size:0.85rem;}
+
+/* Info boxes */
+.info{padding:0.75rem 1rem;border-radius:var(--r);margin:0.7rem 0;font-size:0.82rem;line-height:1.65;}
+.info .il{font-family:var(--mono);font-size:0.6rem;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.2rem;}
+.if{background:var(--frozenbg);border:1px solid var(--frozenbrd);}.if .il{color:var(--frozen);}
+.iia{background:var(--abg);border:1px solid var(--abrd);}.iia .il{color:var(--a);}
+.iib{background:var(--bbg);border:1px solid var(--bbrd);}.iib .il{color:var(--b);}
+.iac{background:var(--accbg);border:1px solid var(--accbrd);}.iac .il{color:var(--acc);}
+.ip{background:var(--purplebg);border:1px solid var(--purplebrd);}.ip .il{color:var(--purple);}
+.it{background:var(--tealbg);border:1px solid var(--tealbrd);}.it .il{color:var(--teal);}
+.ig{background:var(--goldbg);border:1px solid var(--goldbrd);}.ig .il{color:var(--gold);}
+
+/* Formula bar */
+.formula{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:0.7rem 1rem;margin:0.7rem 0;font-family:var(--mono);font-size:0.78rem;color:var(--txt2);line-height:1.8;overflow-x:auto;}
+.formula .hl{color:var(--acc);font-weight:500;}
+.formula .cm{color:var(--txt3);}
+.formula .red{color:var(--a);font-weight:500;}
+.formula .grn{color:var(--b);font-weight:500;}
+.formula .gry{color:var(--frozen);font-weight:500;}
+
+/* Nav buttons */
+.nav-row{display:flex;gap:0.6rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);}
+.nav-btn{font-family:var(--sans);font-size:0.78rem;font-weight:600;padding:0.5rem 1.2rem;border-radius:var(--r);border:none;cursor:pointer;transition:all .12s;letter-spacing:0.01em;}
+.nav-prev{background:var(--bg3);color:var(--txt2);border:1px solid var(--border);}.nav-prev:hover{border-color:var(--txt3);color:var(--txt);}
+.nav-next{background:var(--acc);color:var(--on-acc);}.nav-next:hover{filter:brightness(1.1);}
+.nav-btn:disabled{opacity:0.3;cursor:default;filter:none;}
+
+/* Config bar */
+.config{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:0.6rem 1rem;margin-bottom:1rem;display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center;}
+.cfg-item{font-family:var(--mono);font-size:0.68rem;color:var(--txt3);}
+.cfg-item span{color:var(--acc);font-weight:500;}
+
+/* Architecture diagram */
+.arch-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;margin:0.8rem 0 1.2rem;display:flex;justify-content:center;overflow-x:auto;}
+.arch-wrap svg{max-width:100%;height:auto;}
+
+/* Glossary table */
+.glossary{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:0.8rem 0;}
+.glossary table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+.glossary th{background:var(--bg2);color:var(--txt3);font-family:var(--mono);font-weight:500;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;text-align:left;padding:0.55rem 0.9rem;border-bottom:1px solid var(--border);}
+.glossary td{padding:0.55rem 0.9rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--txt2);line-height:1.55;}
+.glossary tr:last-child td{border-bottom:none;}
+.glossary tr:hover td{background:var(--bg2);}
+.glossary td.sym{font-family:var(--mono);font-weight:500;color:var(--acc);white-space:nowrap;width:1%;}
+.glossary td.val{font-family:var(--mono);color:var(--txt);font-weight:500;white-space:nowrap;width:1%;text-align:center;}
+.glossary td.def strong{color:var(--txt);font-weight:600;}
+.gloss-section{background:var(--bg4);color:var(--txt);font-family:var(--mono);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;padding:0.5rem 0.9rem !important;}
+
+/* References */
+.refs{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:0.9rem 1.1rem;margin:0.8rem 0;}
+.refs ol{list-style:none;counter-reset:ref;padding:0;margin:0;}
+.refs li{counter-increment:ref;position:relative;padding:0.5rem 0 0.5rem 2.2rem;font-size:0.78rem;line-height:1.6;color:var(--txt2);border-bottom:1px solid var(--border);}
+.refs li:last-child{border-bottom:none;}
+.refs li::before{content:"["counter(ref)"]";position:absolute;left:0;top:0.5rem;font-family:var(--mono);font-size:0.7rem;color:var(--acc);font-weight:600;}
+.refs li .auth{color:var(--txt);font-weight:500;}
+.refs li .ttl{color:var(--txt);font-style:italic;}
+.refs li .ven{color:var(--txt3);font-family:var(--mono);font-size:0.72rem;}
+.refs li a{color:var(--acc);text-decoration:none;font-family:var(--mono);font-size:0.72rem;border-bottom:1px dotted var(--accbrd);}
+.refs li a:hover{border-bottom-style:solid;}
+
+/* Param counter */
+.param-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;margin:0.8rem 0;}
+.param-card .lbl{font-family:var(--mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--txt3);margin-bottom:0.3rem;}
+.param-card .big{font-family:var(--mono);font-size:1.8rem;font-weight:700;color:var(--acc);line-height:1;}
+.param-card .sub{font-size:0.78rem;color:var(--txt2);margin-top:0.3rem;}
+.param-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;margin:0.8rem 0;}
+
+/* Bar (for savings visualization) */
+.bar-wrap{margin:0.4rem 0;}
+.bar-lbl{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--txt2);margin-bottom:0.25rem;font-family:var(--mono);}
+.bar-track{height:18px;background:var(--bg4);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;transition:width .3s;}
+
+/* Quiz */
+.quiz-q{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;margin:0.8rem 0;}
+.quiz-q .qnum{font-family:var(--mono);font-size:0.6rem;color:var(--acc);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
+.quiz-q .qtext{font-size:0.88rem;color:var(--txt);font-weight:500;margin:0.3rem 0 0.7rem;}
+.quiz-opt{display:block;width:100%;text-align:left;padding:0.55rem 0.9rem;margin:0.3rem 0;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--txt2);font-size:0.8rem;font-family:var(--sans);cursor:pointer;transition:all .12s;}
+.quiz-opt:hover{border-color:var(--acc);background:var(--accbg);}
+.quiz-opt.right{border-color:var(--b);background:var(--bbg);color:var(--b);font-weight:600;}
+.quiz-opt.wrong{border-color:var(--a);background:var(--abg);color:var(--a);}
+.quiz-fb{margin-top:0.5rem;font-size:0.78rem;color:var(--txt2);padding:0.5rem 0.7rem;background:var(--bg2);border-radius:6px;display:none;}
+.quiz-fb.show{display:block;}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header">
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="64" height="64" rx="14" fill="#fafaf7" stroke="#e3e1d8" stroke-width="1"/>
+      <rect x="10" y="10" width="44" height="44" rx="6" fill="#6b728028" stroke="#6b7280" stroke-width="2"/>
+      <rect x="14" y="34" width="36" height="6" rx="2" fill="#e11d4828" stroke="#e11d48" stroke-width="2"/>
+      <rect x="14" y="44" width="6" height="6" rx="2" fill="#15803d28" stroke="#15803d" stroke-width="2"/>
+    </svg>
+    <span>LORA_FT<span class="logo-suffix">.sim</span></span>
+  </div>
+  <div class="header-meta">low-rank adaptation · interactive walkthrough</div>
+  <div class="token-bar">
+    <label>Rank</label>
+    <input id="rank-slider" type="range" min="1" max="4" step="1" value="2" oninput="onRankChange()" style="width:90px;accent-color:var(--acc);">
+    <span class="val" id="rank-val">2</span>
+    <label style="margin-left:0.6rem;">Alpha</label>
+    <input id="alpha-slider" type="range" min="1" max="32" step="1" value="8" oninput="onAlphaChange()" style="width:90px;accent-color:var(--acc);">
+    <span class="val" id="alpha-val">8</span>
+  </div>
+</header>
+
+<aside class="sidebar" id="sidebar"></aside>
+<div class="main" id="main-content"></div>
+</div>
+
+<script>
+// ═══════ MODEL CONFIGURATION ═══════
+const D = 6;             // Hidden dimension (6×6 W matrix for clarity)
+const MAX_R = 4;         // Maximum rank we'll demonstrate
+let RANK = 2;            // Current LoRA rank (user-adjustable)
+let ALPHA = 8;           // LoRA scaling factor (user-adjustable)
+
+// ═══════ FROZEN PRE-TRAINED WEIGHTS ═══════
+// W: a fixed 6×6 weight matrix representing one pre-trained linear layer
+// (e.g., the W_Q of an attention head). In real models this would be huge.
+const W = [
+  [ 0.50, -0.20,  0.10,  0.40, -0.30,  0.20],
+  [ 0.10,  0.60, -0.40,  0.20,  0.10, -0.30],
+  [-0.30,  0.20,  0.50, -0.10,  0.40,  0.10],
+  [ 0.20, -0.40,  0.30,  0.50, -0.20,  0.10],
+  [-0.10,  0.30, -0.20,  0.40,  0.50, -0.30],
+  [ 0.40,  0.10, -0.30,  0.20,  0.10,  0.50],
+];
+
+// ═══════ TRAINED LoRA MATRICES (after fine-tuning) ═══════
+// These are what LoRA would learn for some downstream task.
+// A_FULL is r=4 sized; we slice it for smaller r.
+// They're hand-crafted so the math reads cleanly in the demo.
+const A_FULL = [
+  [ 0.40, -0.20,  0.50,  0.10, -0.30,  0.20],   // singular vector 1 (largest weight)
+  [ 0.10,  0.40, -0.20,  0.30,  0.20, -0.40],   // singular vector 2
+  [-0.20,  0.10,  0.30, -0.40,  0.50,  0.10],   // singular vector 3
+  [ 0.30,  0.20, -0.10,  0.20, -0.40,  0.30],   // singular vector 4 (smallest)
+];
+
+const B_FULL = [
+  [ 0.50,  0.20, -0.10,  0.10],
+  [-0.30,  0.40,  0.20,  0.10],
+  [ 0.20, -0.10,  0.30, -0.20],
+  [ 0.40,  0.30, -0.20,  0.10],
+  [-0.10, -0.20,  0.40,  0.30],
+  [ 0.30,  0.50, -0.10, -0.20],
+];
+
+// Demo input vector
+const X = [1.0, 0.5, -0.3, 0.8, -0.2, 0.4];
+
+// ═══════ MATH UTILITIES ═══════
+function matmul(M1, M2) {
+  const m = M1.length, n = M2[0].length, p = M2.length;
+  const out = [];
+  for (let i = 0; i < m; i++) {
+    out[i] = [];
+    for (let j = 0; j < n; j++) {
+      let s = 0;
+      for (let k = 0; k < p; k++) s += M1[i][k] * M2[k][j];
+      out[i][j] = +s.toFixed(4);
+    }
+  }
+  return out;
+}
+function matvec(M, v) {
+  return M.map(row => +row.reduce((s, x, i) => s + x * v[i], 0).toFixed(4));
+}
+function addMat(M1, M2) {
+  return M1.map((row, i) => row.map((v, j) => +(v + M2[i][j]).toFixed(4)));
+}
+function scaleMat(M, s) {
+  return M.map(row => row.map(v => +(v * s).toFixed(4)));
+}
+function zeros(rows, cols) {
+  return Array.from({length: rows}, () => Array(cols).fill(0));
+}
+
+// ═══════ DERIVED STATE ═══════
+function getAB(r) {
+  const A = A_FULL.slice(0, r).map(row => row.slice());
+  const B = B_FULL.map(row => row.slice(0, r));
+  return {A, B};
+}
+
+function computeState() {
+  const r = RANK;
+  const {A, B} = getAB(r);
+  const BA = matmul(B, A);                     // (D×r) × (r×D) = D×D
+  const scale = ALPHA / r;
+  const scaledBA = scaleMat(BA, scale);
+  const W_eff = addMat(W, scaledBA);            // W + (α/r)·BA
+  // Forward pass
+  const Wx = matvec(W, X);
+  const Ax = matvec(A, X);                     // r-dim
+  const BAx = matvec(B, Ax);                   // D-dim
+  const scaledBAx = BAx.map(v => +(v * scale).toFixed(4));
+  const h = Wx.map((v, i) => +(v + scaledBAx[i]).toFixed(4));
+  // Param counts
+  const fullParams = D * D;                    // d²
+  const loraParams = 2 * D * r;                // 2dr (A: r×d, B: d×r)
+  return {A, B, BA, scaledBA, W_eff, Wx, Ax, BAx, scaledBAx, h, fullParams, loraParams, r, scale};
+}
+
+// ═══════ RENDERING ═══════
+function fmt(v, dec = 2) {
+  if (v === 0) return '0.00';
+  return typeof v === 'number' ? v.toFixed(dec) : v;
+}
+
+function renderMtx(M, label, cls, rowLabels, colLabels) {
+  let h = `<div class="mtx-block"><div class="mtx-label">${label}</div><table class="mtx">`;
+  if (colLabels) {
+    h += '<tr>';
+    if (rowLabels) h += '<td class="cheader"></td>';
+    colLabels.forEach(c => h += `<td class="cheader">${c}</td>`);
+    h += '</tr>';
+  }
+  M.forEach((row, i) => {
+    h += '<tr>';
+    if (rowLabels) h += `<td class="cheader">${rowLabels[i]}</td>`;
+    row.forEach(v => h += `<td class="${cls}">${fmt(v)}</td>`);
+    h += '</tr>';
+  });
+  return h + '</table></div>';
+}
+
+function renderVec(v, label, cls) {
+  let h = `<div class="mtx-block"><div class="mtx-label">${label}</div><table class="mtx">`;
+  v.forEach(x => h += `<tr><td class="${cls}">${fmt(x)}</td></tr>`);
+  return h + '</table></div>';
+}
+
+// ═══════ STEP DEFINITIONS ═══════
+const STEPS = [
+
+// ───────────────────── 1. OVERVIEW ─────────────────────
+{id: 'overview', title: 'Overview', group: 'Setup',
+render() {
+  let h = `<div class="stage-title">LoRA: Low-Rank Adaptation <span class="tag tac">OVERVIEW</span></div>`;
+  h += `<p class="stage-desc"><strong>LoRA</strong> (Low-Rank Adaptation, Hu et al. 2021 [1]) is a parameter-efficient fine-tuning method that freezes a pre-trained model's weights and learns a small <em>rank-r</em> update on the side. It dramatically reduces trainable parameters, GPU memory, and storage — without sacrificing accuracy on most downstream tasks.</p>`;
+
+  // Key insight box
+  h += `<div class="info iac"><div class="il">The core idea in one equation</div>
+Instead of updating the full weight matrix <code>W</code> during fine-tuning, freeze it and learn a low-rank decomposition of the update:
+<div class="formula" style="margin:0.6rem 0;">W<sub>new</sub> = <span class="gry">W</span> + ΔW = <span class="gry">W</span> + <span class="grn">B</span><span class="red">A</span>&nbsp;&nbsp;&nbsp;<span class="cm">// W is frozen 🔒, only A and B are trained</span></div>
+where <code>A</code> is a small <strong>r × d</strong> matrix and <code>B</code> is <strong>d × r</strong>. The product <code>BA</code> has the same shape as <code>W</code>, but is forced to have rank ≤ <code>r</code>, where <code>r ≪ d</code>.</div>`;
+
+  // Architecture SVG
+  h += `<div class="arch-wrap">
+<svg viewBox="0 0 620 380" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#928f84"/>
+    </marker>
+  </defs>
+
+  <!-- Input -->
+  <rect x="270" y="10" width="80" height="34" rx="6" fill="#ebe9e2" stroke="#cfccc0" stroke-width="1.5"/>
+  <text x="310" y="32" text-anchor="middle" font-size="13" fill="#1c1b18" font-weight="500">x</text>
+
+  <!-- Branch -->
+  <line x1="310" y1="44" x2="310" y2="70" stroke="#928f84" stroke-width="2"/>
+  <line x1="160" y1="80" x2="460" y2="80" stroke="#928f84" stroke-width="2"/>
+  <line x1="160" y1="80" x2="160" y2="100" stroke="#928f84" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="460" y1="80" x2="460" y2="100" stroke="#928f84" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Frozen W path (left) -->
+  <rect x="80" y="105" width="160" height="80" rx="10" fill="#6b728028" stroke="#6b7280" stroke-width="2"/>
+  <text x="160" y="135" text-anchor="middle" font-size="14" fill="#6b7280" font-weight="700">W (frozen)</text>
+  <text x="160" y="155" text-anchor="middle" font-size="11" fill="#56544c" font-family="DM Mono, monospace">[d × d]</text>
+  <text x="160" y="172" text-anchor="middle" font-size="14" fill="#6b7280">🔒</text>
+
+  <!-- LoRA path (right) -->
+  <rect x="370" y="105" width="180" height="40" rx="8" fill="#e11d4828" stroke="#e11d48" stroke-width="2"/>
+  <text x="460" y="125" text-anchor="middle" font-size="13" fill="#e11d48" font-weight="700">A</text>
+  <text x="460" y="138" text-anchor="middle" font-size="9" fill="#56544c" font-family="DM Mono, monospace">[r × d] · trainable</text>
+
+  <line x1="460" y1="148" x2="460" y2="160" stroke="#928f84" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="370" y="165" width="180" height="40" rx="8" fill="#15803d28" stroke="#15803d" stroke-width="2"/>
+  <text x="460" y="185" text-anchor="middle" font-size="13" fill="#15803d" font-weight="700">B</text>
+  <text x="460" y="198" text-anchor="middle" font-size="9" fill="#56544c" font-family="DM Mono, monospace">[d × r] · trainable</text>
+
+  <!-- Outputs from each path -->
+  <line x1="160" y1="185" x2="160" y2="240" stroke="#6b7280" stroke-width="2"/>
+  <text x="170" y="215" font-size="11" fill="#56544c" font-family="DM Mono, monospace">Wx</text>
+  <line x1="460" y1="205" x2="460" y2="240" stroke="#928f84" stroke-width="2"/>
+  <text x="470" y="225" font-size="11" fill="#56544c" font-family="DM Mono, monospace">(α/r)·BAx</text>
+
+  <!-- Sum node -->
+  <line x1="160" y1="260" x2="290" y2="260" stroke="#928f84" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="460" y1="260" x2="330" y2="260" stroke="#928f84" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="310" cy="260" r="16" fill="#fafaf7" stroke="#6d28d9" stroke-width="2.5"/>
+  <text x="310" y="266" text-anchor="middle" font-size="18" fill="#6d28d9" font-weight="700">+</text>
+
+  <line x1="310" y1="276" x2="310" y2="305" stroke="#6d28d9" stroke-width="2.5" marker-end="url(#arr)"/>
+
+  <!-- Output -->
+  <rect x="250" y="310" width="120" height="38" rx="8" fill="#6d28d928" stroke="#6d28d9" stroke-width="2.5"/>
+  <text x="310" y="330" text-anchor="middle" font-size="13" fill="#6d28d9" font-weight="700">h = Wx + (α/r)·BAx</text>
+  <text x="310" y="343" text-anchor="middle" font-size="9" fill="#56544c" font-family="DM Mono, monospace">layer output</text>
+
+  <!-- Labels -->
+  <text x="160" y="98" text-anchor="middle" font-size="9" fill="#6b7280" font-family="DM Mono, monospace">PRETRAINED</text>
+  <text x="460" y="98" text-anchor="middle" font-size="9" fill="#e11d48" font-family="DM Mono, monospace">LORA UPDATE</text>
+</svg>
+</div>`;
+
+  // Glossary
+  h += `<div class="stage-title" style="margin-top:1.2rem">Variables & Hyperparameters</div>`;
+  h += `<p class="stage-desc">Symbols you'll see throughout the simulator, with their shape and current value.</p>`;
+  h += `<div class="glossary"><table>
+<tr><th>Symbol</th><th>Value</th><th>Meaning</th></tr>
+
+<tr><td colspan="3" class="gloss-section">Hyperparameters</td></tr>
+<tr><td class="sym">d</td><td class="val">${D}</td><td><strong>Hidden dimension.</strong> Width of the layer being adapted. In real models this is 768 (GPT-2), 4096 (LLaMA-7B), 12 288 (GPT-3 175B). Here we use 6 so the matrices fit on screen.</td></tr>
+<tr><td class="sym">r</td><td class="val">${RANK}</td><td><strong>LoRA rank.</strong> The intrinsic rank of the learned update. Typical values: 4, 8, 16, 32. <em>Adjustable via the slider in the header.</em> Smaller r = fewer trainable parameters but less expressive.</td></tr>
+<tr><td class="sym">α</td><td class="val">${ALPHA}</td><td><strong>LoRA alpha.</strong> Scaling constant. The effective update is <code>(α/r)·BA</code>. Decoupling α from r lets you change r without re-tuning the learning rate. <em>Adjustable in the header.</em></td></tr>
+
+<tr><td colspan="3" class="gloss-section">Matrices</td></tr>
+<tr><td class="sym">W</td><td class="val">[d × d]</td><td><strong>Pre-trained weight matrix</strong> of one layer (e.g., the query/key/value projection of an attention head). <strong>Frozen 🔒</strong> during LoRA fine-tuning — no gradients computed for it.</td></tr>
+<tr><td class="sym">A</td><td class="val">[r × d]</td><td><strong>LoRA "down" projection.</strong> Trainable. Initialized with random Gaussian noise. Compresses the d-dim input to r dimensions.</td></tr>
+<tr><td class="sym">B</td><td class="val">[d × r]</td><td><strong>LoRA "up" projection.</strong> Trainable. Initialized to <strong>zero</strong>. Expands the r-dim bottleneck back to d dimensions. Starts at zero so <code>BA = 0</code>, meaning the model behaves identically to the pre-trained one at the start of training.</td></tr>
+<tr><td class="sym">BA</td><td class="val">[d × d]</td><td><strong>Effective update.</strong> Has the same shape as <code>W</code> but is constrained to <strong>rank ≤ r</strong>. This is the LoRA "delta" applied to the frozen weights.</td></tr>
+<tr><td class="sym">ΔW</td><td class="val">[d × d]</td><td><strong>The full weight update</strong> that ordinary fine-tuning would learn. LoRA's hypothesis is that this update has low intrinsic rank, so a low-rank approximation captures most of it.</td></tr>
+
+<tr><td colspan="3" class="gloss-section">Forward pass</td></tr>
+<tr><td class="sym">x</td><td class="val">[d]</td><td><strong>Input activation</strong> entering the layer.</td></tr>
+<tr><td class="sym">Wx</td><td class="val">[d]</td><td><strong>Pre-trained branch output.</strong> What the original model would compute.</td></tr>
+<tr><td class="sym">BAx</td><td class="val">[d]</td><td><strong>LoRA branch output.</strong> Computed as <code>B(Ax)</code> — the input is first compressed to r dimensions by A, then expanded back by B.</td></tr>
+<tr><td class="sym">h</td><td class="val">[d]</td><td><strong>Final layer output</strong>: <code>h = Wx + (α/r)·BAx</code>.</td></tr>
+</table></div>`;
+
+  // References
+  h += `<div class="stage-title" style="margin-top:1.2rem">Scientific References</div>`;
+  h += `<div class="refs"><ol>
+<li><span class="auth">Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., &amp; Chen, W.</span> (2021). <span class="ttl">LoRA: Low-Rank Adaptation of Large Language Models.</span> <span class="ven">International Conference on Learning Representations (ICLR) 2022.</span> <a href="https://arxiv.org/abs/2106.09685" target="_blank" rel="noopener">arXiv:2106.09685</a><br><em>The original LoRA paper. Introduces the W + BA decomposition, the α/r scaling, and shows that LoRA matches or exceeds full fine-tuning on GPT-2, GPT-3, RoBERTa, and DeBERTa with 10 000× fewer trainable parameters.</em></li>
+
+<li><span class="auth">Aghajanyan, A., Zettlemoyer, L., &amp; Gupta, S.</span> (2020). <span class="ttl">Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning.</span> <span class="ven">Annual Meeting of the Association for Computational Linguistics (ACL).</span> <a href="https://arxiv.org/abs/2012.13255" target="_blank" rel="noopener">arXiv:2012.13255</a><br><em>The empirical observation that motivates LoRA: pre-trained language models have a very low <em>intrinsic dimension</em>, meaning fine-tuning updates can be parameterized in a much smaller subspace than the full weight space.</em></li>
+
+<li><span class="auth">Houlsby, N., Giurgiu, A., Jastrzebski, S., Morrone, B., de Laroussilhe, Q., Gesmundo, A., Attariyan, M., &amp; Gelly, S.</span> (2019). <span class="ttl">Parameter-Efficient Transfer Learning for NLP.</span> <span class="ven">International Conference on Machine Learning (ICML).</span> <a href="https://arxiv.org/abs/1902.00751" target="_blank" rel="noopener">arXiv:1902.00751</a><br><em>Introduced "adapters" — small bottleneck modules inserted between transformer sub-layers. LoRA is a follow-up that achieves the same goal without adding inference latency.</em></li>
+
+<li><span class="auth">Dettmers, T., Pagnoni, A., Holtzman, A., &amp; Zettlemoyer, L.</span> (2023). <span class="ttl">QLoRA: Efficient Finetuning of Quantized LLMs.</span> <span class="ven">Advances in Neural Information Processing Systems (NeurIPS) 36.</span> <a href="https://arxiv.org/abs/2305.14314" target="_blank" rel="noopener">arXiv:2305.14314</a><br><em>Combines 4-bit quantization of the frozen base model with LoRA adapters, enabling fine-tuning of 65 B parameter models on a single 48 GB GPU.</em></li>
+
+<li><span class="auth">Lialin, V., Deshpande, V., &amp; Rumshisky, A.</span> (2023). <span class="ttl">Scaling Down to Scale Up: A Guide to Parameter-Efficient Fine-Tuning.</span> <span class="ven">arXiv preprint.</span> <a href="https://arxiv.org/abs/2303.15647" target="_blank" rel="noopener">arXiv:2303.15647</a><br><em>Comprehensive survey of parameter-efficient fine-tuning methods (PEFT), placing LoRA in the broader landscape of adapters, prefix-tuning, prompt-tuning, IA³, and others.</em></li>
+
+<li><span class="auth">Mangrulkar, S., Gugger, S., Debut, L., Belkada, Y., Paul, S., &amp; Bossan, B.</span> (2022). <span class="ttl">PEFT: State-of-the-art Parameter-Efficient Fine-Tuning.</span> <span class="ven">Hugging Face library.</span> <a href="https://github.com/huggingface/peft" target="_blank" rel="noopener">github.com/huggingface/peft</a><br><em>The standard open-source library for using LoRA and other PEFT methods with Hugging Face Transformers.</em></li>
+</ol></div>`;
+
+  h += `<div class="info iac"><div class="il">Tip</div>Use the <strong>Next →</strong> button (or the sidebar) to walk through each step. The <strong>rank slider</strong> in the header is live throughout the simulator — change it on any matrix step and watch <code>A</code>, <code>B</code>, <code>BA</code>, and the parameter count update in real time.</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 2. THE PROBLEM ─────────────────────
+{id: 'problem', title: 'The Problem', group: 'Setup',
+render() {
+  const S = computeState();
+  let h = `<div class="stage-title">The Problem: Full Fine-Tuning is Expensive <span class="tag tf">PROBLEM</span></div>`;
+  h += `<p class="stage-desc">Standard fine-tuning updates <strong>every parameter</strong> of a pre-trained model. For each weight matrix you need to store gradients, optimizer state, and the updated weights themselves — typically 12–16 bytes per parameter with the Adam optimizer. For modern LLMs this becomes prohibitively expensive.</p>`;
+
+  h += `<div class="formula">Full fine-tuning: <span class="gry">W</span><sub>new</sub> = <span class="gry">W</span> + ΔW &nbsp;&nbsp;&nbsp;<span class="cm">// every entry of ΔW is a learnable parameter</span></div>`;
+
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += renderMtx(W, `W (pretrained, ${D}×${D})`, 'cf');
+  h += `<span class="op">+</span>`;
+  h += renderMtx(W.map(r => r.map(() => '?')), 'ΔW (all learnable)', 'cba');
+  h += `</div></div>`;
+
+  h += `<div class="info if"><div class="il">The cost in numbers</div>
+For GPT-3 (175 B parameters) with the Adam optimizer:<br><br>
+<table style="font-family:var(--mono);font-size:0.78rem;">
+<tr><td>• Model weights (fp16):</td><td style="padding-left:1rem;">~350 GB</td></tr>
+<tr><td>• Adam momentum (fp32):</td><td style="padding-left:1rem;">~700 GB</td></tr>
+<tr><td>• Adam variance (fp32):</td><td style="padding-left:1rem;">~700 GB</td></tr>
+<tr><td>• Gradients (fp16):</td><td style="padding-left:1rem;">~350 GB</td></tr>
+<tr><td><strong>• Total optimizer state:</strong></td><td style="padding-left:1rem;"><strong>~2.1 TB</strong></td></tr>
+</table>
+<br>This is far beyond a single GPU (even an 80 GB A100). You'd need a multi-node training cluster just to fine-tune <em>one</em> task. And you'd produce a 350 GB checkpoint <em>per task</em>.</div>`;
+
+  h += `<div class="info ig"><div class="il">The catalog problem</div>
+If you want to deploy 100 specialized variants of GPT-3 (one per customer, language, domain, …), full fine-tuning means storing <strong>100 × 350 GB = 35 TB</strong> of model weights, plus the cost of training each one. This doesn't scale.</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 3. THE INSIGHT ─────────────────────
+{id: 'insight', title: 'Low-Rank Insight', group: 'Setup',
+render() {
+  let h = `<div class="stage-title">The Insight: Updates Have Low Intrinsic Rank <span class="tag tt">INSIGHT</span></div>`;
+  h += `<p class="stage-desc">Aghajanyan et al. (2020) [2] empirically showed that fine-tuning a large pre-trained model can be done in a <strong>much smaller subspace</strong> than the full parameter space. This means the effective update <code>ΔW</code> isn't really using all <code>d²</code> degrees of freedom — it has low <em>intrinsic dimensionality</em>.</p>`;
+
+  h += `<p class="stage-desc">LoRA's hypothesis (Hu et al. 2021 [1]): if <code>ΔW</code> has low intrinsic rank, we can <strong>directly parameterize it as a low-rank matrix</strong>. Any rank-<code>r</code> matrix factors as the product of two skinny matrices:</p>`;
+
+  h += `<div class="formula">ΔW &nbsp;≈&nbsp; <span class="grn">B</span> · <span class="red">A</span><br><span class="cm">// where</span> <span class="grn">B</span> <span class="cm">is</span> [d × r], <span class="red">A</span> <span class="cm">is</span> [r × d], <span class="cm">and</span> r ≪ d</div>`;
+
+  // Visual: rank-r factorization shape
+  h += `<div class="arch-wrap">
+<svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, sans-serif">
+  <!-- ΔW big square -->
+  <rect x="20" y="40" width="120" height="120" rx="6" fill="#be185d28" stroke="#be185d" stroke-width="2"/>
+  <text x="80" y="105" text-anchor="middle" font-size="20" fill="#be185d" font-weight="700">ΔW</text>
+  <text x="80" y="125" text-anchor="middle" font-size="11" fill="#56544c" font-family="DM Mono, monospace">d × d</text>
+  <text x="80" y="180" text-anchor="middle" font-size="10" fill="#56544c">d² params</text>
+
+  <text x="170" y="105" font-size="22" fill="#928f84" font-weight="600">≈</text>
+
+  <!-- B tall thin -->
+  <rect x="220" y="40" width="35" height="120" rx="6" fill="#15803d28" stroke="#15803d" stroke-width="2"/>
+  <text x="237" y="108" text-anchor="middle" font-size="18" fill="#15803d" font-weight="700">B</text>
+  <text x="237" y="180" text-anchor="middle" font-size="10" fill="#56544c">d × r</text>
+
+  <text x="280" y="105" font-size="22" fill="#928f84" font-weight="600">·</text>
+
+  <!-- A wide flat -->
+  <rect x="310" y="78" width="160" height="35" rx="6" fill="#e11d4828" stroke="#e11d48" stroke-width="2"/>
+  <text x="390" y="103" text-anchor="middle" font-size="18" fill="#e11d48" font-weight="700">A</text>
+  <text x="390" y="135" text-anchor="middle" font-size="10" fill="#56544c">r × d</text>
+
+  <!-- Trainable param count -->
+  <line x1="500" y1="100" x2="525" y2="100" stroke="#928f84" stroke-width="2" marker-end="url(#arr2)"/>
+  <defs>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#928f84"/>
+    </marker>
+  </defs>
+
+  <text x="535" y="92" font-size="11" fill="#6d28d9" font-weight="700" font-family="DM Mono, monospace">2dr</text>
+  <text x="535" y="108" font-size="11" fill="#6d28d9" font-family="DM Mono, monospace">params</text>
+  <text x="535" y="125" font-size="9" fill="#56544c">(if r=2,</text>
+  <text x="535" y="137" font-size="9" fill="#56544c">d=6: 24)</text>
+
+  <!-- Note -->
+  <text x="310" y="30" font-size="10" fill="#56544c" font-style="italic">"low rank" means r ≪ d</text>
+</svg>
+</div>`;
+
+  h += `<div class="info it"><div class="il">Why low rank works: an SVD perspective</div>
+Any matrix has a <strong>singular value decomposition</strong> (SVD): <code>ΔW = U Σ V<sup>T</sup></code>, where Σ contains the singular values in decreasing order. The best rank-<code>r</code> approximation of <code>ΔW</code> (in Frobenius norm) is obtained by keeping only the <em>top r singular values</em>:
+<div class="formula" style="margin:0.6rem 0;">ΔW<sub>r</sub> = U<sub>:,1:r</sub> · Σ<sub>1:r</sub> · V<sub>1:r,:</sub><sup>T</sup>&nbsp;&nbsp;&nbsp;<span class="cm">// Eckart–Young theorem</span></div>
+If <code>ΔW</code>'s singular values decay quickly (which Aghajanyan et al. showed they do for fine-tuning), the top few capture most of the energy. LoRA <strong>directly learns</strong> matrices <code>B</code> and <code>A</code> that absorb this top-r structure, without ever needing to compute or store the full <code>ΔW</code>.</div>`;
+
+  h += `<div class="info iac"><div class="il">The payoff</div>
+Trainable parameters drop from <code>d²</code> to <code>2dr</code>. For <code>d = 4096</code> (LLaMA-7B) and <code>r = 8</code>:<br><br>
+<table style="font-family:var(--mono);font-size:0.78rem;">
+<tr><td>• Full fine-tuning (per layer):</td><td style="padding-left:1rem;">4096² = <strong>16 777 216</strong> params</td></tr>
+<tr><td>• LoRA (per layer):</td><td style="padding-left:1rem;">2 · 4096 · 8 = <strong>65 536</strong> params</td></tr>
+<tr><td>• Compression ratio:</td><td style="padding-left:1rem;"><strong>256× smaller</strong></td></tr>
+</table></div>`;
+
+  return h;
+}},
+
+// ───────────────────── 4. DECOMPOSITION ─────────────────────
+{id: 'decomp', title: 'Decomposition', group: 'Decomposition',
+render() {
+  const S = computeState();
+  let h = `<div class="stage-title">The LoRA Decomposition <span class="tag tac">DECOMPOSE</span></div>`;
+  h += `<p class="stage-desc">Concretely, LoRA replaces the weight update with the product of two trainable matrices and freezes the original weight. Below are the actual matrices for the current rank <code>r = ${S.r}</code> — change the slider in the header to see how they grow and shrink.</p>`;
+
+  h += `<div class="formula"><span class="gry">W</span><sub>eff</sub> = <span class="gry">W</span> + (α/r) · <span class="grn">B</span><span class="red">A</span>&nbsp;&nbsp;&nbsp;<span class="cm">// d×d  =  d×d  +  d×r · r×d</span><br>
+shapes: &nbsp;[${D}×${D}] = [${D}×${D}] + [${D}×${S.r}] · [${S.r}×${D}]</div>`;
+
+  // Show A, B, BA
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += renderMtx(S.B, `B [${D}×${S.r}]`, 'cb');
+  h += `<span class="op">·</span>`;
+  h += renderMtx(S.A, `A [${S.r}×${D}]`, 'ca');
+  h += `<span class="op">=</span>`;
+  h += renderMtx(S.BA, `BA [${D}×${D}]`, 'cba');
+  h += `</div></div>`;
+
+  h += `<div class="info ip"><div class="il">Notice the shape</div>
+<code>B</code> is tall and skinny (${D}×${S.r}), <code>A</code> is short and wide (${S.r}×${D}). Their product <code>BA</code> is a full ${D}×${D} matrix — same shape as <code>W</code> — but it's mathematically constrained to have <strong>rank ≤ ${S.r}</strong>. No matter what values you put in <code>A</code> and <code>B</code>, you can never produce a <code>BA</code> with more than ${S.r} linearly independent rows or columns.</div>`;
+
+  // Adding to W
+  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Combining with the frozen weights</h3>`;
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += `<div class="locked">${renderMtx(W, 'W (frozen)', 'cf')}</div>`;
+  h += `<span class="op">+ ${(S.scale).toFixed(2)} ·</span>`;
+  h += renderMtx(S.BA, 'BA', 'cba');
+  h += `<span class="op">=</span>`;
+  h += renderMtx(S.W_eff, 'W + (α/r)·BA', 'cacc');
+  h += `</div></div>`;
+
+  h += `<div class="info iac"><div class="il">The α/r scaling factor</div>
+The factor <code>α/r = ${ALPHA}/${S.r} = ${S.scale.toFixed(2)}</code> normalizes the magnitude of the LoRA update. Without it, doubling <code>r</code> would also roughly double the size of <code>BA</code>'s entries, which would force you to re-tune the learning rate. With <code>α/r</code> scaling, you can change <code>r</code> freely without breaking your training recipe — α stays fixed (typically α = 8 or 16) and r becomes a pure capacity knob.</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 5. INITIALIZATION ─────────────────────
+{id: 'init', title: 'Initialization', group: 'Decomposition',
+render() {
+  const S = computeState();
+  // At initialization: A is random, B is zero
+  const A_init = S.A.map(row => row.map(v => v));   // pretend it's the gaussian init
+  const B_init = zeros(D, S.r);
+  const BA_init = matmul(B_init, A_init);
+
+  let h = `<div class="stage-title">Initialization: A Random, B = 0 <span class="tag tg">INIT</span></div>`;
+  h += `<p class="stage-desc">A clever trick from the LoRA paper: at the start of training, <code>A</code> is initialized with random Gaussian noise, but <code>B</code> is initialized to <strong>all zeros</strong>. This means <code>BA = 0 · A = 0</code> at step 0, so the LoRA-augmented model behaves <em>exactly like the original pre-trained model</em>.</p>`;
+
+  h += `<div class="formula">A ~ 𝒩(0, σ²)&nbsp;&nbsp;&nbsp;<span class="cm">// random Gaussian</span><br>B = <span class="grn">0</span>&nbsp;&nbsp;&nbsp;<span class="cm">// zero matrix</span><br>⇒ BA = <span class="grn">0</span> · A = <span class="grn">0</span>&nbsp;&nbsp;&nbsp;⇒&nbsp;&nbsp;&nbsp;W<sub>eff</sub> = W + 0 = <span class="gry">W</span></div>`;
+
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += renderMtx(B_init, `B (initialized to 0)`, 'cz');
+  h += `<span class="op">·</span>`;
+  h += renderMtx(A_init, `A (random Gaussian)`, 'ca');
+  h += `<span class="op">=</span>`;
+  h += renderMtx(BA_init, `BA = 0`, 'cz');
+  h += `</div></div>`;
+
+  h += `<div class="info iib"><div class="il">Why this matters</div>
+If both <code>A</code> and <code>B</code> were random at init, the LoRA branch would inject random noise into every layer — the model's outputs would be garbage, the loss would spike, and training would have to spend the first few thousand steps "undoing" the noise. By starting with <code>BA = 0</code>, the model begins as <em>exactly</em> the pre-trained checkpoint, then gradually moves away from it as gradients flow into <code>B</code> (and through <code>B</code> into <code>A</code>). It's a smooth, monotonic departure from the base model.</div>`;
+
+  h += `<div class="info iac"><div class="il">The asymmetry trick</div>
+Why not the other way around — <code>B</code> random, <code>A</code> zero? Mathematically equivalent: either way <code>BA = 0</code> at init. The convention of "<code>A</code> random, <code>B</code> zero" is the one used in the original paper and the Hugging Face PEFT library. Both work; the asymmetric initialization just needs <em>one</em> of them to be zero.</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 6. FORWARD PASS ─────────────────────
+{id: 'forward', title: 'Forward Pass', group: 'Decomposition',
+render() {
+  const S = computeState();
+  let h = `<div class="stage-title">The Forward Pass <span class="tag tac">FORWARD</span></div>`;
+  h += `<p class="stage-desc">During inference, the input <code>x</code> flows through <strong>both branches in parallel</strong>: the frozen <code>W</code> path and the LoRA <code>BA</code> path. Their outputs are summed.</p>`;
+
+  h += `<div class="formula">h = <span class="gry">W</span>x + (α/r) · <span class="grn">B</span>(<span class="red">A</span>x)&nbsp;&nbsp;&nbsp;<span class="cm">// note: B(Ax), not (BA)x — same result, much cheaper!</span></div>`;
+
+  h += `<div class="info ip"><div class="il">Why compute B(Ax) instead of (BA)x</div>
+Mathematically <code>B(Ax) = (BA)x</code>, but the order of operations matters for efficiency:<br><br>
+• <code>(BA)x</code> first computes <code>BA</code> (a full d×d matrix, <code>O(d²r)</code> ops to build, <code>O(d²)</code> memory) then multiplies by <code>x</code> (<code>O(d²)</code> ops) — total <strong>O(d²r + d²)</strong>.<br>
+• <code>B(Ax)</code> first computes <code>Ax</code> (an r-dim vector, <code>O(dr)</code> ops) then <code>B(·)</code> (<code>O(dr)</code> ops) — total <strong>O(2dr)</strong>.<br><br>
+For <code>d = 4096, r = 8</code>: that's <strong>~16M ops vs ~65k ops</strong>, a ~250× speedup. LoRA is cheap precisely because you never materialize <code>BA</code> at inference time.</div>`;
+
+  // Show input
+  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Step 1 · Input vector</h3>`;
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += renderVec(X, 'x', 'cacc');
+  h += `</div></div>`;
+
+  // Frozen branch
+  h += `<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Step 2 · Frozen branch — Wx</h3>`;
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += `<div class="locked">${renderMtx(W, 'W', 'cf')}</div>`;
+  h += `<span class="op">·</span>`;
+  h += renderVec(X, 'x', 'cacc');
+  h += `<span class="op">=</span>`;
+  h += renderVec(S.Wx, 'Wx', 'cf');
+  h += `</div></div>`;
+
+  // LoRA branch
+  h += `<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Step 3 · LoRA branch — first compress to r dims, then expand back</h3>`;
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += renderMtx(S.A, 'A', 'ca');
+  h += `<span class="op">·</span>`;
+  h += renderVec(X, 'x', 'cacc');
+  h += `<span class="op">=</span>`;
+  h += renderVec(S.Ax, `Ax (r=${S.r})`, 'ca');
+  h += `</div></div>`;
+
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += renderMtx(S.B, 'B', 'cb');
+  h += `<span class="op">·</span>`;
+  h += renderVec(S.Ax, 'Ax', 'ca');
+  h += `<span class="op">=</span>`;
+  h += renderVec(S.BAx, 'BAx', 'cb');
+  h += `</div></div>`;
+
+  // Sum
+  h += `<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Step 4 · Combine — Wx + (α/r)·BAx</h3>`;
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += renderVec(S.Wx, 'Wx', 'cf');
+  h += `<span class="op">+ ${S.scale.toFixed(2)} ·</span>`;
+  h += renderVec(S.BAx, 'BAx', 'cb');
+  h += `<span class="op">=</span>`;
+  h += renderVec(S.h, 'h (output)', 'cacc');
+  h += `</div></div>`;
+
+  h += `<div class="info iac"><div class="il">Compare to a vanilla layer</div>
+Without LoRA, the layer would just compute <code>h = Wx</code>. LoRA <em>adds</em> a small correction <code>(α/r)·BAx</code> that nudges the output toward the fine-tuned task — a "residual" applied to the frozen pre-trained behavior, conceptually similar to a residual connection but in weight space.</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 7. RANK EXPLORER ─────────────────────
+{id: 'rank-explorer', title: 'Rank Explorer', group: 'Training',
+render() {
+  const S = computeState();
+  let h = `<div class="stage-title">Interactive Rank Explorer <span class="tag tac">EXPLORE</span></div>`;
+  h += `<p class="stage-desc">The rank <code>r</code> is the single most important LoRA hyperparameter. It controls the trade-off between <strong>expressivity</strong> (higher r = more representational capacity) and <strong>efficiency</strong> (lower r = fewer trainable parameters). Drag the slider in the header to see how everything changes in real time.</p>`;
+
+  // Live A, B, BA
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += renderMtx(S.B, `B [${D}×${S.r}]`, 'cb');
+  h += `<span class="op">·</span>`;
+  h += renderMtx(S.A, `A [${S.r}×${D}]`, 'ca');
+  h += `<span class="op">=</span>`;
+  h += renderMtx(S.BA, `BA [${D}×${D}], rank ≤ ${S.r}`, 'cba');
+  h += `</div></div>`;
+
+  // Param counter cards
+  const ratio = (S.loraParams / S.fullParams * 100).toFixed(1);
+  h += `<div class="param-grid">
+<div class="param-card"><div class="lbl">Full fine-tuning</div><div class="big">${S.fullParams}</div><div class="sub">d² = ${D}² params</div></div>
+<div class="param-card"><div class="lbl">LoRA (r=${S.r})</div><div class="big">${S.loraParams}</div><div class="sub">2dr = 2·${D}·${S.r} params</div></div>
+<div class="param-card"><div class="lbl">Trainable fraction</div><div class="big">${ratio}%</div><div class="sub">${(S.fullParams/S.loraParams).toFixed(1)}× compression</div></div>
+</div>`;
+
+  // Visual bar
+  h += `<div class="bar-wrap">
+<div class="bar-lbl"><span>LoRA params</span><span>${S.loraParams} / ${S.fullParams}</span></div>
+<div class="bar-track"><div class="bar-fill" style="width:${ratio}%;background:var(--acc);"></div></div>
+</div>`;
+
+  // Real-world comparison
+  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Scaling to real models</h3>`;
+  h += `<p class="stage-desc">What happens if we apply this same ratio to one weight matrix in real architectures?</p>`;
+  const realModels = [
+    {name: 'GPT-2 small', d: 768},
+    {name: 'GPT-2 large', d: 1280},
+    {name: 'LLaMA-7B', d: 4096},
+    {name: 'LLaMA-65B', d: 8192},
+    {name: 'GPT-3 175B', d: 12288},
+  ];
+  h += `<div class="glossary"><table>
+<tr><th>Model</th><th>d</th><th>Full FT (per matrix)</th><th>LoRA r=${S.r} (per matrix)</th><th>Compression</th></tr>`;
+  realModels.forEach(m => {
+    const full = m.d * m.d;
+    const lora = 2 * m.d * S.r;
+    const comp = (full / lora).toFixed(0);
+    h += `<tr><td><strong>${m.name}</strong></td><td class="val">${m.d}</td><td class="val">${full.toLocaleString()}</td><td class="val" style="color:var(--acc);">${lora.toLocaleString()}</td><td class="val">${comp}×</td></tr>`;
+  });
+  h += `</table></div>`;
+
+  h += `<div class="info iac"><div class="il">How to pick r in practice</div>
+The original paper found that <strong>r = 1 to 8 works surprisingly well</strong> for most tasks. Hu et al. showed that even <code>r = 1</code> can match full fine-tuning on some benchmarks. Common defaults:<br><br>
+• <strong>r = 4 or 8</strong> — typical for instruction tuning, classification, simple adaptation<br>
+• <strong>r = 16 or 32</strong> — for tasks that diverge more from the base model (different language, very specialized domain)<br>
+• <strong>r = 64+</strong> — rarely needed; if you need this much capacity, full fine-tuning may be more appropriate
+</div>`;
+
+  h += `<div class="info ig"><div class="il">The diminishing returns</div>
+Counter-intuitively, increasing <code>r</code> beyond ~8 often does <em>not</em> improve task performance — it just adds more parameters that the optimizer doesn't really use. This is itself empirical evidence for the low-intrinsic-rank hypothesis: the useful subspace really is small.</div>`;
+
+  h += `<div class="info if"><div class="il">A quirk of this toy demo</div>
+LoRA's parameter savings (<code>2dr &lt; d²</code>) only hold when <code>r &lt; d/2</code>. In this 6×6 demo, that's <code>r ≤ 2</code>. At <code>r = 3</code> the LoRA matrices have exactly as many params as <code>W</code> (36 = 36), and at <code>r = 4</code> they have <em>more</em> (48 &gt; 36). This is a corner case of the small <code>d</code> we're using for visibility — in real models with <code>d = 4096+</code>, <code>r = 8</code> gives a 256× compression, and you'd never come anywhere near the breakeven point.</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 8. PARAMETER SAVINGS ─────────────────────
+{id: 'savings', title: 'Parameter Savings', group: 'Training',
+render() {
+  const S = computeState();
+  let h = `<div class="stage-title">Parameter Savings at Scale <span class="tag tg">SAVINGS</span></div>`;
+  h += `<p class="stage-desc">A real LLM has many weight matrices — typically <code>n_layers × 4</code> attention matrices (Q, K, V, O) plus 2 FFN matrices per layer. LoRA is usually applied to the attention projections only, sometimes just to Q and V. Below is the headline result from the LoRA paper [1] for GPT-3 175B.</p>`;
+
+  h += `<div class="info iac"><div class="il">GPT-3 175B comparison (from the LoRA paper)</div>
+<table style="font-family:var(--mono);font-size:0.78rem;width:100%;">
+<tr><th style="text-align:left;color:var(--txt3);font-weight:500;padding:0.4rem 0;">Method</th><th style="text-align:right;color:var(--txt3);font-weight:500;padding:0.4rem 0;">Trainable params</th><th style="text-align:right;color:var(--txt3);font-weight:500;padding:0.4rem 0;">Checkpoint size</th><th style="text-align:right;color:var(--txt3);font-weight:500;padding:0.4rem 0;">Accuracy*</th></tr>
+<tr><td style="padding:0.3rem 0;">Full FT</td><td style="text-align:right;">175,255,800,000</td><td style="text-align:right;">~350 GB</td><td style="text-align:right;color:var(--txt2);">73.8</td></tr>
+<tr><td style="padding:0.3rem 0;">Adapter (Houlsby)</td><td style="text-align:right;">40,100,000</td><td style="text-align:right;">~80 MB</td><td style="text-align:right;color:var(--txt2);">73.9</td></tr>
+<tr><td style="padding:0.3rem 0;">Prefix-tuning</td><td style="text-align:right;">3,200,000</td><td style="text-align:right;">~6 MB</td><td style="text-align:right;color:var(--txt2);">73.4</td></tr>
+<tr style="border-top:1px solid var(--accbrd);"><td style="padding:0.4rem 0;color:var(--acc);"><strong>LoRA (r=4)</strong></td><td style="text-align:right;color:var(--acc);"><strong>4,700,000</strong></td><td style="text-align:right;color:var(--acc);"><strong>~9 MB</strong></td><td style="text-align:right;color:var(--acc);"><strong>74.0</strong></td></tr>
+<tr><td style="padding:0.3rem 0;color:var(--acc);"><strong>LoRA (r=8)</strong></td><td style="text-align:right;color:var(--acc);"><strong>9,400,000</strong></td><td style="text-align:right;color:var(--acc);"><strong>~18 MB</strong></td><td style="text-align:right;color:var(--acc);"><strong>74.1</strong></td></tr>
+</table>
+<br><span style="font-size:0.7rem;color:var(--txt3);">* WikiSQL average accuracy. LoRA matches or slightly exceeds full fine-tuning while using ~10 000× fewer trainable parameters.</span></div>`;
+
+  h += `<div class="info iib"><div class="il">What this enables</div>
+• <strong>Fine-tune on a single consumer GPU.</strong> Because gradients and optimizer state only need to cover the LoRA params, not the frozen base, a 7 B parameter model can be fine-tuned on a 16 GB GPU (and a 65 B model on a 48 GB GPU with QLoRA [4]).<br><br>
+• <strong>Ship many adapters.</strong> Each LoRA adapter is a few MB. You can store hundreds or thousands of task-specific adapters next to a single base model and swap them in at inference time.<br><br>
+• <strong>Faster training iterations.</strong> Fewer parameters to update means each gradient step is cheaper — and the optimizer state fits in cache.</div>`;
+
+  // Live calculation for current settings
+  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Live calculation (current settings)</h3>`;
+  h += `<p class="stage-desc">Applied to all 96 layers of GPT-3 175B, to the Q and V projection matrices only (the standard LoRA-on-attention setup):</p>`;
+  const dGPT3 = 12288;
+  const nLayers = 96;
+  const matricesPerLayer = 2; // Q and V
+  const fullPerMat = dGPT3 * dGPT3;
+  const loraPerMat = 2 * dGPT3 * S.r;
+  const totalFull = fullPerMat * matricesPerLayer * nLayers;
+  const totalLora = loraPerMat * matricesPerLayer * nLayers;
+  h += `<div class="param-grid">
+<div class="param-card"><div class="lbl">GPT-3 layers · 2 mats each</div><div class="big">${(totalFull/1e9).toFixed(2)} B</div><div class="sub">params if fully fine-tuned</div></div>
+<div class="param-card"><div class="lbl">With LoRA (r=${S.r})</div><div class="big">${(totalLora/1e6).toFixed(2)} M</div><div class="sub">trainable params</div></div>
+<div class="param-card"><div class="lbl">Compression</div><div class="big">${(totalFull/totalLora).toFixed(0)}×</div><div class="sub">smaller checkpoint</div></div>
+</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 9. TRAINING ─────────────────────
+{id: 'training', title: 'Training', group: 'Training',
+render() {
+  let h = `<div class="stage-title">Training: Frozen vs Trainable <span class="tag tb">TRAIN</span></div>`;
+  h += `<p class="stage-desc">During the backward pass, gradients flow through the frozen <code>W</code> path <em>but are not stored</em> — there's no optimizer to update <code>W</code>. Gradients <strong>are</strong> stored for <code>A</code> and <code>B</code>, and the Adam optimizer maintains momentum and variance buffers only for these two small matrices.</p>`;
+
+  h += `<div class="formula">∂L/∂W = <span class="gry">discarded 🗑️</span>&nbsp;&nbsp;&nbsp;<span class="cm">// W is frozen</span><br>∂L/∂B, ∂L/∂A = <span class="hl">stored</span>&nbsp;&nbsp;&nbsp;<span class="cm">// only LoRA params get optimizer state</span></div>`;
+
+  // Visual: training diagram
+  h += `<div class="arch-wrap">
+<svg viewBox="0 0 620 320" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, sans-serif">
+  <defs>
+    <marker id="arrt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#928f84"/>
+    </marker>
+    <marker id="arrred" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e11d48"/>
+    </marker>
+  </defs>
+
+  <!-- Forward arrow -->
+  <text x="60" y="30" font-size="10" fill="#56544c" font-family="DM Mono, monospace">FORWARD →</text>
+  <text x="60" y="200" font-size="10" fill="#e11d48" font-family="DM Mono, monospace">← BACKWARD (gradients)</text>
+
+  <!-- Frozen W -->
+  <rect x="120" y="55" width="160" height="80" rx="10" fill="#6b728028" stroke="#6b7280" stroke-width="2"/>
+  <text x="200" y="85" text-anchor="middle" font-size="14" fill="#6b7280" font-weight="700">W</text>
+  <text x="200" y="105" text-anchor="middle" font-size="11" fill="#56544c">frozen 🔒</text>
+  <text x="200" y="122" text-anchor="middle" font-size="10" fill="#56544c" font-style="italic">no gradient stored</text>
+
+  <!-- A and B -->
+  <rect x="340" y="55" width="160" height="35" rx="8" fill="#e11d4828" stroke="#e11d48" stroke-width="2"/>
+  <text x="420" y="78" text-anchor="middle" font-size="13" fill="#e11d48" font-weight="700">A · trainable ✏️</text>
+
+  <rect x="340" y="100" width="160" height="35" rx="8" fill="#15803d28" stroke="#15803d" stroke-width="2"/>
+  <text x="420" y="123" text-anchor="middle" font-size="13" fill="#15803d" font-weight="700">B · trainable ✏️</text>
+
+  <!-- Forward arrows -->
+  <line x1="280" y1="95" x2="335" y2="73" stroke="#928f84" stroke-width="2" marker-end="url(#arrt)" opacity="0.5"/>
+  <line x1="280" y1="95" x2="335" y2="118" stroke="#928f84" stroke-width="2" marker-end="url(#arrt)" opacity="0.5"/>
+
+  <!-- Backward arrows (red) -->
+  <line x1="335" y1="73" x2="285" y2="80" stroke="#e11d48" stroke-width="2.5" marker-end="url(#arrred)"/>
+  <line x1="335" y1="118" x2="285" y2="115" stroke="#e11d48" stroke-width="2.5" marker-end="url(#arrred)"/>
+  <text x="290" y="95" font-size="9" fill="#e11d48" font-style="italic">∂L/∂A</text>
+  <text x="290" y="135" font-size="9" fill="#e11d48" font-style="italic">∂L/∂B</text>
+
+  <!-- Optimizer state row -->
+  <text x="60" y="180" font-size="10" fill="#56544c" font-family="DM Mono, monospace">OPTIMIZER STATE (Adam)</text>
+
+  <rect x="120" y="200" width="160" height="60" rx="8" fill="#ebe9e2" stroke="#cfccc0" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="200" y="225" text-anchor="middle" font-size="12" fill="#928f84">∅ (none)</text>
+  <text x="200" y="245" text-anchor="middle" font-size="9" fill="#928f84" font-style="italic">no momentum, no variance</text>
+
+  <rect x="340" y="200" width="160" height="60" rx="8" fill="#6d28d928" stroke="#6d28d9" stroke-width="2"/>
+  <text x="420" y="222" text-anchor="middle" font-size="12" fill="#6d28d9" font-weight="600">m_A, v_A, m_B, v_B</text>
+  <text x="420" y="242" text-anchor="middle" font-size="9" fill="#6d28d9">small (only 2dr params)</text>
+  <text x="420" y="255" text-anchor="middle" font-size="9" fill="#56544c">~12 bytes / param</text>
+
+  <!-- Memory savings -->
+  <rect x="120" y="280" width="380" height="32" rx="6" fill="#15803d28" stroke="#15803d" stroke-width="2"/>
+  <text x="310" y="301" text-anchor="middle" font-size="12" fill="#15803d" font-weight="600">Result: ~99% reduction in optimizer memory 💾</text>
+</svg>
+</div>`;
+
+  h += `<div class="info iac"><div class="il">Memory budget per parameter</div>
+With Adam in mixed precision:<br><br>
+<table style="font-family:var(--mono);font-size:0.78rem;">
+<tr><td>• fp16 weight:</td><td style="padding-left:1rem;">2 bytes</td></tr>
+<tr><td>• fp16 gradient:</td><td style="padding-left:1rem;">2 bytes</td></tr>
+<tr><td>• fp32 momentum (m):</td><td style="padding-left:1rem;">4 bytes</td></tr>
+<tr><td>• fp32 variance (v):</td><td style="padding-left:1rem;">4 bytes</td></tr>
+<tr><td>• fp32 master copy:</td><td style="padding-left:1rem;">4 bytes</td></tr>
+<tr><td><strong>Total per trained param:</strong></td><td style="padding-left:1rem;"><strong>~16 bytes</strong></td></tr>
+<tr><td><strong>Per frozen param:</strong></td><td style="padding-left:1rem;"><strong>2 bytes (just the weight)</strong></td></tr>
+</table>
+<br>So freezing 99.99% of the model means 99.99% of the parameters cost 2 bytes instead of 16 — an <strong>8× memory reduction</strong> on top of the parameter reduction.</div>`;
+
+  h += `<div class="info iib"><div class="il">The gradient still flows through W</div>
+Even though <code>W</code> isn't updated, gradients still flow <em>through</em> it during backprop, because <code>A</code> and <code>B</code> sit in parallel with <code>W</code>. The chain rule for the LoRA branch is:<br>
+<div class="formula" style="margin:0.6rem 0;">∂L/∂B = (∂L/∂h) · (Ax)<sup>T</sup>&nbsp;&nbsp;&nbsp;<span class="cm">// outer product of upstream grad and Ax</span><br>∂L/∂A = B<sup>T</sup> · (∂L/∂h) · x<sup>T</sup>&nbsp;&nbsp;&nbsp;<span class="cm">// also depends on x and B</span></div>
+The frozen <code>W</code> never appears in these gradients, which is why it doesn't matter that we don't store its gradient.</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 10. INFERENCE ─────────────────────
+{id: 'inference', title: 'Inference Modes', group: 'Inference',
+render() {
+  const S = computeState();
+  let h = `<div class="stage-title">Inference: Merged vs Unmerged <span class="tag tac">INFERENCE</span></div>`;
+  h += `<p class="stage-desc">After training, you have two options for serving the LoRA-fine-tuned model. The choice depends on whether you'll need to switch tasks at runtime.</p>`;
+
+  h += `<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Option A · Merge into the base weights</h3>`;
+  h += `<div class="formula"><span class="gry">W</span><sub>merged</sub> = <span class="gry">W</span> + (α/r) · <span class="grn">B</span><span class="red">A</span>&nbsp;&nbsp;&nbsp;<span class="cm">// done once, then discard A and B</span></div>`;
+  h += `<div class="info iib"><div class="il">Pros</div>
+• <strong>Zero inference overhead.</strong> The model is now indistinguishable from a fully fine-tuned one — same number of matmul ops per forward pass, same latency.<br>
+• <strong>Compatible with any inference engine.</strong> No special LoRA support needed.</div>`;
+  h += `<div class="info if"><div class="il">Cons</div>
+• <strong>Locked to one task.</strong> Once merged, you can't switch adapters without reloading the base model.<br>
+• <strong>Loses the small-checkpoint benefit.</strong> The merged model is the size of the original.</div>`;
+
+  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Option B · Keep A and B separate</h3>`;
+  h += `<div class="formula">h = <span class="gry">W</span>x + (α/r) · <span class="grn">B</span>(<span class="red">A</span>x)&nbsp;&nbsp;&nbsp;<span class="cm">// compute both branches at runtime</span></div>`;
+  h += `<div class="info iib"><div class="il">Pros</div>
+• <strong>Hot-swap adapters.</strong> Different requests can use different adapters without reloading the base.<br>
+• <strong>Tiny checkpoints.</strong> Each adapter is a few MB; one base model serves them all.<br>
+• <strong>Composable.</strong> Multiple adapters can be combined or interpolated.</div>`;
+  h += `<div class="info if"><div class="il">Cons</div>
+• <strong>Slight latency overhead</strong> — one extra small matmul per LoRA layer (but only <code>O(2dr)</code> per token, negligible compared to <code>O(d²)</code>).</div>`;
+
+  // Show the merged matrix
+  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Live merged matrix</h3>`;
+  h += `<p class="stage-desc">For the current rank r=${S.r}, this is what the merged effective weight looks like:</p>`;
+  h += `<div class="mtx-wrap"><div class="mtx-row">`;
+  h += `<div class="locked">${renderMtx(W, 'W (frozen)', 'cf')}</div>`;
+  h += `<span class="op">+ ${S.scale.toFixed(2)} ·</span>`;
+  h += renderMtx(S.BA, 'BA', 'cba');
+  h += `<span class="op">=</span>`;
+  h += renderMtx(S.W_eff, 'W_merged', 'cacc');
+  h += `</div></div>`;
+
+  h += `<div class="info iac"><div class="il">In practice</div>
+Production systems like <strong>vLLM</strong>, <strong>TGI</strong>, and <strong>Hugging Face PEFT</strong> support both modes. For batch-of-one serving you typically merge; for multi-tenant serving (hundreds of users with different fine-tunes) you keep adapters separate and use techniques like <em>S-LoRA</em> to batch requests across adapters.</div>`;
+
+  // ── Parameters cheat sheet: where does each knob live? ──
+  h += `<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">Where does each parameter live?</h3>`;
+  h += `<p class="stage-desc">A common point of confusion is mixing up LoRA hyperparameters (<code>r</code>, <code>α</code>) with sampling hyperparameters (<code>temperature</code>, <code>top-k</code>, <code>top-p</code>). They operate at <strong>completely different stages</strong> of the pipeline and solve different problems.</p>`;
+
+  h += `<div class="glossary"><table>
+<tr><th>Parameter</th><th>Stage</th><th>What it controls</th></tr>
+<tr><td class="sym" style="color:var(--a);">r (rank)</td><td class="val">Fine-tuning</td><td><strong>Capacity of the LoRA adapter.</strong> How many dimensions the low-rank update can use. Decided once when you set up training, affects trainable parameter count.</td></tr>
+<tr><td class="sym" style="color:var(--a);">α (alpha)</td><td class="val">Fine-tuning</td><td><strong>Strength of the LoRA update.</strong> Scales <code>BA</code> by <code>α/r</code> before adding to <code>W</code>. Decouples capacity from magnitude so you can change <code>r</code> without re-tuning the learning rate.</td></tr>
+<tr><td class="sym" style="color:var(--b);">learning rate</td><td class="val">Fine-tuning</td><td>Standard optimizer knob controlling how big each gradient step is. LoRA typically tolerates much higher learning rates than full fine-tuning because only A and B are updated.</td></tr>
+<tr><td class="sym" style="color:var(--b);">batch size, epochs</td><td class="val">Fine-tuning</td><td>Standard training knobs. Unchanged by LoRA.</td></tr>
+<tr><td class="sym" style="color:var(--acc);">temperature (T)</td><td class="val">Sampling</td><td><strong>Shape of the output distribution</strong> over the vocabulary. Divides the final logits by <code>T</code> before softmax. <code>T &lt; 1</code> sharper, <code>T &gt; 1</code> flatter. Nothing to learn — you pick it at generation time.</td></tr>
+<tr><td class="sym" style="color:var(--acc);">top-k, top-p</td><td class="val">Sampling</td><td><strong>Truncation of the output distribution.</strong> Keep only the k most likely tokens, or the smallest set whose cumulative probability exceeds p. Also chosen at generation time.</td></tr>
+</table></div>`;
+
+  h += `<div class="info ip"><div class="il">Why temperature is NOT a LoRA parameter</div>
+LoRA lives <strong>inside</strong> the forward pass: it changes how every weight matrix transforms activations, producing different logits than the base model would. Temperature lives <strong>after</strong> the forward pass: it reshapes whatever logits the model produces before sampling. These stages are completely separate:
+<div class="formula" style="margin:0.6rem 0;">Wx + (α/r)·BAx &nbsp;→ ... forward pass ... → &nbsp;logits &nbsp;→ &nbsp;logits/T &nbsp;→ &nbsp;softmax &nbsp;→ &nbsp;sample<br>
+<span class="cm">└────── LoRA changes the distribution ──────┘    └── temperature shapes how you read it ──┘</span></div>
+Put another way: <strong>LoRA changes what the model says; temperature changes how creative it sounds when saying it.</strong> A LoRA-fine-tuned model still uses temperature, top-k, and top-p at generation time — exactly the same way any other transformer does. See the GPT decoder simulator for the mechanics of temperature at the softmax step.</div>`;
+
+  h += `<div class="info iib"><div class="il">Training-time vs inference-time, in one sentence</div>
+<strong>Fine-tuning hyperparameters</strong> (<code>r</code>, <code>α</code>, learning rate) are decided <em>before</em> training and baked into the trained adapter. <strong>Sampling hyperparameters</strong> (<code>temperature</code>, <code>top-k</code>, <code>top-p</code>) are decided <em>per generation request</em> and can be changed on the fly without retraining anything.</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 11. MULTI-ADAPTER ─────────────────────
+{id: 'multi', title: 'Multi-Adapter', group: 'Inference',
+render() {
+  let h = `<div class="stage-title">Multiple Adapters, One Base Model <span class="tag tp">MULTI</span></div>`;
+  h += `<p class="stage-desc">Because the LoRA adapter is tiny and the base model is frozen, you can train and ship many adapters that all share the same base. This is the operational pattern that has made LoRA the dominant fine-tuning technique for open-source LLMs.</p>`;
+
+  // Visual
+  h += `<div class="arch-wrap">
+<svg viewBox="0 0 620 360" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, sans-serif">
+  <!-- Base model in middle -->
+  <rect x="220" y="140" width="180" height="80" rx="12" fill="#6b728028" stroke="#6b7280" stroke-width="2"/>
+  <text x="310" y="170" text-anchor="middle" font-size="14" fill="#6b7280" font-weight="700">Base LLM (frozen)</text>
+  <text x="310" y="190" text-anchor="middle" font-size="11" fill="#56544c">e.g. LLaMA-7B</text>
+  <text x="310" y="207" text-anchor="middle" font-size="13">🔒</text>
+
+  <!-- Adapters around it -->
+  <g>
+    <rect x="40" y="40" width="130" height="55" rx="8" fill="#e11d4828" stroke="#e11d48" stroke-width="2"/>
+    <text x="105" y="62" text-anchor="middle" font-size="12" fill="#e11d48" font-weight="700">Adapter: Code</text>
+    <text x="105" y="78" text-anchor="middle" font-size="9" fill="#56544c">A_code, B_code · ~10 MB</text>
+    <line x1="170" y1="80" x2="220" y2="155" stroke="#928f84" stroke-width="1.5" stroke-dasharray="3 3"/>
+  </g>
+  <g>
+    <rect x="450" y="40" width="130" height="55" rx="8" fill="#15803d28" stroke="#15803d" stroke-width="2"/>
+    <text x="515" y="62" text-anchor="middle" font-size="12" fill="#15803d" font-weight="700">Adapter: Medical</text>
+    <text x="515" y="78" text-anchor="middle" font-size="9" fill="#56544c">A_med, B_med · ~10 MB</text>
+    <line x1="450" y1="80" x2="400" y2="155" stroke="#928f84" stroke-width="1.5" stroke-dasharray="3 3"/>
+  </g>
+  <g>
+    <rect x="40" y="265" width="130" height="55" rx="8" fill="#6d28d928" stroke="#6d28d9" stroke-width="2"/>
+    <text x="105" y="287" text-anchor="middle" font-size="12" fill="#6d28d9" font-weight="700">Adapter: French</text>
+    <text x="105" y="303" text-anchor="middle" font-size="9" fill="#56544c">A_fr, B_fr · ~10 MB</text>
+    <line x1="170" y1="280" x2="220" y2="205" stroke="#928f84" stroke-width="1.5" stroke-dasharray="3 3"/>
+  </g>
+  <g>
+    <rect x="450" y="265" width="130" height="55" rx="8" fill="#be185d28" stroke="#be185d" stroke-width="2"/>
+    <text x="515" y="287" text-anchor="middle" font-size="12" fill="#be185d" font-weight="700">Adapter: Legal</text>
+    <text x="515" y="303" text-anchor="middle" font-size="9" fill="#56544c">A_law, B_law · ~10 MB</text>
+    <line x1="450" y1="280" x2="400" y2="205" stroke="#928f84" stroke-width="1.5" stroke-dasharray="3 3"/>
+  </g>
+
+  <text x="310" y="345" text-anchor="middle" font-size="11" fill="#56544c" font-style="italic">One 14 GB base model + many ~10 MB adapters · all live in memory simultaneously</text>
+</svg>
+</div>`;
+
+  h += `<div class="info iac"><div class="il">The economic argument</div>
+Suppose you're a SaaS company offering "your own fine-tuned LLM" as a product, with 1000 customers. The math:<br><br>
+<table style="font-family:var(--mono);font-size:0.78rem;">
+<tr><td><strong>Full fine-tuning:</strong></td><td style="padding-left:1rem;">1000 × 14 GB = <strong>14 TB</strong> of weights</td></tr>
+<tr><td><strong>LoRA (r=8):</strong></td><td style="padding-left:1rem;">14 GB base + 1000 × 10 MB = <strong>~24 GB</strong></td></tr>
+<tr><td><strong>Reduction:</strong></td><td style="padding-left:1rem;"><strong>~580×</strong></td></tr>
+</table>
+<br>Even better, the base model fits in GPU memory <em>once</em>, and adapters can be loaded from RAM/SSD on demand.</div>`;
+
+  h += `<div class="info iib"><div class="il">Hot-swapping in production</div>
+Frameworks like <strong>S-LoRA</strong>, <strong>Punica</strong>, and <strong>vLLM with multi-LoRA</strong> can serve thousands of distinct LoRA adapters from a single GPU. They batch incoming requests by base model (all sharing the same frozen W) and apply per-request LoRA branches in parallel. This is how Replicate, Together AI, and similar platforms host dozens of fine-tuned variants at low cost.</div>`;
+
+  h += `<div class="info ip"><div class="il">Adapter composition</div>
+Because LoRA updates are <em>additive</em> in weight space, you can combine multiple adapters:
+<div class="formula" style="margin:0.6rem 0;">W<sub>combined</sub> = W + λ₁·B₁A₁ + λ₂·B₂A₂&nbsp;&nbsp;&nbsp;<span class="cm">// weighted mixture</span></div>
+This enables interesting tricks: blending a "code" adapter with a "French" adapter to get a French-speaking code assistant, or interpolating between styles. Results are mixed in practice, but it's a hot research area.</div>`;
+
+  return h;
+}},
+
+// ───────────────────── 12. QUIZ ─────────────────────
+{id: 'quiz', title: 'Quiz', group: 'Quiz',
+render() {
+  let h = `<div class="stage-title">Test Your Understanding <span class="tag tg">QUIZ</span></div>`;
+  h += `<p class="stage-desc">Six questions covering the core ideas. Click an answer to check it.</p>`;
+
+  const questions = [
+    {
+      q: "What does LoRA freeze and what does it train?",
+      opts: [
+        {t: "Freezes A and B; trains the base weights W", ok: false},
+        {t: "Freezes the base weights W; trains two small matrices A and B whose product is added to W", ok: true},
+        {t: "Freezes the embedding layer only; trains everything else", ok: false},
+        {t: "Trains nothing — LoRA is a zero-shot method", ok: false},
+      ],
+      fb: "LoRA freezes the pre-trained weight matrix W and learns a low-rank update BA on the side. Only A and B receive gradients."
+    },
+    {
+      q: "Why is B initialized to zero (and A to random Gaussian) at the start of training?",
+      opts: [
+        {t: "Because zero matrices are faster to multiply", ok: false},
+        {t: "So that BA = 0 at step 0, making the LoRA-augmented model identical to the pre-trained model at the start of training", ok: true},
+        {t: "It's a regularization trick that prevents overfitting", ok: false},
+        {t: "Because gradients don't flow through zero matrices", ok: false},
+      ],
+      fb: "If both A and B were random, the LoRA branch would inject noise into every layer. Starting with B = 0 means BA = 0, so training begins from exactly the pre-trained behavior and gradually departs from it."
+    },
+    {
+      q: "If d = 4096 (LLaMA-7B hidden size) and r = 8, how many trainable parameters does LoRA add per weight matrix?",
+      opts: [
+        {t: "4096² = 16,777,216", ok: false},
+        {t: "2 × 4096 × 8 = 65,536", ok: true},
+        {t: "8² = 64", ok: false},
+        {t: "4096 × 8 = 32,768", ok: false},
+      ],
+      fb: "LoRA adds 2dr params per matrix: A is r×d (8 × 4096) and B is d×r (4096 × 8), totaling 2 · 4096 · 8 = 65,536. That's a 256× reduction from full fine-tuning."
+    },
+    {
+      q: "Why compute B(Ax) instead of (BA)x at inference time, even though they're mathematically equal?",
+      opts: [
+        {t: "B(Ax) is more numerically stable", ok: false},
+        {t: "Computing Ax first goes through the small r-dim bottleneck, costing O(2dr) ops instead of O(d²) for materializing BA", ok: true},
+        {t: "(BA)x doesn't preserve the rank constraint", ok: false},
+        {t: "PyTorch can't backprop through (BA)x", ok: false},
+      ],
+      fb: "Mathematically B(Ax) = (BA)x, but operationally B(Ax) only touches r-dimensional intermediates and costs O(2dr) ops. (BA)x first materializes a full d×d matrix at O(d²r) cost, defeating the purpose of LoRA."
+    },
+    {
+      q: "What is the role of the α/r scaling factor?",
+      opts: [
+        {t: "It's the learning rate of the LoRA branch", ok: false},
+        {t: "It normalizes the magnitude of the update so you can change r without re-tuning the learning rate", ok: true},
+        {t: "It's the dropout probability applied to BA", ok: false},
+        {t: "It controls how many adapters are active simultaneously", ok: false},
+      ],
+      fb: "Without α/r scaling, doubling r would also roughly double the magnitude of BA. Decoupling α from r lets you change capacity without breaking your training recipe — α stays fixed, r becomes a pure capacity knob."
+    },
+    {
+      q: "Which of these is NOT a benefit of LoRA over full fine-tuning?",
+      opts: [
+        {t: "Smaller checkpoints (a few MB vs hundreds of GB)", ok: false},
+        {t: "Lower GPU memory during training", ok: false},
+        {t: "Faster training of larger models on small hardware", ok: false},
+        {t: "Higher peak accuracy than full fine-tuning on every task", ok: true},
+      ],
+      fb: "LoRA usually matches full fine-tuning, sometimes exceeds it slightly, but the headline benefit is parameter/memory/storage efficiency — not raw accuracy. For tasks that diverge wildly from the pre-training distribution, full fine-tuning may still win."
+    },
+  ];
+
+  questions.forEach((q, i) => {
+    h += `<div class="quiz-q">
+<div class="qnum">Question ${i + 1}</div>
+<div class="qtext">${q.q}</div>`;
+    q.opts.forEach((o, j) => {
+      h += `<button class="quiz-opt" onclick="quizCheck(this, ${o.ok}, 'q${i}fb')">${o.t}</button>`;
+    });
+    h += `<div class="quiz-fb" id="q${i}fb">${q.fb}</div>`;
+    h += `</div>`;
+  });
+
+  h += `<div class="info iac"><div class="il">Done!</div>You've now seen the full LoRA story: the problem (full fine-tuning is expensive), the insight (updates have low intrinsic rank), the decomposition (W + BA), the math (forward pass, parameter counting, training), and the deployment patterns (merged inference, multi-adapter serving). The original paper [1] is short and very readable — recommended next step.</div>`;
+
+  return h;
+}},
+
+];
+
+// ═══════ APP STATE ═══════
+let currentStep = 0;
+
+function renderSidebar() {
+  const sb = document.getElementById('sidebar');
+  let h = '<div class="side-label">LoRA walkthrough</div>';
+  const groups = {};
+  STEPS.forEach((s, i) => {
+    if (!groups[s.group]) groups[s.group] = [];
+    groups[s.group].push(i);
+  });
+  Object.keys(groups).forEach((g, gi) => {
+    h += `<div class="side-label" style="margin-top:0.4rem;">${g}</div>`;
+    groups[g].forEach(si => {
+      const s = STEPS[si];
+      const cls = si === currentStep ? 'on' : si < currentStep ? 'done' : '';
+      h += `<button class="step-btn ${cls}" onclick="goStep(${si})"><span class="step-num">${si < currentStep ? '✓' : si + 1}</span>${s.title}</button>`;
+    });
+    if (gi < Object.keys(groups).length - 1) h += `<div class="step-divider"></div>`;
+  });
+  sb.innerHTML = h;
+}
+
+function renderMain() {
+  const el = document.getElementById('main-content');
+  const s = STEPS[currentStep];
+  let h = `<div class="config">`;
+  h += `<div class="cfg-item">d=<span>${D}</span></div>`;
+  h += `<div class="cfg-item">r=<span>${RANK}</span></div>`;
+  h += `<div class="cfg-item">α=<span>${ALPHA}</span></div>`;
+  h += `<div class="cfg-item">α/r=<span>${(ALPHA/RANK).toFixed(2)}</span></div>`;
+  h += `<div class="cfg-item">trainable=<span>${2*D*RANK}/${D*D}</span></div>`;
+  h += `<div class="cfg-item" style="margin-left:auto;">step <span>${currentStep+1}</span>/${STEPS.length}</div>`;
+  h += `</div>`;
+  h += s.render();
+  h += `<div class="nav-row">`;
+  h += `<button class="nav-btn nav-prev" onclick="goStep(${currentStep-1})" ${currentStep===0?'disabled':''}>← Previous</button>`;
+  h += `<button class="nav-btn nav-next" onclick="goStep(${currentStep+1})" ${currentStep===STEPS.length-1?'disabled':''}>${currentStep===STEPS.length-1?'Complete':'Next →'}</button>`;
+  h += `</div>`;
+  el.innerHTML = h;
+}
+
+function goStep(n) {
+  if (n < 0 || n >= STEPS.length) return;
+  currentStep = n;
+  renderSidebar();
+  renderMain();
+  document.getElementById('main-content').scrollTop = 0;
+}
+
+function onRankChange() {
+  RANK = parseInt(document.getElementById('rank-slider').value);
+  document.getElementById('rank-val').textContent = RANK;
+  renderMain();
+}
+
+function onAlphaChange() {
+  ALPHA = parseInt(document.getElementById('alpha-slider').value);
+  document.getElementById('alpha-val').textContent = ALPHA;
+  renderMain();
+}
+
+function quizCheck(btn, ok, fbId) {
+  const q = btn.parentElement;
+  if (q.dataset.answered) return;
+  q.dataset.answered = '1';
+  if (ok) {
+    btn.classList.add('right');
+  } else {
+    btn.classList.add('wrong');
+    // highlight correct
+    q.querySelectorAll('.quiz-opt').forEach(o => {
+      const oc = o.getAttribute('onclick');
+      if (oc && oc.includes('true')) o.classList.add('right');
+    });
+  }
+  document.getElementById(fbId).classList.add('show');
+}
+
+// ═══════ INIT ═══════
+renderSidebar();
+renderMain();
+</script>
+</body>
+</html>
