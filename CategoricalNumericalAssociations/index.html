@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eta-Squared (η²) — Interactive Explainer</title>
+<style>
+:root {
+  --green: #2e7d32;
+  --green2: #66bb6a;
+  --green-light: #e8f5e9;
+  --green-lighter: #f1f8f1;
+  --green-dark: #1b5e20;
+  --amber: #ef6c00;
+  --amber-light: #fff3e0;
+  --text: #1a1a1a;
+  --text-muted: #555;
+  --text-light: #777;
+  --bg: #ffffff;
+  --panel: #fafafa;
+  --border: #e0e0e0;
+  --border-strong: #bdbdbd;
+  --shadow: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Header */
+header {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%);
+  color: white;
+  padding: 32px 0 28px;
+  box-shadow: var(--shadow-lg);
+}
+header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  margin-bottom: 6px;
+}
+header .subtitle {
+  font-size: 15px;
+  opacity: 0.92;
+  font-weight: 400;
+}
+header .badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+  letter-spacing: 0.4px;
+  font-weight: 500;
+}
+
+/* Navigation */
+nav {
+  background: white;
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.nav-inner::-webkit-scrollbar { height: 4px; }
+.nav-inner::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.tab-btn:hover { color: var(--green); background: var(--green-lighter); }
+.tab-btn.active {
+  color: var(--green);
+  border-bottom-color: var(--green);
+  font-weight: 600;
+}
+
+/* Sections */
+main { padding: 32px 0 64px; }
+.section { display: none; animation: fadeIn 0.25s ease; }
+.section.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+h2 {
+  font-size: 24px;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+h3 {
+  font-size: 18px;
+  color: var(--green-dark);
+  margin: 24px 0 10px;
+  font-weight: 600;
+}
+h4 {
+  font-size: 15px;
+  color: var(--green-dark);
+  margin: 16px 0 6px;
+  font-weight: 600;
+}
+p { margin-bottom: 12px; color: var(--text); }
+.lead {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  max-width: 800px;
+}
+
+/* Cards */
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  box-shadow: var(--shadow);
+}
+.card.green {
+  background: var(--green-lighter);
+  border-color: var(--green2);
+  border-left: 4px solid var(--green);
+}
+.card.amber {
+  background: var(--amber-light);
+  border-color: #ffcc80;
+  border-left: 4px solid var(--amber);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+@media (max-width: 860px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+/* Formula blocks */
+.formula {
+  background: var(--green-lighter);
+  border-left: 4px solid var(--green);
+  padding: 16px 20px;
+  margin: 14px 0;
+  border-radius: 6px;
+  font-family: "Cambria Math", "Times New Roman", Georgia, serif;
+  font-size: 18px;
+  text-align: center;
+  overflow-x: auto;
+}
+.formula .label {
+  display: block;
+  font-family: -apple-system, sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-style: italic;
+}
+.formula-inline {
+  font-family: "Cambria Math", "Times New Roman", Georgia, serif;
+  background: var(--green-lighter);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 15px;
+}
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 4px;
+  font-size: 15px;
+}
+.frac .num { border-bottom: 1.5px solid currentColor; padding: 0 6px 2px; }
+.frac .den { padding: 2px 6px 0; }
+.sub { font-size: 0.7em; vertical-align: sub; }
+.sup { font-size: 0.7em; vertical-align: super; }
+.sigma { font-size: 1.3em; vertical-align: -3px; font-family: serif; }
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 14px;
+  background: white;
+}
+th, td {
+  padding: 10px 12px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+th {
+  background: var(--green);
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+}
+tr:nth-child(even) td { background: var(--green-lighter); }
+.cat-A { color: #2e7d32; font-weight: 600; }
+.cat-B { color: #ef6c00; font-weight: 600; }
+.cat-C { color: #6a1b9a; font-weight: 600; }
+
+/* Interactive calculator */
+.calc-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 900px) {
+  .calc-layout { grid-template-columns: 1fr; }
+}
+
+.controls {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+.slider-row {
+  margin-bottom: 18px;
+}
+.slider-row label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.slider-row .val {
+  font-family: "Cambria Math", "Times New Roman", Georgia, serif;
+  color: var(--green-dark);
+  font-weight: 600;
+  font-size: 14px;
+  background: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  min-width: 52px;
+  text-align: center;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #ddd;
+  border-radius: 3px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--green);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--green);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.slider-A::-webkit-slider-thumb { background: #2e7d32; }
+.slider-B::-webkit-slider-thumb { background: #ef6c00; }
+.slider-C::-webkit-slider-thumb { background: #6a1b9a; }
+.slider-A::-moz-range-thumb { background: #2e7d32; }
+.slider-B::-moz-range-thumb { background: #ef6c00; }
+.slider-C::-moz-range-thumb { background: #6a1b9a; }
+
+.preset-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.preset-btn {
+  flex: 1;
+  min-width: 80px;
+  background: white;
+  border: 1px solid var(--green2);
+  color: var(--green-dark);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.preset-btn:hover {
+  background: var(--green);
+  color: white;
+}
+
+.viz-panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.readout {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.readout-box {
+  background: var(--green-lighter);
+  border: 1px solid var(--green2);
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+}
+.readout-box .lbl {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.readout-box .val {
+  font-family: "Cambria Math", "Times New Roman", Georgia, serif;
+  font-size: 18px;
+  color: var(--green-dark);
+  font-weight: 700;
+}
+
+.eta-display {
+  background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%);
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 14px;
+}
+.eta-display .lbl {
+  font-size: 12px;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.eta-display .val {
+  font-family: "Cambria Math", "Times New Roman", Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  margin: 4px 0;
+}
+.eta-display .interp {
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+/* SS partition bar */
+.ss-bar-container {
+  margin-top: 14px;
+}
+.ss-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.ss-bar {
+  display: flex;
+  height: 28px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.ss-between {
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  transition: width 0.3s ease;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.ss-within {
+  background: #cfd8dc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #37474f;
+  font-size: 12px;
+  font-weight: 600;
+  transition: width 0.3s ease;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Three-scenario gallery */
+.scenario-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 20px 0;
+}
+@media (max-width: 860px) {
+  .scenario-gallery { grid-template-columns: 1fr; }
+}
+.scenario-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.scenario-card .eta-label {
+  font-family: "Cambria Math", serif;
+  font-size: 20px;
+  color: var(--green-dark);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.scenario-card .desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* Worked example */
+.step {
+  background: white;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--green);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+}
+.step-num {
+  display: inline-block;
+  background: var(--green);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 24px;
+  font-weight: 700;
+  font-size: 12px;
+  margin-right: 8px;
+}
+.step-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+  display: inline-block;
+}
+.calc-line {
+  font-family: "Cambria Math", "Times New Roman", Georgia, serif;
+  font-size: 15px;
+  padding: 6px 0;
+  color: var(--text);
+}
+.highlight {
+  background: #fff9c4;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+.final-answer {
+  background: var(--green);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-family: "Cambria Math", serif;
+  font-size: 20px;
+  text-align: center;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+/* Quiz CSS and Interpretation benchmarks removed along with the Interpretation & Quiz tab */
+
+ul.styled {
+  list-style: none;
+  padding-left: 0;
+}
+ul.styled li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 8px;
+}
+ul.styled li::before {
+  content: "▸";
+  color: var(--green);
+  position: absolute;
+  left: 4px;
+  font-weight: 700;
+}
+
+.math-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 6px;
+}
+
+.footer-note {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-light);
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+}
+
+/* SVG plot styling */
+.plot-svg { width: 100%; height: auto; display: block; }
+.plot-svg .axis { stroke: #bdbdbd; stroke-width: 1; }
+.plot-svg .axis-label { font-size: 10px; fill: #666; font-family: inherit; }
+.plot-svg .grand-mean { stroke: #999; stroke-width: 1.2; stroke-dasharray: 4 3; }
+.plot-svg .group-mean { stroke-width: 3; stroke-linecap: round; }
+.plot-svg .group-mean-A { stroke: #2e7d32; }
+.plot-svg .group-mean-B { stroke: #ef6c00; }
+.plot-svg .group-mean-C { stroke: #6a1b9a; }
+.plot-svg .dot-A { fill: #a5d6a7; stroke: #2e7d32; stroke-width: 1; }
+.plot-svg .dot-B { fill: #ffcc80; stroke: #ef6c00; stroke-width: 1; }
+.plot-svg .dot-C { fill: #ce93d8; stroke: #6a1b9a; stroke-width: 1; }
+.plot-svg .group-label { font-size: 11px; fill: #555; font-family: inherit; text-anchor: middle; font-weight: 500; }
+.plot-svg .eta-text { font-size: 14px; fill: var(--green-dark); font-weight: 700; font-family: "Cambria Math", serif; text-anchor: middle; }
+.plot-svg .deviation-between { stroke: var(--green); stroke-width: 1.5; stroke-dasharray: 2 2; opacity: 0.8; }
+.plot-svg .deviation-within { stroke: #90a4ae; stroke-width: 0.8; opacity: 0.6; }
+
+.legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 16px; height: 3px; border-radius: 2px; }
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid; }
+
+.toggle-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.toggle-btn {
+  background: white;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text-muted);
+}
+.toggle-btn.active {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>Eta-Squared (η²)</h1>
+    <div class="subtitle">An interactive explainer — effect size for categorical → numerical associations</div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <button class="tab-btn active" data-tab="overview">1. Overview</button>
+    <button class="tab-btn" data-tab="theory">2. Theoretical Background</button>
+    <button class="tab-btn" data-tab="visual">3. Visual Intuition</button>
+    <button class="tab-btn" data-tab="calculator">4. Interactive Calculator</button>
+    <button class="tab-btn" data-tab="example">5. Worked Example</button>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+
+    <!-- ============ OVERVIEW ============ -->
+    <section class="section active" id="overview">
+      <h2>What is Eta-Squared?</h2>
+      <p class="lead">
+        Eta-squared (<span class="formula-inline">η²</span>) measures how much of the variance in a numerical variable
+        is explained by a categorical variable. It is one of the most widely used <strong>effect-size</strong>
+        measures in statistics and machine learning feature analysis.
+      </p>
+
+      <div class="grid-2">
+        <div class="card green">
+          <h3 style="margin-top:0">The core question</h3>
+          <p>
+            <em>"If I know which group a sample belongs to, how much better can I predict its numerical value?"</em>
+          </p>
+          <ul class="styled" style="margin-top:10px">
+            <li><strong>η² = 0</strong> → knowing the group tells us <em>nothing</em> new</li>
+            <li><strong>η² = 1</strong> → knowing the group tells us <em>everything</em></li>
+            <li>In between → category partially explains the variation</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">Why it matters in ML</h3>
+          <ul class="styled">
+            <li><strong>Feature selection</strong> — score categorical features against numerical targets</li>
+            <li><strong>EDA</strong> — quickly spot meaningful group differences before modelling</li>
+            <li><strong>ANOVA companion</strong> — complements the F-test with a scale-free effect size</li>
+            <li><strong>Communication</strong> — a single number in [0, 1] that stakeholders can grasp</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>The key formula at a glance</h3>
+      <div class="formula">
+        <span class="label">Eta-squared as a ratio of sums of squares</span>
+        η² =
+        <span class="frac">
+          <span class="num">SS<span class="sub">between</span></span>
+          <span class="den">SS<span class="sub">total</span></span>
+        </span>
+        =
+        <span class="frac">
+          <span class="num">variance explained by the category</span>
+          <span class="den">total variance in the data</span>
+        </span>
+      </div>
+
+      <div class="card amber">
+        <h4 style="margin-top:0; color:#ef6c00">🎯 What you'll be able to do after this app</h4>
+        <ul class="styled" style="margin-top:6px">
+          <li>Derive η² from the ANOVA variance decomposition</li>
+          <li>Compute it by hand from a small data table</li>
+          <li>Feel why tight clusters with far-apart means give high η²</li>
+          <li>Interpret η² using Cohen's benchmarks (0.01 / 0.06 / 0.14)</li>
+          <li>Know the limitations — bias, non-linearity, sample size</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ THEORY ============ -->
+    <section class="section" id="theory">
+      <h2>Theoretical Background</h2>
+      <p class="lead">
+        η² lives inside the <strong>ANOVA</strong> (Analysis of Variance) framework. Everything flows from
+        one elegant identity: the total variation in the data splits cleanly into a <em>between-group</em>
+        piece and a <em>within-group</em> piece.
+      </p>
+
+      <h3>Setup &amp; notation</h3>
+      <div class="card">
+        <p>Suppose we have a numerical response <span class="formula-inline">y</span> and a categorical predictor with
+        <span class="formula-inline">k</span> levels (groups). For group <span class="formula-inline">i</span>:</p>
+        <ul class="styled">
+          <li><span class="formula-inline">y<span class="sub">ij</span></span> — the <span class="formula-inline">j</span>-th observation in group <span class="formula-inline">i</span></li>
+          <li><span class="formula-inline">n<span class="sub">i</span></span> — number of observations in group <span class="formula-inline">i</span></li>
+          <li><span class="formula-inline">ȳ<span class="sub">i</span></span> — mean of group <span class="formula-inline">i</span> (group mean)</li>
+          <li><span class="formula-inline">ȳ</span> — mean of <em>all</em> observations (grand mean)</li>
+          <li><span class="formula-inline">N = Σ n<span class="sub">i</span></span> — total sample size</li>
+        </ul>
+      </div>
+
+      <h3>The variance decomposition identity</h3>
+      <p>
+        Every single observation's deviation from the grand mean can be split into two parts:
+      </p>
+      <div class="formula">
+        <span class="label">Deviation decomposition for a single point</span>
+        (y<span class="sub">ij</span> − ȳ) &nbsp;=&nbsp; (ȳ<span class="sub">i</span> − ȳ) &nbsp;+&nbsp; (y<span class="sub">ij</span> − ȳ<span class="sub">i</span>)
+      </div>
+      <p style="font-size:14px; color:var(--text-muted); text-align:center; margin-top:-4px">
+        <em>total deviation &nbsp;=&nbsp; between-group part &nbsp;+&nbsp; within-group part</em>
+      </p>
+
+      <p>Squaring and summing over all points, the cross-term vanishes (because group deviations sum to zero inside each group), and we get the <strong>sum-of-squares identity</strong>:</p>
+
+      <div class="formula" style="font-size:20px">
+        <span class="label">The fundamental ANOVA identity</span>
+        SS<span class="sub">total</span> &nbsp;=&nbsp; SS<span class="sub">between</span> &nbsp;+&nbsp; SS<span class="sub">within</span>
+      </div>
+
+      <h3>Each sum of squares, explicitly</h3>
+      <div class="grid-3">
+        <div class="card">
+          <h4 style="margin-top:0">Total SS</h4>
+          <div class="formula" style="margin:6px 0; font-size:15px; padding:10px">
+            SS<span class="sub">T</span> = <span class="sigma">Σ</span><span class="sub">i,j</span> (y<span class="sub">ij</span> − ȳ)<span class="sup">2</span>
+          </div>
+          <p style="font-size:13px; margin-bottom:0">Total variation of all points around the <strong>grand mean</strong>.</p>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0; color:#2e7d32">Between SS</h4>
+          <div class="formula" style="margin:6px 0; font-size:15px; padding:10px">
+            SS<span class="sub">B</span> = <span class="sigma">Σ</span><span class="sub">i</span> n<span class="sub">i</span> (ȳ<span class="sub">i</span> − ȳ)<span class="sup">2</span>
+          </div>
+          <p style="font-size:13px; margin-bottom:0">Variation of the <strong>group means</strong> around the grand mean — "explained" variance.</p>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0; color:#546e7a">Within SS</h4>
+          <div class="formula" style="margin:6px 0; font-size:15px; padding:10px">
+            SS<span class="sub">W</span> = <span class="sigma">Σ</span><span class="sub">i,j</span> (y<span class="sub">ij</span> − ȳ<span class="sub">i</span>)<span class="sup">2</span>
+          </div>
+          <p style="font-size:13px; margin-bottom:0">Variation of points around their <strong>own group mean</strong> — "residual" / unexplained variance.</p>
+        </div>
+      </div>
+
+      <h3>Eta-squared definition</h3>
+      <div class="formula" style="font-size:22px">
+        <span class="label">Definition</span>
+        η² &nbsp;=&nbsp;
+        <span class="frac">
+          <span class="num">SS<span class="sub">between</span></span>
+          <span class="den">SS<span class="sub">total</span></span>
+        </span>
+        &nbsp;=&nbsp; 1 −
+        <span class="frac">
+          <span class="num">SS<span class="sub">within</span></span>
+          <span class="den">SS<span class="sub">total</span></span>
+        </span>
+      </div>
+
+      <div class="card green">
+        <h4 style="margin-top:0">Key properties</h4>
+        <ul class="styled">
+          <li><strong>Bounded:</strong> 0 ≤ η² ≤ 1</li>
+          <li><strong>Scale-free:</strong> invariant to linear rescaling of y</li>
+          <li><strong>Symmetric interpretation:</strong> η² = R² of a one-hot ANOVA regression</li>
+          <li><strong>Link to F-statistic:</strong> &nbsp;F = <span class="frac"><span class="num">η² / (k−1)</span><span class="den">(1 − η²) / (N − k)</span></span></li>
+        </ul>
+      </div>
+
+      <div class="card amber">
+        <h4 style="margin-top:0; color:#ef6c00">⚠ Important caveats</h4>
+        <ul class="styled">
+          <li><strong>Positive bias in small samples</strong> — η² overestimates the true population effect; <span class="formula-inline">ω²</span> or <span class="formula-inline">η<span class="sub">adj</span>²</span> correct for this.</li>
+          <li><strong>Linear, monotone view of "association"</strong> — only captures differences in means, not in variances or shapes.</li>
+          <li><strong>Assumptions</strong> — classical ANOVA interpretation assumes independence, roughly equal group variances (homoscedasticity), and approximately normal residuals.</li>
+          <li><strong>Dependent on the number of groups</strong> — more groups ⇒ more opportunity to capture structure, can inflate η².</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ VISUAL ============ -->
+    <section class="section" id="visual">
+      <h2>Visual Intuition — Three Scenarios</h2>
+      <p class="lead">
+        The same three groups, the same number of points, the same overall range — but the <em>arrangement</em> changes.
+        Watch where the variance "lives": inside each group, or between the groups?
+      </p>
+
+      <div class="scenario-gallery">
+        <div class="scenario-card">
+          <div class="eta-label">η² ≈ 0.00</div>
+          <div class="desc">No association</div>
+          <svg class="plot-svg" viewBox="0 0 220 240" id="svg-scenario-1"></svg>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:8px">
+            Group means coincide with the grand mean.<br>
+            <strong>All variance is within groups.</strong>
+          </div>
+        </div>
+        <div class="scenario-card">
+          <div class="eta-label">η² ≈ 0.45</div>
+          <div class="desc">Moderate association</div>
+          <svg class="plot-svg" viewBox="0 0 220 240" id="svg-scenario-2"></svg>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:8px">
+            Means differ, but groups overlap.<br>
+            <strong>Variance is split between &amp; within.</strong>
+          </div>
+        </div>
+        <div class="scenario-card">
+          <div class="eta-label">η² ≈ 0.95</div>
+          <div class="desc">Strong association</div>
+          <svg class="plot-svg" viewBox="0 0 220 240" id="svg-scenario-3"></svg>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:8px">
+            Tight clusters at very different levels.<br>
+            <strong>Nearly all variance is between groups.</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#a5d6a7; border-color:#2e7d32"></div> Group A</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ffcc80; border-color:#ef6c00"></div> Group B</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ce93d8; border-color:#6a1b9a"></div> Group C</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#999"></div> Grand mean (dashed)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#2e7d32; height:4px"></div> Group means (solid)</div>
+      </div>
+
+      <h3 style="margin-top:28px">Reading the plots</h3>
+      <div class="card green">
+        <p style="margin-bottom:6px"><strong>Look at two distances for each point:</strong></p>
+        <ul class="styled">
+          <li>Distance from the <em>grand mean</em> (dashed line) → contributes to <span class="formula-inline">SS<span class="sub">total</span></span></li>
+          <li>Distance from its <em>group mean</em> (solid colored bar) → contributes to <span class="formula-inline">SS<span class="sub">within</span></span></li>
+          <li>Distance from group mean to grand mean → contributes to <span class="formula-inline">SS<span class="sub">between</span></span></li>
+        </ul>
+        <p style="margin-top:10px; margin-bottom:0">
+          η² is just the proportion of the total squared distance that is "captured" by the group-mean shifts.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ CALCULATOR ============ -->
+    <section class="section" id="calculator">
+      <h2>Interactive Calculator</h2>
+      <p class="lead">
+        Drag the sliders to reposition the three groups and adjust the within-group spread. Watch η²,
+        the sums of squares, and the variance partition update in real time.
+      </p>
+
+      <div class="calc-layout">
+        <div class="controls">
+          <h3 style="margin-top:0">Controls</h3>
+
+          <div class="slider-row">
+            <label><span style="color:#2e7d32">■</span> Mean of Group A &nbsp;(μ<sub>A</sub>) <span class="val" id="val-mA">30</span></label>
+            <input type="range" class="slider-A" id="mA" min="10" max="90" value="30" step="1">
+          </div>
+          <div class="slider-row">
+            <label><span style="color:#ef6c00">■</span> Mean of Group B &nbsp;(μ<sub>B</sub>) <span class="val" id="val-mB">50</span></label>
+            <input type="range" class="slider-B" id="mB" min="10" max="90" value="50" step="1">
+          </div>
+          <div class="slider-row">
+            <label><span style="color:#6a1b9a">■</span> Mean of Group C &nbsp;(μ<sub>C</sub>) <span class="val" id="val-mC">70</span></label>
+            <input type="range" class="slider-C" id="mC" min="10" max="90" value="70" step="1">
+          </div>
+          <div class="slider-row">
+            <label>Within-group spread &nbsp;(σ) <span class="val" id="val-sd">8</span></label>
+            <input type="range" id="sd" min="1" max="25" value="8" step="1">
+          </div>
+          <div class="slider-row">
+            <label>Points per group &nbsp;(n) <span class="val" id="val-n">8</span></label>
+            <input type="range" id="n" min="3" max="15" value="8" step="1">
+          </div>
+
+          <h4>Quick presets</h4>
+          <div class="preset-row">
+            <button class="preset-btn" data-preset="none">No effect</button>
+            <button class="preset-btn" data-preset="small">Small</button>
+            <button class="preset-btn" data-preset="medium">Medium</button>
+            <button class="preset-btn" data-preset="large">Large</button>
+            <button class="preset-btn" data-preset="huge">Near 1</button>
+          </div>
+
+          <h4>Show</h4>
+          <div class="toggle-row">
+            <button class="toggle-btn active" id="tog-between">Between-group dashes</button>
+            <button class="toggle-btn" id="tog-within">Within-group ticks</button>
+          </div>
+        </div>
+
+        <div class="viz-panel">
+          <svg class="plot-svg" viewBox="0 0 300 260" id="svg-calc"></svg>
+
+          <div class="eta-display">
+            <div class="lbl">Eta-squared</div>
+            <div class="val" id="eta-val">0.625</div>
+            <div class="interp" id="eta-interp">Large effect</div>
+          </div>
+
+          <div class="readout">
+            <div class="readout-box">
+              <div class="lbl">SS<sub>between</sub></div>
+              <div class="val" id="ss-b">—</div>
+            </div>
+            <div class="readout-box">
+              <div class="lbl">SS<sub>within</sub></div>
+              <div class="val" id="ss-w">—</div>
+            </div>
+            <div class="readout-box">
+              <div class="lbl">SS<sub>total</sub></div>
+              <div class="val" id="ss-t">—</div>
+            </div>
+          </div>
+
+          <div class="ss-bar-container">
+            <div class="ss-bar-label">
+              <span>Variance partition</span>
+              <span>SS<sub>between</sub> / SS<sub>total</sub> = η²</span>
+            </div>
+            <div class="ss-bar">
+              <div class="ss-between" id="bar-between" style="width:62.5%">between 62.5%</div>
+              <div class="ss-within" id="bar-within" style="width:37.5%">within 37.5%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card green" style="margin-top:20px">
+        <h4 style="margin-top:0">Things to try</h4>
+        <ul class="styled">
+          <li>Set all three group means equal → watch η² drop toward 0.</li>
+          <li>Spread the means apart while keeping σ small → η² climbs toward 1.</li>
+          <li>Keep means fixed and increase σ → η² falls (within-group noise drowns the signal).</li>
+          <li>Increase <em>n</em> with fixed means &amp; σ → η² is roughly stable (it is a proportion, not a sum).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ WORKED EXAMPLE ============ -->
+    <section class="section" id="example">
+      <h2>Worked Example — η² between two columns</h2>
+      <p class="lead">
+        Imagine a DataFrame with two columns: one <strong>categorical</strong> (<code>department</code>) and one
+        <strong>numerical</strong> (<code>salary_k</code>). We want to quantify how strongly the department
+        explains the salary variation — a typical feature-analysis task. Let's compute η² step by step.
+      </p>
+
+      <h3>The dataset — two columns, 9 rows</h3>
+      <div class="grid-2">
+        <div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:15%">index</th>
+                <th>department&nbsp;<span style="font-weight:400; opacity:0.8">(categorical)</span></th>
+                <th>salary_k&nbsp;<span style="font-weight:400; opacity:0.8">(numerical)</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>0</td><td class="cat-A">Sales</td><td>35</td></tr>
+              <tr><td>1</td><td class="cat-A">Sales</td><td>40</td></tr>
+              <tr><td>2</td><td class="cat-A">Sales</td><td>45</td></tr>
+              <tr><td>3</td><td class="cat-B">Engineering</td><td>55</td></tr>
+              <tr><td>4</td><td class="cat-B">Engineering</td><td>60</td></tr>
+              <tr><td>5</td><td class="cat-B">Engineering</td><td>65</td></tr>
+              <tr><td>6</td><td class="cat-C">HR</td><td>45</td></tr>
+              <tr><td>7</td><td class="cat-C">HR</td><td>50</td></tr>
+              <tr><td>8</td><td class="cat-C">HR</td><td>55</td></tr>
+            </tbody>
+          </table>
+          <p class="math-note" style="text-align:center">N = 9 rows, k = 3 distinct categories</p>
+        </div>
+        <div class="card green" style="margin-bottom:0">
+          <h4 style="margin-top:0">Our goal</h4>
+          <p style="margin-bottom:10px">
+            Compute η²(<code>department</code>, <code>salary_k</code>) — the fraction of the salary variance
+            explained by department membership.
+          </p>
+          <p style="margin-bottom:10px"><strong>Plan:</strong></p>
+          <ul class="styled" style="font-size:13px">
+            <li>Split the numerical column by the categorical column</li>
+            <li>Get each group's size n<sub>i</sub> and mean ȳ<sub>i</sub></li>
+            <li>Get the grand mean ȳ (over all 9 rows)</li>
+            <li>Compute the <strong>between-group variation</strong> B</li>
+            <li>Compute the <strong>total variation</strong> T</li>
+            <li>η² = B / T</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span><span class="step-title">Group the numerical column by the category</span>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px">
+          Conceptually: <code style="font-size:12px">df.groupby('department')['salary_k']</code>
+        </p>
+        <table style="margin-top:10px">
+          <thead>
+            <tr>
+              <th>department</th>
+              <th>values of salary_k</th>
+              <th>size n<sub>i</sub></th>
+              <th>group mean ȳ<sub>i</sub></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="cat-A">Sales</td>
+              <td>35, 40, 45</td>
+              <td>3</td>
+              <td class="cat-A">(35+40+45)/3 = <strong>40</strong></td>
+            </tr>
+            <tr>
+              <td class="cat-B">Engineering</td>
+              <td>55, 60, 65</td>
+              <td>3</td>
+              <td class="cat-B">(55+60+65)/3 = <strong>60</strong></td>
+            </tr>
+            <tr>
+              <td class="cat-C">HR</td>
+              <td>45, 50, 55</td>
+              <td>3</td>
+              <td class="cat-C">(45+50+55)/3 = <strong>50</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span><span class="step-title">Compute the grand mean ȳ</span>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px">
+          Average of <strong>all 9 values</strong> in the numerical column, ignoring the category.
+        </p>
+        <div class="calc-line">
+          ȳ = (35 + 40 + 45 + 55 + 60 + 65 + 45 + 50 + 55) / 9
+        </div>
+        <div class="calc-line">
+          &nbsp;&nbsp;= 450 / 9 = <span class="highlight">50.0</span>
+        </div>
+        <p class="math-note">
+          Equivalent check with group means: ȳ = (3·40 + 3·60 + 3·50) / 9 = 450/9 = 50 ✓
+        </p>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span><span class="step-title">Compute the <em>between-group variation</em> B</span>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px">
+          How much does each group's mean deviate from the overall mean? Square those deviations and
+          weight by group size.
+        </p>
+        <div class="calc-line">B = Σ<sub>i</sub> n<sub>i</sub> (ȳ<sub>i</sub> − ȳ)²</div>
+        <table style="margin-top:10px">
+          <thead>
+            <tr>
+              <th>department</th>
+              <th>ȳ<sub>i</sub></th>
+              <th>ȳ<sub>i</sub> − ȳ</th>
+              <th>(ȳ<sub>i</sub> − ȳ)²</th>
+              <th>n<sub>i</sub>·(ȳ<sub>i</sub> − ȳ)²</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="cat-A">Sales</td>
+              <td>40</td><td>40 − 50 = −10</td><td>100</td>
+              <td><strong>3·100 = 300</strong></td>
+            </tr>
+            <tr>
+              <td class="cat-B">Engineering</td>
+              <td>60</td><td>60 − 50 = +10</td><td>100</td>
+              <td><strong>3·100 = 300</strong></td>
+            </tr>
+            <tr>
+              <td class="cat-C">HR</td>
+              <td>50</td><td>50 − 50 = &nbsp;&nbsp;0</td><td>0</td>
+              <td><strong>3·0 = 0</strong></td>
+            </tr>
+            <tr style="font-weight:700; background:#c8e6c9 !important">
+              <td colspan="4" style="text-align:right">Σ =</td>
+              <td>600</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="calc-line" style="margin-top:10px">B = 300 + 300 + 0 = <span class="highlight">600</span></div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">4</span><span class="step-title">Compute the <em>total variation</em> T</span>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px">
+          How much does each single value deviate from the grand mean? Square and sum over all 9 rows —
+          the category is ignored here.
+        </p>
+        <div class="calc-line">T = Σ (y − ȳ)²</div>
+        <table style="margin-top:10px">
+          <thead>
+            <tr>
+              <th>salary_k (y)</th>
+              <th>y − ȳ</th>
+              <th>(y − ȳ)²</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>35</td><td>−15</td><td>225</td></tr>
+            <tr><td>40</td><td>−10</td><td>100</td></tr>
+            <tr><td>45</td><td>&nbsp;−5</td><td>25</td></tr>
+            <tr><td>55</td><td>&nbsp;+5</td><td>25</td></tr>
+            <tr><td>60</td><td>+10</td><td>100</td></tr>
+            <tr><td>65</td><td>+15</td><td>225</td></tr>
+            <tr><td>45</td><td>&nbsp;−5</td><td>25</td></tr>
+            <tr><td>50</td><td>&nbsp;&nbsp;0</td><td>0</td></tr>
+            <tr><td>55</td><td>&nbsp;+5</td><td>25</td></tr>
+            <tr style="font-weight:700; background:#c8e6c9 !important">
+              <td colspan="2" style="text-align:right">Σ =</td>
+              <td>750</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="calc-line" style="margin-top:10px">T = <span class="highlight">750</span></div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">5</span><span class="step-title">Compute η²</span>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px">
+          η² is simply the ratio — the fraction of the total variation that is captured by the group-mean shifts.
+        </p>
+        <div class="calc-line" style="font-size:17px; margin-top:10px">
+          η² =
+          <span class="frac">
+            <span class="num">B</span>
+            <span class="den">T</span>
+          </span>
+          =
+          <span class="frac">
+            <span class="num">between-group variation</span>
+            <span class="den">total variation</span>
+          </span>
+          =
+          <span class="frac">
+            <span class="num">600</span>
+            <span class="den">750</span>
+          </span>
+          = <strong>0.80</strong>
+        </div>
+        <div class="final-answer">
+          η²(department, salary_k) = 0.80 &nbsp;&nbsp;→&nbsp;&nbsp; 80% of the salary variation is captured by department
+        </div>
+      </div>
+
+      <div class="card green" style="margin-top:16px">
+        <h4 style="margin-top:0">The same computation in Python</h4>
+        <pre style="background:white; border:1px solid var(--border); border-radius:6px; padding:12px; font-family: 'Consolas', 'Monaco', monospace; font-size:13px; overflow-x:auto; line-height:1.5; color:var(--text)"><span style="color:#6a1b9a">import</span> pandas <span style="color:#6a1b9a">as</span> pd
+
+df = pd.DataFrame({
+    <span style="color:#2e7d32">'department'</span>: [<span style="color:#2e7d32">'Sales'</span>]*<span style="color:#ef6c00">3</span> + [<span style="color:#2e7d32">'Engineering'</span>]*<span style="color:#ef6c00">3</span> + [<span style="color:#2e7d32">'HR'</span>]*<span style="color:#ef6c00">3</span>,
+    <span style="color:#2e7d32">'salary_k'</span>:   [<span style="color:#ef6c00">35, 40, 45, 55, 60, 65, 45, 50, 55</span>],
+})
+
+y          = df[<span style="color:#2e7d32">'salary_k'</span>]
+grand_mean = y.mean()                                   <span style="color:#777"># 50.0</span>
+group_mean = df.groupby(<span style="color:#2e7d32">'department'</span>)[<span style="color:#2e7d32">'salary_k'</span>].transform(<span style="color:#2e7d32">'mean'</span>)
+
+between = ((group_mean - grand_mean) ** <span style="color:#ef6c00">2</span>).sum()        <span style="color:#777"># 600.0</span>
+total   = ((y          - grand_mean) ** <span style="color:#ef6c00">2</span>).sum()        <span style="color:#777"># 750.0</span>
+
+eta_squared = between / total                           <span style="color:#777"># 0.80</span></pre>
+      </div>
+    </section>
+
+    
+  </div>
+</main>
+
+<script>
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+// ============================================================
+// DETERMINISTIC POINT GENERATOR (seeded pseudo-random)
+// ============================================================
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = seed;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function boxMuller(rng) {
+  // returns standard normal using Box-Muller
+  let u = 0, v = 0;
+  while (u === 0) u = rng();
+  while (v === 0) v = rng();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function generateGroup(mean, sd, n, seed) {
+  const rng = mulberry32(seed);
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    pts.push(mean + sd * boxMuller(rng));
+  }
+  // center exactly around desired mean to reduce sampling noise visual issues
+  const currentMean = pts.reduce((a,b)=>a+b,0) / pts.length;
+  const shift = mean - currentMean;
+  return pts.map(p => p + shift);
+}
+
+// ============================================================
+// ETA-SQUARED COMPUTATION
+// ============================================================
+function computeEta(groups) {
+  const allPoints = groups.flat();
+  const N = allPoints.length;
+  const grandMean = allPoints.reduce((a,b)=>a+b,0) / N;
+
+  let ssBetween = 0, ssWithin = 0;
+  groups.forEach(g => {
+    const gMean = g.reduce((a,b)=>a+b,0) / g.length;
+    ssBetween += g.length * Math.pow(gMean - grandMean, 2);
+    g.forEach(y => { ssWithin += Math.pow(y - gMean, 2); });
+  });
+  const ssTotal = ssBetween + ssWithin;
+  const eta = ssTotal === 0 ? 0 : ssBetween / ssTotal;
+  return {ssBetween, ssWithin, ssTotal, eta, grandMean};
+}
+
+// ============================================================
+// RENDER SCENARIO PLOTS (Tab 3 — three small multiples)
+// ============================================================
+function renderScenario(svgId, groupMeans, sd, n, seeds, showLabels=true) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  const W = 220, H = 240;
+  const marginTop = 14, marginBottom = 30;
+  const marginLeft = 28, marginRight = 10;
+  const plotH = H - marginTop - marginBottom;
+
+  const groups = groupMeans.map((m, i) => generateGroup(m, sd, n, seeds[i]));
+  const all = groups.flat();
+  const grandMean = all.reduce((a,b)=>a+b,0) / all.length;
+
+  // y-axis range — fix at [0, 100] so all 3 plots share a scale
+  const yMin = 0, yMax = 100;
+  const yScale = v => marginTop + plotH * (1 - (v - yMin) / (yMax - yMin));
+
+  const groupX = [
+    marginLeft + (W - marginLeft - marginRight) * 0.2,
+    marginLeft + (W - marginLeft - marginRight) * 0.5,
+    marginLeft + (W - marginLeft - marginRight) * 0.8
+  ];
+  const classes = ['dot-A', 'dot-B', 'dot-C'];
+  const meanClasses = ['group-mean-A', 'group-mean-B', 'group-mean-C'];
+  const labels = ['A', 'B', 'C'];
+
+  const ns = 'http://www.w3.org/2000/svg';
+
+  // y-axis line
+  const axisY = document.createElementNS(ns, 'line');
+  axisY.setAttribute('x1', marginLeft); axisY.setAttribute('x2', marginLeft);
+  axisY.setAttribute('y1', marginTop); axisY.setAttribute('y2', marginTop + plotH);
+  axisY.setAttribute('class', 'axis');
+  svg.appendChild(axisY);
+
+  // y-axis labels
+  ['high', 'low'].forEach((t, i) => {
+    const tx = document.createElementNS(ns, 'text');
+    tx.setAttribute('x', marginLeft - 4);
+    tx.setAttribute('y', i === 0 ? marginTop + 4 : marginTop + plotH);
+    tx.setAttribute('text-anchor', 'end');
+    tx.setAttribute('class', 'axis-label');
+    tx.textContent = t;
+    svg.appendChild(tx);
+  });
+
+  // grand mean line
+  const gm = document.createElementNS(ns, 'line');
+  gm.setAttribute('x1', marginLeft); gm.setAttribute('x2', W - marginRight);
+  gm.setAttribute('y1', yScale(grandMean)); gm.setAttribute('y2', yScale(grandMean));
+  gm.setAttribute('class', 'grand-mean');
+  svg.appendChild(gm);
+
+  // points and group means
+  groups.forEach((g, i) => {
+    const cx = groupX[i];
+    const gMean = g.reduce((a,b)=>a+b,0) / g.length;
+
+    // tiny jitter on x
+    const jitterRng = mulberry32(seeds[i] + 999);
+    g.forEach(y => {
+      const dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('cx', cx + (jitterRng() - 0.5) * 10);
+      dot.setAttribute('cy', yScale(y));
+      dot.setAttribute('r', 3);
+      dot.setAttribute('class', classes[i]);
+      svg.appendChild(dot);
+    });
+
+    // group mean bar
+    const mb = document.createElementNS(ns, 'line');
+    mb.setAttribute('x1', cx - 14); mb.setAttribute('x2', cx + 14);
+    mb.setAttribute('y1', yScale(gMean)); mb.setAttribute('y2', yScale(gMean));
+    mb.setAttribute('class', 'group-mean ' + meanClasses[i]);
+    svg.appendChild(mb);
+
+    // group label
+    if (showLabels) {
+      const lbl = document.createElementNS(ns, 'text');
+      lbl.setAttribute('x', cx);
+      lbl.setAttribute('y', H - marginBottom + 16);
+      lbl.setAttribute('class', 'group-label');
+      lbl.textContent = labels[i];
+      svg.appendChild(lbl);
+    }
+  });
+}
+
+// Render the three scenarios (Tab 3)
+renderScenario('svg-scenario-1', [50, 50, 50], 10, 8, [1, 2, 3]);
+renderScenario('svg-scenario-2', [35, 50, 65], 8, 8, [4, 5, 6]);
+renderScenario('svg-scenario-3', [20, 50, 80], 2.5, 8, [7, 8, 9]);
+
+// ============================================================
+// CALCULATOR (Tab 4)
+// ============================================================
+const sliders = {
+  mA: document.getElementById('mA'),
+  mB: document.getElementById('mB'),
+  mC: document.getElementById('mC'),
+  sd: document.getElementById('sd'),
+  n:  document.getElementById('n')
+};
+const vals = {
+  mA: document.getElementById('val-mA'),
+  mB: document.getElementById('val-mB'),
+  mC: document.getElementById('val-mC'),
+  sd: document.getElementById('val-sd'),
+  n:  document.getElementById('val-n')
+};
+
+let showBetweenLines = true;
+let showWithinLines = false;
+
+document.getElementById('tog-between').addEventListener('click', (e) => {
+  showBetweenLines = !showBetweenLines;
+  e.currentTarget.classList.toggle('active');
+  renderCalc();
+});
+document.getElementById('tog-within').addEventListener('click', (e) => {
+  showWithinLines = !showWithinLines;
+  e.currentTarget.classList.toggle('active');
+  renderCalc();
+});
+
+function renderCalc() {
+  const mA = +sliders.mA.value;
+  const mB = +sliders.mB.value;
+  const mC = +sliders.mC.value;
+  const sd = +sliders.sd.value;
+  const n  = +sliders.n.value;
+
+  vals.mA.textContent = mA;
+  vals.mB.textContent = mB;
+  vals.mC.textContent = mC;
+  vals.sd.textContent = sd;
+  vals.n.textContent  = n;
+
+  const groups = [
+    generateGroup(mA, sd, n, 101),
+    generateGroup(mB, sd, n, 202),
+    generateGroup(mC, sd, n, 303)
+  ];
+  const stats = computeEta(groups);
+
+  // update numeric readouts
+  document.getElementById('ss-b').textContent = stats.ssBetween.toFixed(1);
+  document.getElementById('ss-w').textContent = stats.ssWithin.toFixed(1);
+  document.getElementById('ss-t').textContent = stats.ssTotal.toFixed(1);
+
+  const etaDisp = document.getElementById('eta-val');
+  const etaInterp = document.getElementById('eta-interp');
+  etaDisp.textContent = stats.eta.toFixed(3);
+
+  // interpretation label (Cohen)
+  let interp;
+  if (stats.eta < 0.01) interp = 'Negligible effect';
+  else if (stats.eta < 0.06) interp = 'Small effect';
+  else if (stats.eta < 0.14) interp = 'Medium effect';
+  else if (stats.eta < 0.30) interp = 'Large effect';
+  else interp = 'Very large effect';
+  etaInterp.textContent = interp;
+
+  // variance-partition bar
+  const pctBetween = stats.ssTotal === 0 ? 0 : (stats.ssBetween / stats.ssTotal) * 100;
+  const pctWithin = 100 - pctBetween;
+  const barB = document.getElementById('bar-between');
+  const barW = document.getElementById('bar-within');
+  barB.style.width = pctBetween + '%';
+  barW.style.width = pctWithin + '%';
+  barB.textContent = pctBetween >= 12 ? `between ${pctBetween.toFixed(1)}%` : '';
+  barW.textContent = pctWithin >= 12 ? `within ${pctWithin.toFixed(1)}%` : '';
+
+  // render the plot
+  drawCalcPlot(groups, stats);
+}
+
+function drawCalcPlot(groups, stats) {
+  const svg = document.getElementById('svg-calc');
+  svg.innerHTML = '';
+
+  const W = 300, H = 260;
+  const marginTop = 20, marginBottom = 40;
+  const marginLeft = 38, marginRight = 14;
+  const plotH = H - marginTop - marginBottom;
+
+  const yMin = 0, yMax = 100;
+  const yScale = v => marginTop + plotH * (1 - (v - yMin) / (yMax - yMin));
+
+  const groupX = [
+    marginLeft + (W - marginLeft - marginRight) * 0.2,
+    marginLeft + (W - marginLeft - marginRight) * 0.5,
+    marginLeft + (W - marginLeft - marginRight) * 0.8
+  ];
+  const classes = ['dot-A', 'dot-B', 'dot-C'];
+  const meanClasses = ['group-mean-A', 'group-mean-B', 'group-mean-C'];
+  const labels = ['A', 'B', 'C'];
+  const ns = 'http://www.w3.org/2000/svg';
+
+  // axes
+  const axisY = document.createElementNS(ns, 'line');
+  axisY.setAttribute('x1', marginLeft); axisY.setAttribute('x2', marginLeft);
+  axisY.setAttribute('y1', marginTop); axisY.setAttribute('y2', marginTop + plotH);
+  axisY.setAttribute('class', 'axis');
+  svg.appendChild(axisY);
+
+  const axisX = document.createElementNS(ns, 'line');
+  axisX.setAttribute('x1', marginLeft); axisX.setAttribute('x2', W - marginRight);
+  axisX.setAttribute('y1', marginTop + plotH); axisX.setAttribute('y2', marginTop + plotH);
+  axisX.setAttribute('class', 'axis');
+  svg.appendChild(axisX);
+
+  // y-axis tick labels
+  [0, 25, 50, 75, 100].forEach(v => {
+    const t = document.createElementNS(ns, 'text');
+    t.setAttribute('x', marginLeft - 5);
+    t.setAttribute('y', yScale(v) + 3);
+    t.setAttribute('text-anchor', 'end');
+    t.setAttribute('class', 'axis-label');
+    t.textContent = v;
+    svg.appendChild(t);
+
+    const tick = document.createElementNS(ns, 'line');
+    tick.setAttribute('x1', marginLeft - 3); tick.setAttribute('x2', marginLeft);
+    tick.setAttribute('y1', yScale(v)); tick.setAttribute('y2', yScale(v));
+    tick.setAttribute('class', 'axis');
+    svg.appendChild(tick);
+  });
+
+  // y-axis title
+  const yt = document.createElementNS(ns, 'text');
+  yt.setAttribute('x', 10);
+  yt.setAttribute('y', marginTop + plotH / 2);
+  yt.setAttribute('class', 'axis-label');
+  yt.setAttribute('transform', `rotate(-90, 10, ${marginTop + plotH / 2})`);
+  yt.setAttribute('text-anchor', 'middle');
+  yt.textContent = 'value (y)';
+  svg.appendChild(yt);
+
+  // grand mean line
+  const gm = document.createElementNS(ns, 'line');
+  gm.setAttribute('x1', marginLeft); gm.setAttribute('x2', W - marginRight);
+  gm.setAttribute('y1', yScale(stats.grandMean)); gm.setAttribute('y2', yScale(stats.grandMean));
+  gm.setAttribute('class', 'grand-mean');
+  svg.appendChild(gm);
+
+  // grand mean label
+  const gmLbl = document.createElementNS(ns, 'text');
+  gmLbl.setAttribute('x', W - marginRight - 2);
+  gmLbl.setAttribute('y', yScale(stats.grandMean) - 4);
+  gmLbl.setAttribute('text-anchor', 'end');
+  gmLbl.setAttribute('class', 'axis-label');
+  gmLbl.setAttribute('style', 'font-style:italic');
+  gmLbl.textContent = `ȳ = ${stats.grandMean.toFixed(1)}`;
+  svg.appendChild(gmLbl);
+
+  // draw each group
+  groups.forEach((g, i) => {
+    const cx = groupX[i];
+    const gMean = g.reduce((a,b)=>a+b,0) / g.length;
+
+    // between-group deviation dashes (group mean ↔ grand mean)
+    if (showBetweenLines && Math.abs(gMean - stats.grandMean) > 0.5) {
+      const dev = document.createElementNS(ns, 'line');
+      dev.setAttribute('x1', cx); dev.setAttribute('x2', cx);
+      dev.setAttribute('y1', yScale(gMean));
+      dev.setAttribute('y2', yScale(stats.grandMean));
+      dev.setAttribute('class', 'deviation-between');
+      svg.appendChild(dev);
+    }
+
+    // within-group ticks (each point ↔ group mean)
+    if (showWithinLines) {
+      g.forEach(y => {
+        const w = document.createElementNS(ns, 'line');
+        w.setAttribute('x1', cx - 14);
+        w.setAttribute('x2', cx - 14);
+        w.setAttribute('y1', yScale(y));
+        w.setAttribute('y2', yScale(gMean));
+        w.setAttribute('class', 'deviation-within');
+        svg.appendChild(w);
+      });
+    }
+
+    // jittered dots
+    const jitterRng = mulberry32(i * 100 + 50);
+    g.forEach(y => {
+      const dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('cx', cx + (jitterRng() - 0.5) * 22);
+      dot.setAttribute('cy', yScale(y));
+      dot.setAttribute('r', 3.5);
+      dot.setAttribute('class', classes[i]);
+      svg.appendChild(dot);
+    });
+
+    // group mean bar
+    const mb = document.createElementNS(ns, 'line');
+    mb.setAttribute('x1', cx - 18); mb.setAttribute('x2', cx + 18);
+    mb.setAttribute('y1', yScale(gMean)); mb.setAttribute('y2', yScale(gMean));
+    mb.setAttribute('class', 'group-mean ' + meanClasses[i]);
+    svg.appendChild(mb);
+
+    // group label (below axis)
+    const lbl = document.createElementNS(ns, 'text');
+    lbl.setAttribute('x', cx);
+    lbl.setAttribute('y', marginTop + plotH + 16);
+    lbl.setAttribute('class', 'group-label');
+    lbl.textContent = labels[i];
+    svg.appendChild(lbl);
+
+    // mean value annotation
+    const meanAnn = document.createElementNS(ns, 'text');
+    meanAnn.setAttribute('x', cx);
+    meanAnn.setAttribute('y', marginTop + plotH + 30);
+    meanAnn.setAttribute('class', 'axis-label');
+    meanAnn.setAttribute('text-anchor', 'middle');
+    meanAnn.textContent = `ȳ=${gMean.toFixed(1)}`;
+    svg.appendChild(meanAnn);
+  });
+}
+
+// wire up sliders
+Object.values(sliders).forEach(s => s.addEventListener('input', renderCalc));
+
+// presets
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = btn.dataset.preset;
+    if (p === 'none')   { sliders.mA.value = 50; sliders.mB.value = 50; sliders.mC.value = 50; sliders.sd.value = 10; }
+    if (p === 'small')  { sliders.mA.value = 45; sliders.mB.value = 50; sliders.mC.value = 55; sliders.sd.value = 12; }
+    if (p === 'medium') { sliders.mA.value = 40; sliders.mB.value = 50; sliders.mC.value = 60; sliders.sd.value = 10; }
+    if (p === 'large')  { sliders.mA.value = 30; sliders.mB.value = 50; sliders.mC.value = 70; sliders.sd.value = 8; }
+    if (p === 'huge')   { sliders.mA.value = 20; sliders.mB.value = 50; sliders.mC.value = 80; sliders.sd.value = 3; }
+    renderCalc();
+  });
+});
+
+// initial render
+renderCalc();
+</script>
+</body>
+</html>

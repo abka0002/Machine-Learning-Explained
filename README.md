@@ -10,6 +10,7 @@ A collection of interactive web tools for exploring machine learning algorithms 
 |------|-------------|
 | [Data Preparation & Feature Engineering](https://abka0002.github.io/Machine-Learning-Explained/DataPreparationAndFeatureEngineering/) | Interactive pipeline covering EDA, data types, imputation, scaling, encoding, and feature selection with the Heart Failure dataset |
 | [Linear Regression](https://abka0002.github.io/Machine-Learning-Explained/LinearRegression/) | Simple and multiple Linear regression Deployment |
+| [η² Categorical Numerical Associations](https://abka0002.github.io/Machine-Learning-Explained/CategoricalNumericalAssociations/) | An interactive explainer — effect size for categorical → numerical associations |
 | [Bias and Variance tradeoff](https://abka0002.github.io/Machine-Learning-Explained/BiasAndVariance/) | Bias–Variance & Generalization Explorer |
 | [Grid search and K-Fold Cross Validation](https://abka0002.github.io/Machine-Learning-Explained/GridsearchCrossValidation/) | Discover how GridSearchCV from Scikit-Learn calculates the mean and standard deviation of validation folds to find the best α for a Lasso regression Model, and how refit=True fully leverages your training data. |
 | [Sklearn Pipeline](https://abka0002.github.io/Machine-Learning-Explained/SklearnPipeline/) | Explaining How can sklearn pipeline Chaining preprocessing steps and a model into a single, reproducible workflow. |
