@@ -1862,7 +1862,7 @@ const eigenP3DStd=doPCA3D(eigenData3DStd);
 // SVD (Lecture slides 28-31)
 main.innerHTML+=`<div class="tab-panel" id="panel-svd">
 <h2 class="section-title">Singular Value Decomposition (SVD)</h2>
-<p class="section-lead">SVD is a universal factorization that works for <em>any</em> real matrix. It reveals the hidden geometric structure of a matrix and powers image compression, denoising, recommender systems, the pseudoinverse, latent-semantic indexing, and — of course — PCA.</p>
+<p class="section-lead">SVD is the <strong>Swiss-army knife of linear algebra</strong> — a universal factorization that works for <em>any</em> real matrix. It reveals the hidden geometric structure of a matrix and powers image compression, denoising, recommender systems, the pseudoinverse, latent-semantic indexing, and — of course — PCA.</p>
 
 <!-- ============ WHAT IS SVD ============ -->
 <h3 style="font-family:var(--font-display);font-size:22px;color:var(--heading);margin:28px 0 12px">What is SVD?</h3>
@@ -1939,36 +1939,36 @@ AX_2d = AX[:2, :]                                <span style="color:var(--text-m
 
 <!-- Row 1: X and AX side by side -->
 <div class="control-label" style="margin-bottom:8px;font-size:13px;color:var(--text-muted)">Row 1 &nbsp;·&nbsp; Direct multiplication A · X</div>
-<div class="flex-row" style="gap:8px;margin-bottom:6px;flex-wrap:nowrap;align-items:flex-start">
-  <div style="flex:1;min-width:360px;max-width:500px">
+<div class="flex-row" style="gap:12px;margin-bottom:10px;flex-wrap:wrap;align-items:flex-start">
+  <div style="flex:1;min-width:320px;max-width:520px">
     <div class="control-label" style="text-align:center;margin-bottom:4px;font-size:13px">X &nbsp;(unit circle)</div>
-    <div class="plot-wrap" style="padding:4px"><svg id="svd-g1" width="440" height="440" style="display:block;margin:0 auto"></svg></div>
+    <div class="plot-wrap" style="padding:4px"><svg id="svd-g1" width="440" height="440" viewBox="0 0 440 440" style="display:block;margin:0 auto;max-width:100%;height:auto"></svg></div>
   </div>
   <div style="display:flex;align-items:center;font-size:28px;color:var(--green-600);padding-top:195px;font-weight:700">→</div>
-  <div style="flex:1;min-width:360px;max-width:500px">
+  <div style="flex:1;min-width:320px;max-width:520px">
     <div class="control-label" style="text-align:center;margin-bottom:4px;font-size:13px">A · X &nbsp;(x₁, x₂ projection)</div>
-    <div class="plot-wrap" style="padding:4px"><svg id="svd-g2" width="440" height="440" style="display:block;margin:0 auto"></svg></div>
+    <div class="plot-wrap" style="padding:4px"><svg id="svd-g2" width="440" height="440" viewBox="0 0 440 440" style="display:block;margin:0 auto;max-width:100%;height:auto"></svg></div>
   </div>
 </div>
 
 <!-- Row 2: V^T X → S V^T X → U S V^T X -->
 <div class="control-label" style="margin:16px 0 8px;font-size:13px;color:var(--text-muted)">Row 2 &nbsp;·&nbsp; SVD decomposition &nbsp; V<sup>T</sup> → S → U &nbsp; (should produce the same ellipse as A · X)</div>
 <div class="flex-row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-start">
-  <div style="flex:1;min-width:300px">
+  <div style="flex:1;min-width:280px">
     <div class="control-label" style="text-align:center;margin-bottom:4px;font-size:12px">V<sup>T</sup> · X</div>
-    <div class="plot-wrap" style="padding:4px"><svg id="svd-g3" width="380" height="380" style="display:block;margin:0 auto"></svg></div>
+    <div class="plot-wrap" style="padding:4px"><svg id="svd-g3" width="380" height="380" viewBox="0 0 380 380" style="display:block;margin:0 auto;max-width:100%;height:auto"></svg></div>
     <div style="font-family:var(--font-mono);font-size:11px;text-align:center;color:var(--text-muted);margin-top:4px">rotated circle</div>
   </div>
   <div style="display:flex;align-items:center;font-size:22px;color:var(--green-600);padding-top:170px;font-weight:700">→</div>
-  <div style="flex:1;min-width:300px">
+  <div style="flex:1;min-width:280px">
     <div class="control-label" style="text-align:center;margin-bottom:4px;font-size:12px">S · V<sup>T</sup> · X</div>
-    <div class="plot-wrap" style="padding:4px"><svg id="svd-g4" width="380" height="380" style="display:block;margin:0 auto"></svg></div>
+    <div class="plot-wrap" style="padding:4px"><svg id="svd-g4" width="380" height="380" viewBox="0 0 380 380" style="display:block;margin:0 auto;max-width:100%;height:auto"></svg></div>
     <div style="font-family:var(--font-mono);font-size:11px;text-align:center;color:var(--text-muted);margin-top:4px">stretched ellipse</div>
   </div>
   <div style="display:flex;align-items:center;font-size:22px;color:var(--green-600);padding-top:170px;font-weight:700">→</div>
-  <div style="flex:1;min-width:300px">
+  <div style="flex:1;min-width:280px">
     <div class="control-label" style="text-align:center;margin-bottom:4px;font-size:12px">U · S · V<sup>T</sup> · X &nbsp;= A · X</div>
-    <div class="plot-wrap" style="padding:4px"><svg id="svd-g5" width="380" height="380" style="display:block;margin:0 auto"></svg></div>
+    <div class="plot-wrap" style="padding:4px"><svg id="svd-g5" width="380" height="380" viewBox="0 0 380 380" style="display:block;margin:0 auto;max-width:100%;height:auto"></svg></div>
     <div style="font-family:var(--font-mono);font-size:11px;text-align:center;color:var(--text-muted);margin-top:4px">same as A · X ✓</div>
   </div>
 </div>
@@ -2707,8 +2707,6 @@ function drawSvdPanel(svgId, transformFn, maxR, opts){
   }
 
   // Special tracked points: origin, e1=(1,0), e2=(0,1)
-  // Smart label placement: avoid overlaps by computing all positions first,
-  // then nudging colliding labels apart.
   const specials = [
     { x:0, y:0, col:'#2e7d32', label:'O',  idx:0 },
     { x:1, y:0, col:'#d32f2f', label:'e₁', idx:1 },
@@ -2722,123 +2720,124 @@ function drawSvdPanel(svgId, transformFn, maxR, opts){
     return { tx, ty, px: toPx(tx, ty) };
   });
 
-  // --- Arrows from transformed origin to transformed e₁ and e₂ ---
-  const [ox, oy] = tPts[0].px;   // transformed origin in px
-  const arrowDefs = [
-    { pt: tPts[1], col: '#d32f2f' },   // origin → e₁
-    { pt: tPts[2], col: '#1565c0' },   // origin → e₂
-  ];
-  arrowDefs.forEach(({ pt, col }) => {
+  // --- Arrows from origin to e₁ and e₂ ---
+  const [ox, oy] = tPts[0].px;
+  [{ pt: tPts[1], col: '#d32f2f' }, { pt: tPts[2], col: '#1565c0' }].forEach(({ pt, col }) => {
     const [ex, ey] = pt.px;
     const len = Math.hypot(ex - ox, ey - oy);
-    if (len < 3) return;  // skip degenerate arrows (e.g. origin maps to origin)
-    // Shaft
+    if (len < 3) return;
     const shaft = document.createElementNS(ns, 'line');
     shaft.setAttribute('x1', ox); shaft.setAttribute('y1', oy);
     shaft.setAttribute('x2', ex); shaft.setAttribute('y2', ey);
-    shaft.setAttribute('stroke', col);
-    shaft.setAttribute('stroke-width', 2.5);
-    shaft.setAttribute('stroke-linecap', 'round');
-    shaft.setAttribute('opacity', '0.85');
+    shaft.setAttribute('stroke', col); shaft.setAttribute('stroke-width', 2.5);
+    shaft.setAttribute('stroke-linecap', 'round'); shaft.setAttribute('opacity', '0.85');
     svg.appendChild(shaft);
-    // Arrowhead
     const ang = Math.atan2(ey - oy, ex - ox);
-    const aL = Math.min(12, len * 0.3);  // head size, capped
-    const a1x = ex - aL * Math.cos(ang - 0.38);
-    const a1y = ey - aL * Math.sin(ang - 0.38);
-    const a2x = ex - aL * Math.cos(ang + 0.38);
-    const a2y = ey - aL * Math.sin(ang + 0.38);
+    const aL = Math.min(12, len * 0.3);
     const head = document.createElementNS(ns, 'polygon');
-    head.setAttribute('points', ex+','+ey+' '+a1x+','+a1y+' '+a2x+','+a2y);
-    head.setAttribute('fill', col);
-    head.setAttribute('opacity', '0.85');
+    head.setAttribute('points',
+      ex+','+ey+' '+
+      (ex - aL*Math.cos(ang-0.38))+','+(ey - aL*Math.sin(ang-0.38))+' '+
+      (ex - aL*Math.cos(ang+0.38))+','+(ey - aL*Math.sin(ang+0.38)));
+    head.setAttribute('fill', col); head.setAttribute('opacity', '0.85');
     svg.appendChild(head);
   });
 
-  // For each point, pick a label placement quadrant that avoids the curve
-  // and other labels.  We try 8 candidate offsets and pick the one furthest
-  // from other label anchors.
-  const labelR = 16;   // px offset from dot centre
-  const candidates = [
-    [labelR, -labelR],  [labelR, 0],  [labelR, labelR],     // right
-    [-labelR, -labelR], [-labelR, 0], [-labelR, labelR],    // left
-    [0, -labelR-4],     [0, labelR+4],                       // top / bottom
-  ];
-  const chosenOffsets = tPts.map((pt, i) => {
-    let best = candidates[0], bestDist = -1;
-    candidates.forEach(([cdx, cdy]) => {
-      const lx = pt.px[0] + cdx, ly = pt.px[1] + cdy;
-      // Penalise going out of bounds
-      if (lx < 8 || lx > W-8 || ly < 8 || ly > H-8) return;
-      // Distance to other label positions (use their dot positions as proxy)
-      let minDist = Infinity;
-      tPts.forEach((other, j) => {
-        if (i === j) return;
-        const d = Math.hypot(lx - other.px[0], ly - other.px[1]);
-        minDist = Math.min(minDist, d);
-      });
-      if (minDist > bestDist) { bestDist = minDist; best = [cdx, cdy]; }
-    });
-    return best;
+  // --- Annotation labels with robust placement ---
+  // Build label text and approximate bounding box for each point
+  const labels = specials.map(({col, label, idx}) => {
+    const {tx, ty} = tPts[idx];
+    const name = label;
+    const coord = '(' + fmt2(tx) + ', ' + fmt2(ty) + ')';
+    const fullText = showLabels ? name + ' ' + coord : name;
+    const estW = fullText.length * 6.2 + 8;
+    const estH = 16;
+    return { idx, col, name, coord, fullText, estW, estH };
   });
 
-  specials.forEach(({x, y, col, label, idx}) => {
-    const { tx, ty, px: [px, py] } = tPts[idx];
-    // Dot with crisp outline
-    const dot = document.createElementNS(ns,'circle');
-    dot.setAttribute('cx', px); dot.setAttribute('cy', py);
+  // Generate 16 candidate positions around each dot at varying distances
+  const placedBoxes = [];  // [{cx, cy, w, h}] — already-placed label centers
+
+  labels.forEach((lab) => {
+    const {idx, col, fullText, estW, estH} = lab;
+    const [dotX, dotY] = tPts[idx].px;
+
+    // Try 16 angles × 2 radii = 32 candidate positions
+    let bestPos = null, bestScore = -Infinity;
+    for (let ri = 0; ri < 2; ri++){
+      const r = 20 + ri * 14;  // 20px and 34px offsets
+      for (let ai = 0; ai < 16; ai++){
+        const a = (ai / 16) * 2 * Math.PI;
+        const lx = dotX + r * Math.cos(a);
+        const ly = dotY + r * Math.sin(a);
+
+        // Reject if out of bounds (with margin for text width)
+        const hw = estW / 2, hh = estH / 2;
+        if (lx - hw < 4 || lx + hw > W - 4 || ly - hh < 4 || ly + hh > H - 4) continue;
+
+        // Score: distance to other DOTS + distance to other LABELS
+        let score = 0;
+        tPts.forEach((other, j) => {
+          if (j === idx) return;
+          const d = Math.hypot(lx - other.px[0], ly - other.px[1]);
+          score += Math.min(d, 80);  // cap benefit at 80px
+        });
+        // Penalty for overlapping already-placed labels
+        placedBoxes.forEach(box => {
+          const overlapX = Math.max(0, Math.min(lx + hw, box.cx + box.w/2) - Math.max(lx - hw, box.cx - box.w/2));
+          const overlapY = Math.max(0, Math.min(ly + hh, box.cy + box.h/2) - Math.max(ly - hh, box.cy - box.h/2));
+          if (overlapX > 0 && overlapY > 0) score -= 200;  // heavy penalty
+        });
+        // Bonus for being closer to dot (labels shouldn't wander too far)
+        score -= r * 0.3;
+
+        if (score > bestScore) { bestScore = score; bestPos = [lx, ly]; }
+      }
+    }
+    if (!bestPos) bestPos = [dotX + 22, dotY - 14];  // fallback
+
+    const [lx, ly] = bestPos;
+    placedBoxes.push({ cx: lx, cy: ly, w: estW, h: estH });
+
+    // Draw dot
+    const dot = document.createElementNS(ns, 'circle');
+    dot.setAttribute('cx', dotX); dot.setAttribute('cy', dotY);
     dot.setAttribute('r', 5.5); dot.setAttribute('fill', col);
     dot.setAttribute('stroke', '#fff'); dot.setAttribute('stroke-width', 2);
     svg.appendChild(dot);
 
-    // Label with background pill for readability
-    const [offX, offY] = chosenOffsets[idx];
-    const lx = px + offX, ly = py + offY;
-    const anchor = offX < 0 ? 'end' : (offX === 0 ? 'middle' : 'start');
-    const coordStr = showLabels ? label + '(' + fmt2(tx) + ',' + fmt2(ty) + ')' : label;
-
-    // Background rect (rendered as a slightly oversized rect behind text)
-    const bg = document.createElementNS(ns,'rect');
-    const textW = coordStr.length * 5.8 + 6;  // approximate width
-    const textH = 14;
-    const bgX = anchor === 'end' ? lx - textW : (anchor === 'middle' ? lx - textW/2 : lx - 3);
-    bg.setAttribute('x', bgX);
-    bg.setAttribute('y', ly - textH + 2);
-    bg.setAttribute('width', textW);
-    bg.setAttribute('height', textH + 2);
-    bg.setAttribute('rx', 3);
-    bg.setAttribute('fill', 'rgba(255,255,255,0.88)');
-    bg.setAttribute('stroke', col);
-    bg.setAttribute('stroke-width', 0.5);
-    svg.appendChild(bg);
-
-    const txt = document.createElementNS(ns,'text');
-    txt.setAttribute('x', lx);
-    txt.setAttribute('y', ly);
-    txt.setAttribute('text-anchor', anchor);
-    txt.setAttribute('font-family', 'var(--font-mono)');
-    txt.setAttribute('font-size', '10');
-    txt.setAttribute('font-weight', '700');
-    txt.setAttribute('fill', col);
-    txt.textContent = coordStr;
-    svg.appendChild(txt);
-
-    // Leader line from dot to label
-    const leaderDist = Math.hypot(offX, offY);
-    if (leaderDist > 12) {
-      const line = document.createElementNS(ns,'line');
-      // Start from dot edge, end at label bg edge
-      const angle = Math.atan2(offY, offX);
-      const sx = px + 6.5*Math.cos(angle), sy = py + 6.5*Math.sin(angle);
-      const ex = px + (leaderDist - 4)*Math.cos(angle), ey = py + (leaderDist - 4)*Math.sin(angle);
-      line.setAttribute('x1', sx); line.setAttribute('y1', sy);
-      line.setAttribute('x2', ex); line.setAttribute('y2', ey);
-      line.setAttribute('stroke', col);
-      line.setAttribute('stroke-width', 1);
-      line.setAttribute('stroke-dasharray', '2,2');
-      line.setAttribute('opacity', '0.5');
+    // Leader line (dashed, from dot edge to label edge)
+    const leaderLen = Math.hypot(lx - dotX, ly - dotY);
+    if (leaderLen > 14) {
+      const la = Math.atan2(ly - dotY, lx - dotX);
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', dotX + 7 * Math.cos(la));
+      line.setAttribute('y1', dotY + 7 * Math.sin(la));
+      line.setAttribute('x2', lx - (estW/2 - 2) * Math.cos(la));
+      line.setAttribute('y2', ly - (estH/2 - 2) * Math.sin(la));
+      line.setAttribute('stroke', col); line.setAttribute('stroke-width', 1);
+      line.setAttribute('stroke-dasharray', '3,2'); line.setAttribute('opacity', '0.45');
       svg.appendChild(line);
     }
+
+    // Background pill (centered on lx, ly)
+    const bg = document.createElementNS(ns, 'rect');
+    bg.setAttribute('x', lx - estW/2); bg.setAttribute('y', ly - estH/2);
+    bg.setAttribute('width', estW); bg.setAttribute('height', estH);
+    bg.setAttribute('rx', 4);
+    bg.setAttribute('fill', 'rgba(255,255,255,0.92)');
+    bg.setAttribute('stroke', col); bg.setAttribute('stroke-width', 0.7);
+    svg.appendChild(bg);
+
+    // Text (centered in pill)
+    const txt = document.createElementNS(ns, 'text');
+    txt.setAttribute('x', lx); txt.setAttribute('y', ly + 4);
+    txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('font-family', 'var(--font-mono)');
+    txt.setAttribute('font-size', '11'); txt.setAttribute('font-weight', '700');
+    txt.setAttribute('fill', col);
+    txt.textContent = fullText;
+    svg.appendChild(txt);
   });
 }
 
