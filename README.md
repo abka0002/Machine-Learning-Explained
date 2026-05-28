@@ -9,7 +9,9 @@ A collection of interactive web tools for exploring machine learning algorithms 
 | Tool | Description |
 |------|-------------|
 | [Data Preparation & Feature Engineering](https://abka0002.github.io/Machine-Learning-Explained/DataPreparationAndFeatureEngineering/) | Interactive pipeline covering EDA, data types, imputation, scaling, encoding, and feature selection with the Heart Failure dataset |
+| 🇩🇪 [Datenaufbereitung & Feature Engineering](https://abka0002.github.io/Machine-Learning-Explained/DataPreparationAndFeatureEngineeringGerman/) | Vollständige Pipeline von Datentypen über EDA bis zu Imputation, Skalierung, Kodierung und Merkmalsauswahl — alles mit dem Heart-Failure-Datensatz. App komplett auf Deutsch. |
 | [Linear Regression](https://abka0002.github.io/Machine-Learning-Explained/LinearRegression/) | Simple and multiple Linear regression Deployment |
+| 🇩🇪 [Lineare Regression](https://abka0002.github.io/Machine-Learning-Explained/LinearRegressionGerman/) | Einfache und Multiple Lineare Regression mit Bewertungsmetriken, Regularisierung, Grid Search und K-Fold-Kreuzvalidierung. App komplett auf Deutsch. |
 | [η² Categorical Numerical Associations](https://abka0002.github.io/Machine-Learning-Explained/CategoricalNumericalAssociations/) | An interactive explainer — effect size for categorical → numerical associations |
 | [Bias and Variance tradeoff](https://abka0002.github.io/Machine-Learning-Explained/BiasAndVariance/) | Bias–Variance & Generalization Explorer |
 | [Grid search and K-Fold Cross Validation](https://abka0002.github.io/Machine-Learning-Explained/GridsearchCrossValidation/) | Discover how GridSearchCV from Scikit-Learn calculates the mean and standard deviation of validation folds to find the best α for a Lasso regression Model, and how refit=True fully leverages your training data. |
