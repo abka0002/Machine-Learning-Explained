@@ -1538,7 +1538,7 @@ y_pred = reg.predict(X_new)</span></div>
     <p style="font-size:13.5px;color:var(--muted)">Bei einer Bootstrap-Ziehung von <em>N</em> Datensätzen ist die Chance, dass ein bestimmter Datensatz bei einer einzelnen Ziehung <em>nicht</em> gewählt wird, (1 − 1/<em>N</em>). Über alle <em>N</em> unabhängigen Ziehungen:</p>
     <div class="formula-callout">
       <span class="equation-row">
-        P(Datensatz ist OOB) = ( 1 − <span class="frac"><span class="num">1</span><span class="den"><em>N</em></span></span> )<sup><em>N</em></sup>
+        P(Datensatz ist OOB) = ( 1 − <span class="frac"><span class="num">1</span><span class="den"><em>N</em></span></span> )<sup style="position: relative; top: -.5em; line-height: 0;">N</sup>
         &nbsp;⟶&nbsp; <span class="frac"><span class="num">1</span><span class="den"><em>e</em></span></span> ≈ 0,3679&nbsp;&nbsp;für <em>N</em> → ∞
       </span>
     </div>
