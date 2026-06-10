@@ -1538,7 +1538,7 @@ y_pred = reg.predict(X_new)</span></div>
     <p style="font-size:13.5px;color:var(--muted)">In one bootstrap draw of <em>N</em> records, the chance a specific record is <em>not</em> chosen on a single pick is (1 − 1/<em>N</em>). Across all <em>N</em> independent picks:</p>
     <div class="formula-callout">
       <span class="equation-row">
-        P(record is OOB) = ( 1 − <span class="frac"><span class="num">1</span><span class="den"><em>N</em></span></span> )<sup><em>N</em></sup>
+        P(record is OOB) = ( 1 − <span class="frac"><span class="num">1</span><span class="den"><em>N</em></span></span>)<sup style="position: relative; top: -.5em; line-height: 0;">N</sup>
         &nbsp;⟶&nbsp; <span class="frac"><span class="num">1</span><span class="den"><em>e</em></span></span> ≈ 0.3679&nbsp;&nbsp;as <em>N</em> → ∞
       </span>
     </div>
@@ -3800,7 +3800,7 @@ function updateRfMath() {
   document.getElementById('rfMathNV').textContent = N;
   const oob = Math.pow(1 - 1 / N, N);
   document.getElementById('rfMathWork').innerHTML =
-    `(1 − 1/${N})<sup>${N}</sup> = <strong>${oob.toFixed(4)}</strong> &nbsp;→&nbsp; in-bag ≈ ${(1 - oob).toFixed(4)}`;
+    `(1 − 1/${N})<sup style="vertical-align: super; font-size: .85em">${N}</sup> = <strong>${oob.toFixed(4)}</strong> &nbsp;→&nbsp; in-bag ≈ ${(1 - oob).toFixed(4)}`;
   drawRfMath();
 }
 document.getElementById('rfMathN').addEventListener('input', updateRfMath);
