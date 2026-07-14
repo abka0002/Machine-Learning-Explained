@@ -4346,23 +4346,42 @@ early_stopping = EarlyStopping(monitor='val_loss', patience=<span id="es-codepat
 </div>
 
 <div class="card info">
-  <h4>Dropout</h4>
-  <p style="font-size:0.9em"><strong>Training:</strong> Jedes Neuron wird mit Wahrscheinlichkeit p beibehalten, deaktiviert (auf 0 gesetzt) mit Wahrscheinlichkeit 1−p.<br><strong>Inferenz:</strong> alle Einheiten aktiv, Gewichte mit p skaliert.</p>
+  <h4>Dropout — zwei unterschiedliche Verhaltensweisen</h4>
+  <p style="font-size:0.9em"><strong>🏋️ Training:</strong> Jedes Neuron wird mit Wahrscheinlichkeit p beibehalten und mit Wahrscheinlichkeit 1−p deaktiviert (Ausgabe auf 0 gesetzt). Bei <em>jedem Trainingsschritt</em> wird eine neue Zufallsmaske gezogen — jeder Schritt trainiert also ein anderes „ausgedünntes“ Teilnetz.<br>
+  <strong>🔮 Inferenz:</strong> Es wird nichts deaktiviert — <em>alle</em> Neuronen bleiben aktiv. Zum Ausgleich werden die ausgehenden Gewichte einer Dropout-Schicht mit p skaliert, damit die erwartete Eingabe der nächsten Schicht dem entspricht, was sie im Training gesehen hat.</p>
 </div>
 
 <div class="card">
-  <h3>🎛 Dropout visualizer</h3>
-  <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
-    <span class="tag tag-blue">Hidden 1 — dropout 50%</span>
-    <span class="tag tag-orange">Hidden 2 — dropout 20%</span>
-    <span style="font-size:0.85em;color:var(--text2)">Bei jedem Trainingsschritt werden die deaktivierten Neuronen zufällig neu ausgewählt.</span>
+  <h3>🎛 Dropout-Visualizer — Training vs. Inferenz</h3>
+
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+    <button class="deriv-y-btn active" id="dr-mode-train">🏋️ Training</button>
+    <button class="deriv-y-btn" id="dr-mode-inf">🔮 Inferenz</button>
   </div>
-  <div class="flex-center" style="justify-content:flex-start">
+
+  <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin:6px 0 10px">
+    <div class="slider-group" style="margin:0;flex:1;min-width:190px">
+      <label>Hidden 1 — Dropout-Rate: <span class="slider-val" id="dr-r1-val">50%</span></label>
+      <input type="range" id="dr-r1" min="0" max="80" step="5" value="50">
+      <p style="font-size:0.75em;color:var(--text2);margin:2px 0">Keep-Wahrscheinlichkeit p₁ = <span id="dr-p1">0.50</span></p>
+    </div>
+    <div class="slider-group" style="margin:0;flex:1;min-width:190px">
+      <label>Hidden 2 — Dropout-Rate: <span class="slider-val" id="dr-r2-val">20%</span></label>
+      <input type="range" id="dr-r2" min="0" max="80" step="5" value="20">
+      <p style="font-size:0.75em;color:var(--text2);margin:2px 0">Keep-Wahrscheinlichkeit p₂ = <span id="dr-p2">0.80</span></p>
+    </div>
+  </div>
+
+  <div class="flex-center" id="dr-train-controls" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">
     <button class="btn sm" id="dr-re">▶ Nächster Trainingsschritt</button>
-    <span style="font-size:0.85em;color:var(--text2);margin-left:10px">Step <span id="dr-step">1</span></span>
+    <button class="btn outline sm" id="dr-auto">▶ Auto-Play</button>
+    <span style="font-size:0.85em;color:var(--text2);margin-left:6px">Schritt <span id="dr-step">1</span></span>
   </div>
-  <canvas id="dr-canvas" width="640" height="240" class="anim-canvas" style="margin-top:8px"></canvas>
-  <p class="canvas-hint">Graue ✕-Neuronen sind in diesem Schritt deaktiviert — ihre Verbindungen werden entfernt. Die Raten bleiben fest; nur die Maske ändert sich.</p>
+
+  <canvas id="dr-canvas" width="760" height="340" class="anim-canvas" style="margin-top:8px;width:100%;max-width:760px"></canvas>
+
+  <div class="formula small" id="dr-info" style="margin-top:8px;font-size:0.88em"></div>
+  <p class="canvas-hint" id="dr-hint"></p>
 </div>
 
 <div class="card takeaway">
@@ -4696,25 +4715,45 @@ function vanInit(){
 }
 initFns['challenges']=function(){ vanInit(); drInit(); esInit(); };
 
-// Dropout state
+// ===== Dropout-Visualizer (Training vs. Inferenz) =====
 let DR_mask = null;
 let DR_step = 1;
+let DR_mode = 'train';        // 'train' | 'inf'
+let DR_autoId = null;         // setInterval-Id für Auto-Play
+let DR_flowId = null;         // rAF-Id für die Inferenz-Flussanimation
+let DR_phase = 0;             // Phase 0..1 für die wandernden Punkte
+let DR_maskT = 1;             // Einblendung 0..1 einer frisch gezogenen Maske
+const DR_sizes = [3, 10, 5, 1];
+
+function drRates(){
+  return [0, (+el('dr-r1').value)/100, (+el('dr-r2').value)/100, 0];
+}
 
 function drNewMask(){
-  // Hidden 1: exactly 2 out of 4 deaktiviert (50%)
-  // Hidden 2: exactly 1 out of 5 deaktiviert (20%)
-  function randomMask(total, dropCount){
-    const arr = Array(total).fill(false);
-    const idx = Array.from({length:total},(_,i)=>i).sort(()=>Math.random()-0.5).slice(0,dropCount);
-    idx.forEach(i=>arr[i]=true);
+  const rates = drRates();
+  DR_mask = DR_sizes.map((n, li) => {
+    const dropCount = Math.round(n * rates[li]);
+    const arr = Array(n).fill(false);
+    Array.from({length:n},(_,i)=>i).sort(()=>Math.random()-0.5).slice(0,dropCount).forEach(i=>arr[i]=true);
     return arr;
+  });
+  DR_maskT = 0; // Einblendung der Kreuze neu starten
+}
+
+function drUpdateText(){
+  const rates = drRates();
+  const p1=(1-rates[1]).toFixed(2), p2=(1-rates[2]).toFixed(2);
+  el('dr-p1').textContent=p1; el('dr-p2').textContent=p2;
+  const info=el('dr-info'), hint=el('dr-hint');
+  if(!info||!hint) return;
+  if(DR_mode==='train'){
+    const d1=DR_mask?DR_mask[1].filter(Boolean).length:0, d2=DR_mask?DR_mask[2].filter(Boolean).length:0;
+    info.innerHTML = `Trainingsschritt ${DR_step}: &nbsp;Maske m ~ Bernoulli(p) neu gezogen · Hidden 1: ${d1}/${DR_sizes[1]} deaktiviert (p₁=${p1}) · Hidden 2: ${d2}/${DR_sizes[2]} deaktiviert (p₂=${p2})`;
+    hint.innerHTML = `Graue ✕-Neuronen sind <strong>nur in diesem Schritt</strong> deaktiviert — ihre Verbindungen übertragen kein Signal. Jeder Schritt zieht eine neue Maske, d.&nbsp;h. jeder Schritt trainiert ein anderes Teilnetz. Probieren Sie <strong>Auto-Play</strong>, um den Ensemble-Effekt zu sehen.`;
+  } else {
+    info.innerHTML = `Inferenz: keine Neuronen deaktiviert · ausgehende Gewichte werden skaliert: &nbsp;W<sub>1→2</sub> × ${p1} &nbsp;·&nbsp; W<sub>2→out</sub> × ${p2} &nbsp;→ erwartete Aktivierungen entsprechen dem Training.`;
+    hint.innerHTML = `<strong>Alle</strong> Neuronen sind aktiv — keine Zufälligkeit zur Testzeit. Linienstärke/Deckkraft zeigt die Skalierung der Gewichte mit der Keep-Wahrscheinlichkeit p: je stärker das Dropout im Training, desto stärker werden die Gewichte jetzt gedämpft. Die wandernden Punkte zeigen, dass jeder Pfad beiträgt.`;
   }
-  DR_mask = [
-    Array(2).fill(false),        // inputs: never deaktiviert
-    randomMask(4, 2),            // hidden1: exactly 2/4 = 50%
-    randomMask(5, 1),            // hidden2: exactly 1/5 = 20%
-    Array(1).fill(false)         // output: never deaktiviert
-  ];
 }
 
 window.drawDropout=function(){
@@ -4725,36 +4764,76 @@ window.drawDropout=function(){
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';
   const grn=getCSS('--green'), t2=getCSS('--text2'), textCol=getCSS('--text');
   const blu=getCSS('--blue'), acc=getCSS('--orange');
+  const rates=drRates();
+  const keep=[1, 1-rates[1], 1-rates[2], 1];
+  const inf = DR_mode==='inf';
 
-  const layerSizes=[2,4,5,1];
-  const R=18;
-  const xs=[75, 225, 405, 565];
-  const yCenter=H/2+8;
+  const xs=[80, 275, 480, 675];
+  const yCenter=H/2+12;
 
-  const pos=layerSizes.map((n,li)=>{
-    const spacing=Math.min(50,(H-80)/(n>1?n-1:1));
+  // Abstand pro Schicht + adaptiver Radius, damit dichte Schichten nicht überlappen
+  const spacings=DR_sizes.map(n=>Math.min(46,(H-90)/(n>1?n-1:1)));
+  const Rs=DR_sizes.map((n,li)=>n>1?Math.min(17, spacings[li]*0.44):17);
+
+  const pos=DR_sizes.map((n,li)=>{
+    const spacing=spacings[li];
     const totalH=(n-1)*spacing;
     return Array.from({length:n},(_,i)=>[xs[li], yCenter-totalH/2+i*spacing]);
   });
 
-  // Draw connections
+  // ---- Verbindungen ----
   for(let li=0;li<pos.length-1;li++){
+    // klassisches Dropout: ausgehende Gewichte der Schicht li werden bei Inferenz mit keep[li] skaliert
+    const scale = inf ? keep[li] : 1;
     for(let i=0;i<pos[li].length;i++){
       for(let j=0;j<pos[li+1].length;j++){
-        if(DR_mask[li][i]||DR_mask[li+1][j]) continue;
+        if(!inf && (DR_mask[li][i]||DR_mask[li+1][j])) continue; // im Training deaktiviert
         ctx.beginPath();
-        ctx.moveTo(pos[li][i][0]+R, pos[li][i][1]);
-        ctx.lineTo(pos[li+1][j][0]-R, pos[li+1][j][1]);
-        ctx.strokeStyle=isDark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.12)';
-        ctx.lineWidth=1.2; ctx.stroke();
+        ctx.moveTo(pos[li][i][0]+Rs[li], pos[li][i][1]);
+        ctx.lineTo(pos[li+1][j][0]-Rs[li+1], pos[li+1][j][1]);
+        const baseA = isDark?0.42:0.35;
+        ctx.strokeStyle = isDark
+          ? `rgba(255,255,255,${(baseA*scale).toFixed(3)})`
+          : `rgba(0,0,0,${(baseA*scale).toFixed(3)})`;
+        ctx.lineWidth = inf ? (0.6 + 2.2*scale) : 1.2;
+        ctx.stroke();
+      }
+    }
+    // Gewichtsskalierungs-Label zwischen den Schichten (nur Inferenz)
+    if(inf && keep[li]<1){
+      const mx=(xs[li]+xs[li+1])/2;
+      ctx.textAlign='center';
+      ctx.font='bold 12px Segoe UI';
+      ctx.fillStyle=li===1?blu:acc;
+      ctx.fillText(`W × ${keep[li].toFixed(2)}`, mx, 40);
+    }
+  }
+
+  // ---- Inferenz: wandernde Signalpunkte entlang jeder Kante ----
+  if(inf){
+    for(let li=0;li<pos.length-1;li++){
+      const scale=keep[li];
+      for(let i=0;i<pos[li].length;i++){
+        for(let j=0;j<pos[li+1].length;j++){
+          const t=(DR_phase + (i*0.37+j*0.19+li*0.5))%1;
+          const x0=pos[li][i][0]+Rs[li], y0=pos[li][i][1];
+          const x1=pos[li+1][j][0]-Rs[li+1], y1=pos[li+1][j][1];
+          const px=x0+(x1-x0)*t, py=y0+(y1-y0)*t;
+          ctx.beginPath(); ctx.arc(px,py,2.4,0,Math.PI*2);
+          ctx.fillStyle=isDark
+            ? `rgba(102,187,106,${(0.25+0.65*scale).toFixed(2)})`
+            : `rgba(46,125,50,${(0.25+0.65*scale).toFixed(2)})`;
+          ctx.fill();
+        }
       }
     }
   }
 
-  // Draw neurons
+  // ---- Neuronen ----
   pos.forEach((layer,li)=>layer.forEach((p,ni)=>{
-    const dr=DR_mask[li][ni];
+    const dr = !inf && DR_mask[li][ni];
     const [px,py]=p;
+    const R=Rs[li];
     const activeCol=li===1?blu:li===2?acc:grn;
     ctx.beginPath(); ctx.arc(px,py,R,0,Math.PI*2);
     if(dr){
@@ -4767,40 +4846,123 @@ window.drawDropout=function(){
     ctx.fill(); ctx.stroke();
     if(dr){
       const s=R*0.42;
-      ctx.strokeStyle=isDark?'rgba(255,255,255,0.3)':'rgba(0,0,0,0.28)';
-      ctx.lineWidth=2;
+      ctx.globalAlpha=Math.min(1, DR_maskT);
+      ctx.strokeStyle=isDark?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.4)';
+      ctx.lineWidth=2.4;
       ctx.beginPath(); ctx.moveTo(px-s,py-s); ctx.lineTo(px+s,py+s); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(px+s,py-s); ctx.lineTo(px-s,py+s); ctx.stroke();
+      ctx.globalAlpha=1;
     }
   }));
 
-  // Labels
+  // ---- Beschriftungen ----
   ctx.textAlign='center';
   ['Inputs','Hidden 1','Hidden 2','Ausgang'].forEach((lbl,li)=>{
     ctx.fillStyle=textCol; ctx.font='bold 11px Segoe UI';
     ctx.fillText(lbl, xs[li], 14);
   });
   ctx.font='10px Segoe UI'; ctx.fillStyle=t2;
-  ctx.fillText('50% dropout', xs[1], 26);
-  ctx.fillText('20% dropout', xs[2], 26);
+  if(inf){
+    ctx.fillText('alle aktiv', xs[1], 26);
+    ctx.fillText('alle aktiv', xs[2], 26);
+  } else {
+    ctx.fillText(`${Math.round(rates[1]*100)}% Dropout`, xs[1], 26);
+    ctx.fillText(`${Math.round(rates[2]*100)}% Dropout`, xs[2], 26);
+  }
 
-  // Drop counts
-  ctx.textAlign='center'; ctx.font='11px Segoe UI'; ctx.fillStyle=t2;
+  // Fußzeile pro Schicht
+  ctx.font='11px Segoe UI'; ctx.fillStyle=t2;
   [1,2].forEach(li=>{
-    const n=DR_mask[li].filter(Boolean).length, total=DR_mask[li].length;
-    ctx.fillText(`${n}/${total} deaktiviert`, xs[li], H-4);
+    if(inf){
+      ctx.fillText(`Ausgangsgewichte × ${keep[li].toFixed(2)}`, xs[li], H-6);
+    } else {
+      const n=DR_mask[li].filter(Boolean).length, total=DR_mask[li].length;
+      ctx.fillText(`${n}/${total} deaktiviert`, xs[li], H-6);
+    }
   });
+
+  // Modus-Anzeige
+  ctx.textAlign='left'; ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle = inf ? grn : acc;
+  ctx.fillText(inf ? '🔮 INFERENZ — deterministisch' : `🏋️ TRAINING — Schritt ${DR_step}`, 10, H-6);
 };
 
-function drInit(){
-  drNewMask();
+// sanfte Einblendung einer neuen Maske (Training)
+function drMaskFade(){
+  if(DR_maskT>=1) return;
+  DR_maskT=Math.min(1, DR_maskT+0.12);
   drawDropout();
-  el('dr-re').onclick=()=>{
-    DR_step++;
-    el('dr-step').textContent=DR_step;
+  requestAnimationFrame(drMaskFade);
+}
+
+// kontinuierliche Flussanimation (Inferenz)
+function drFlowLoop(){
+  const cv=el('dr-canvas');
+  if(DR_mode!=='inf' || !cv || !cv.offsetParent){ DR_flowId=null; return; }
+  DR_phase=(DR_phase+0.006)%1;
+  drawDropout();
+  DR_flowId=requestAnimationFrame(drFlowLoop);
+}
+
+function drStopAuto(){
+  if(DR_autoId){ clearInterval(DR_autoId); DR_autoId=null; }
+  const b=el('dr-auto'); if(b) b.textContent='▶ Auto-Play';
+}
+
+function drSetMode(mode){
+  DR_mode=mode;
+  el('dr-mode-train').classList.toggle('active', mode==='train');
+  el('dr-mode-inf').classList.toggle('active', mode==='inf');
+  el('dr-train-controls').style.display = mode==='train' ? 'flex' : 'none';
+  if(mode==='inf'){
+    drStopAuto();
+    if(!DR_flowId) DR_flowId=requestAnimationFrame(drFlowLoop);
+  } else {
+    if(DR_flowId){ cancelAnimationFrame(DR_flowId); DR_flowId=null; }
     drNewMask();
+    drMaskFade();
+  }
+  drUpdateText();
+  drawDropout();
+}
+
+function drNextStep(){
+  DR_step++;
+  el('dr-step').textContent=DR_step;
+  drNewMask();
+  drUpdateText();
+  drMaskFade();
+}
+
+function drInit(){
+  drNewMask(); DR_maskT=1;
+  drUpdateText();
+  drawDropout();
+
+  el('dr-re').onclick=()=>{ drStopAuto(); drNextStep(); };
+
+  el('dr-auto').onclick=()=>{
+    if(DR_autoId){ drStopAuto(); return; }
+    el('dr-auto').textContent='⏸ Pause';
+    DR_autoId=setInterval(()=>{
+      const cv=el('dr-canvas');
+      if(!cv || !cv.offsetParent){ drStopAuto(); return; } // Tab ausgeblendet
+      drNextStep();
+    }, 850);
+  };
+
+  el('dr-mode-train').onclick=()=>drSetMode('train');
+  el('dr-mode-inf').onclick=()=>drSetMode('inf');
+
+  const onRate=()=>{
+    el('dr-r1-val').textContent=el('dr-r1').value+'%';
+    el('dr-r2-val').textContent=el('dr-r2').value+'%';
+    if(DR_mode==='train'){ drNewMask(); DR_maskT=1; }
+    drUpdateText();
     drawDropout();
   };
+  el('dr-r1').oninput=onRate;
+  el('dr-r2').oninput=onRate;
 }
 // ===== Early-stopping simulation =====
 const ES = {
