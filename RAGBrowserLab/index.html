@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Browser Lab — RAG with any Ollama model, entirely in your browser</title>
+<meta name="theme-color" content="#1f2428">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%231f2428"/><circle cx="20" cy="22" r="6" fill="%23f0742d"/><circle cx="44" cy="22" r="6" fill="%23aab4bb"/><circle cx="32" cy="44" r="7" fill="%23e0e3e5"/><path d="M24 26l6 12M40 26l-6 12" stroke="%23cfd9df" stroke-width="3" stroke-linecap="round"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --ink:#1f2428; --ink-2:#2b3238; --ink-3:#3d464e;
+  --paper:#f2f3f4; --card:#ffffff; --line:#e1e4e7;
+  --soft:#f7f8f9; --soft-2:#f0f2f3; --soft-3:#e6e9eb; --input:#ffffff;
+  --green:#d9530b; --green-soft:#fceade; --green-dark:#b34309; --green-glow:rgba(217,83,11,.2);
+  --amber:#8a6d1f; --amber-soft:#f4edd6; --warn-bg:#faf5e4;
+  --blue:#57666f; --blue-soft:#e9edef;
+  --red:#b3362a; --red-soft:#f7e5e3;
+  --txt:#26292c; --muted:#6b7379; --mark:#fbdca8; --track:#e4e6e8;
+  --code-bg:#22272b; --code-txt:#dde1e4;
+  --shadow-card:0 1px 2px rgba(31,36,40,.05),0 12px 32px -24px rgba(31,36,40,.22);
+  --shadow-pop:0 24px 60px -12px rgba(0,0,0,.35);
+  --mono:'JetBrains Mono',monospace; --disp:'Space Grotesk',sans-serif; --body:'Inter',sans-serif;
+}
+html[data-theme="dark"]{
+  --ink:#15181b; --ink-2:#1f2429; --ink-3:#333b42;
+  --paper:#191d20; --card:#22272c; --line:#343b41;
+  --soft:#272d32; --soft-2:#2b3238; --soft-3:#353d44; --input:#1c2125;
+  --green:#f0742d; --green-soft:#3c2413; --green-dark:#f68b4d; --green-glow:rgba(240,116,45,.3);
+  --amber:#cfa54a; --amber-soft:#38300f; --warn-bg:#2a240e;
+  --blue:#9fb0ba; --blue-soft:#2b343a;
+  --red:#e2766a; --red-soft:#3a1e1b;
+  --txt:#dadedf; --muted:#98a2a9; --mark:#5c4a17; --track:#333b42;
+  --shadow-card:0 1px 2px rgba(0,0,0,.4),0 14px 34px -24px rgba(0,0,0,.7);
+  --shadow-pop:0 24px 60px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+body{font-family:var(--body);background:var(--paper);color:var(--txt);font-size:15.5px;line-height:1.6}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+code,.mono{font-family:var(--mono)}
+
+header{background:var(--ink);color:#c9ced2;padding:26px 30px 22px;position:relative;overflow:hidden}
+header::before{content:'';position:absolute;inset:0;background:
+  radial-gradient(720px 240px at 15% -50%, rgba(240,116,45,.10), transparent 60%);pointer-events:none}
+.head-inner{position:relative}
+.head-inner{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+header .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#e59d6e}
+header h1{font-family:var(--disp);font-size:29px;font-weight:700;color:#fff;line-height:1.2;margin-top:4px}
+header p{font-size:13.5px;color:#9aa3a9;margin-top:5px;max-width:560px}
+.head-controls{margin-left:auto;display:flex;gap:8px;align-self:flex-start;align-items:center}
+.lang-toggle{display:flex;border:1px solid var(--ink-3);border-radius:999px;overflow:hidden}
+.theme-toggle{display:grid;place-items:center;width:30px;height:30px;border-radius:999px;border:1px solid var(--ink-3);background:var(--ink-2);color:#98a2a9;cursor:pointer;transition:color .15s,border-color .15s}
+.theme-toggle:hover{color:#fff;border-color:#556069}
+html[data-theme="dark"] .theme-toggle .ic-moon{display:none}
+html:not([data-theme="dark"]) .theme-toggle .ic-sun{display:none}
+.lang-toggle button{border:none;background:var(--ink-2);color:#98a2a9;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:6px 13px}
+.lang-toggle button.active{background:var(--green);color:#fff}
+.stepper{display:flex;gap:0;align-items:center}
+.step{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:#6e777d;text-transform:uppercase}
+.step .pip{width:22px;height:22px;border-radius:50%;border:2px solid #4c565e;display:grid;place-items:center;font-size:10px;color:#98a2a9;background:var(--ink-2)}
+.step.done{color:#f2a173}.step.done .pip{border-color:#f0742d;background:#f0742d;color:#31180a}
+.step.active{color:#c9ced2}.step.active .pip{border-color:#e59d6e;color:#e8b394;animation:pulse 1.4s infinite}
+.step-link{width:26px;height:2px;background:var(--ink-3);margin:0 8px}
+@keyframes pulse{50%{opacity:.4}}
+
+.wrap{max-width:1280px;margin:0 auto;padding:24px 30px 70px;display:grid;grid-template-columns:minmax(460px,1fr) minmax(440px,1fr);gap:22px;align-items:start}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card)}
+.panel-h{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line);background:linear-gradient(to bottom, var(--soft), transparent)}
+.panel-h h2{font-family:var(--disp);font-size:18.5px;font-weight:700;color:var(--txt)}
+.ph-ic{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--green-soft);color:var(--green);flex:0 0 28px}
+html[data-theme="dark"] .ph-ic{color:var(--green-dark)}
+.panel-h .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--soft-2);border:1px solid var(--line);padding:3px 10px;border-radius:6px}
+.panel-b{padding:16px 18px}
+
+.drop{border:2px dashed var(--line);border-radius:12px;padding:24px;text-align:center;color:var(--muted);font-size:14px;transition:border-color .15s,background .15s;cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--green);background:var(--green-soft)}
+.drop b{color:var(--txt)}
+.vision-row{margin-top:12px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 13px}
+.vswitch{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--muted);cursor:pointer}
+.vswitch input{margin-top:3px;accent-color:var(--green)}
+.vswitch b{color:var(--txt)}
+.or{display:flex;align-items:center;gap:12px;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.12em;margin:14px 0}
+.or::before,.or::after{content:'';flex:1;height:1px;background:var(--line)}
+textarea{width:100%;min-height:96px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-family:var(--mono);font-size:13.5px;resize:vertical;background:var(--input);color:var(--txt);transition:border-color .15s}
+textarea:focus{outline:2px solid var(--green);outline-offset:0;border-color:var(--green)}
+input[type=text]{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15px;background:var(--input);color:var(--txt)}
+
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.field label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.field input,.field select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:14px;background:var(--input);color:var(--txt);font-family:var(--body)}
+.field.full{grid-column:1/-1}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:10px;border:1px solid var(--line);background:var(--soft-2);color:var(--txt);font-size:14px;font-weight:600;transition:background .15s,transform .1s,box-shadow .15s}
+.btn:active{transform:translateY(1px)}
+.btn:hover{background:var(--soft-3)}
+.btn.primary{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 4px 14px -6px var(--green-glow)}
+.btn.primary:hover{background:var(--green-dark)}
+.btn.ghost{background:none}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+.progress{margin-top:12px;display:none}
+.progress.show{display:block}
+.progress .bar{height:7px;background:var(--track);border-radius:999px;overflow:hidden}
+.progress .fill{height:100%;width:0%;background:var(--green);border-radius:999px;transition:width .2s}
+.progress .lbl{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:5px}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.stat{background:var(--soft-2);border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.stat .v{font-family:var(--disp);font-size:24px;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums}
+.stat .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+.doclist{margin-top:12px;display:grid;gap:6px}
+.doc-row{display:flex;align-items:flex-start;gap:10px;font-size:14px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.doc-row .dname{flex:1;min-width:0;word-break:break-all;line-height:1.45;color:var(--txt)}
+.doc-row .mono{font-size:11.5px;color:var(--muted);flex:0 0 auto;white-space:nowrap;margin-top:2px}
+.doc-row button{border:1px solid var(--line);background:var(--card);color:var(--red);font-size:14px;line-height:1;width:26px;height:26px;border-radius:7px;cursor:pointer;flex:0 0 26px;transition:background .15s}
+.doc-row button:hover{background:var(--red-soft)}
+
+.conn{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.lamp{width:9px;height:9px;border-radius:50%;background:#9aa9b2;flex:0 0 9px}
+.lamp.ok{background:#1fa374;box-shadow:0 0 6px rgba(31,163,116,.6)}
+.lamp.bad{background:var(--red)}
+.conn .txt{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+select.model{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px;background:var(--input);max-width:170px}
+
+.ask-row{display:flex;gap:9px;margin-top:4px}
+.ask-row input{flex:1}
+.answer{margin-top:16px;display:none}
+.answer.show{display:block}
+.answer .a-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.answer .a-body{background:var(--soft);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:10px;padding:16px 18px;font-size:15.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;min-height:44px}
+.answer .a-body.err{border-left-color:var(--red);color:var(--red)}
+.answer .a-body.warn{border-left-color:var(--amber);background:var(--warn-bg)}
+.spinner{width:13px;height:13px;border:2px solid var(--green-soft);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;display:none}
+.spinner.show{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.ctx{margin-top:18px}
+.ctx h3{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.ctx-card{background:var(--input);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px}
+.ctx-card .meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:6px}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;padding:3px 9px;border-radius:5px;background:var(--soft-2);border:1px solid var(--line);color:var(--muted);border-left-width:3px}
+.pill.rrf{border-left-color:var(--green);color:var(--txt)}
+.pill.vec{border-left-color:var(--blue)}
+.pill.bm{border-left-color:var(--amber)}
+.pill.src{border-left-color:var(--line)}
+.ctx-card .body{font-size:13.5px;color:var(--txt);max-height:110px;overflow:hidden;position:relative}
+.ctx-card.open .body{max-height:none}
+.ctx-card .more{border:none;background:none;color:var(--green);font-size:12.5px;font-weight:600;padding:4px 0 0}
+
+.chartbox{display:none}
+.chartbox.show{display:block}
+.chart-wrap{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;height:340px;display:none}
+.chart-wrap.show{display:block}
+.chart-raw{display:none;background:var(--code-bg);color:var(--code-txt);font-family:var(--mono);font-size:12px;line-height:1.55;padding:12px 14px;border-radius:10px;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto}
+.chart-raw.show{display:block}
+.eval-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(220px,1fr);gap:16px;align-items:start}
+.eval-chart{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 10px 14px;height:280px;display:flex;flex-direction:column}
+.eval-chart canvas{flex:1;min-height:0}
+.ec-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center;padding:2px 0 6px}
+.eval-metric{display:flex;align-items:center;gap:10px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:8px}
+.eval-metric .mv{font-family:var(--disp);font-weight:700;font-size:19px;min-width:52px;font-variant-numeric:tabular-nums}
+.eval-metric .mv.good{color:#1a7f4e}.eval-metric .mv.mid{color:var(--amber)}.eval-metric .mv.bad{color:var(--red)}
+.eval-metric .mn{font-size:13px;color:var(--txt);font-weight:600}
+.eval-metric .md{font-size:11.5px;color:var(--muted)}
+.verdict{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px dashed var(--line)}
+.verdict .v-ok{color:#1a7f4e;flex:0 0 auto}.verdict .v-no{color:var(--red);flex:0 0 auto}
+@media (max-width:760px){.eval-grid{grid-template-columns:1fr}}
+.figrow{display:flex;flex-wrap:wrap;gap:10px}
+.figrow img{height:110px;border:1px solid var(--line);border-radius:8px;cursor:zoom-in;background:#fff;transition:transform .12s}
+.figrow img:hover{transform:scale(1.03)}
+.figcap{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:3px}
+.ctx-card .figs{display:flex;gap:8px;margin-top:8px}
+.ctx-card .figs img{height:74px;border:1px solid var(--line);border-radius:6px;cursor:zoom-in;background:#fff}
+.fig-lightbox{position:fixed;inset:0;background:rgba(16,27,36,.82);display:none;align-items:center;justify-content:center;z-index:80;cursor:zoom-out;padding:26px}
+.fig-lightbox.show{display:flex}
+.fig-lightbox img{max-width:94vw;max-height:90vh;border-radius:10px;background:#fff}
+.history details{background:var(--input);border:1px solid var(--line);border-radius:9px;padding:8px 13px;margin-bottom:7px}
+.history summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--txt)}
+.history .h-a{font-size:14px;white-space:pre-wrap;word-break:break-word;margin-top:8px;color:var(--txt)}
+.ctx-card mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+.note b{color:var(--txt)}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--ink);color:#fff;font-size:13px;padding:10px 16px;border-radius:9px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;z-index:60}
+.toast.show{opacity:1;transform:none}
+.modal-bg{position:fixed;inset:0;background:rgba(16,27,36,.55);display:none;align-items:center;justify-content:center;z-index:70;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border-radius:16px;max-width:620px;width:100%;max-height:86vh;overflow:auto;padding:26px 28px;box-shadow:var(--shadow-pop)}
+.modal h3{font-family:var(--disp);font-size:19px;color:var(--txt);margin-bottom:10px}
+.modal p{font-size:14.5px;margin:8px 0}
+.modal .cmd{display:flex;align-items:center;gap:8px;background:var(--code-bg);color:#f5b98e;font-family:var(--mono);font-size:13.5px;padding:9px 12px;border-radius:8px;margin:7px 0;overflow-x:auto}
+.modal .cmd button{margin-left:auto;flex:0 0 auto;font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid #48525a;background:#2b3238;color:#dde1e4}
+.modal .os{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:14px}
+.modal .close{float:right;border:none;background:none;font-size:20px;color:var(--muted);line-height:1;cursor:pointer}
+.modal a{color:var(--green);font-weight:600;text-decoration:none}
+.modal a:hover{text-decoration:underline}
+.os-tabs{display:flex;gap:6px;margin:14px 0 4px;border-bottom:2px solid var(--line)}
+.os-tab{border:none;background:none;font-family:var(--disp);font-size:14px;font-weight:600;color:var(--muted);padding:8px 14px;border-bottom:3px solid transparent;margin-bottom:-2px}
+.os-tab.active{color:var(--ink);border-bottom-color:var(--green)}
+.gstep{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green-dark);background:var(--green-soft);display:inline-block;padding:4px 11px;border-radius:999px;margin:16px 0 4px}
+.gnote{font-size:13px;color:var(--muted)}
+.modal .cmd span br{display:block}
+
+footer{max-width:1240px;margin:0 auto;padding:10px 30px 34px;font-size:12.5px;color:var(--muted)}
+footer a{color:var(--green);text-decoration:none;font-weight:500}
+footer a:hover{text-decoration:underline}
+
+@media (max-width:960px){
+  .wrap{grid-template-columns:1fr;padding:18px 16px 60px}
+  .stepper{margin-left:0;width:100%;justify-content:space-between}
+  .step-link{flex:1;width:auto}
+  .step span.lbl-txt{display:none}
+  header,.head-inner{padding-left:16px;padding-right:16px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div>
+      <span class="kicker">Browser‑native · no Python needed</span>
+      <h1>RAG Browser Lab</h1>
+      <p>The complete pipeline — PDF extraction, semantic chunking, embeddings, hybrid BM25 + vector retrieval with RRF fusion, and answer generation with <b style="color:#e8ebed">any model you have in Ollama</b> (Mistral, Llama&nbsp;3, Qwen, Gemma, …) — running entirely in this page. Only the LLM call goes to your local machine.</p>
+    </div>
+    <div class="head-controls">
+      <div class="lang-toggle" id="langToggle" role="group" aria-label="Language">
+        <button data-lang="en" class="active">EN</button><button data-lang="de">DE</button>
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Light / dark">
+        <svg class="ic-sun" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/></svg>
+        <svg class="ic-moon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </div>
+    <div class="stepper" aria-label="Pipeline progress">
+      <div class="step" id="st-extract"><span class="pip">1</span><span class="lbl-txt">Extract</span></div><span class="step-link"></span>
+      <div class="step" id="st-chunk"><span class="pip">2</span><span class="lbl-txt">Chunk</span></div><span class="step-link"></span>
+      <div class="step" id="st-embed"><span class="pip">3</span><span class="lbl-txt">Embed</span></div><span class="step-link"></span>
+      <div class="step" id="st-ask"><span class="pip">4</span><span class="lbl-txt">Ask</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ── Left: corpus ── -->
+  <section class="panel">
+    <div class="panel-h">
+      <span class="ph-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg></span>
+      <h2>1 · Build your corpus</h2><span class="tag">pdf.js + transformers.js</span></div>
+    <div class="panel-b">
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload PDF files">
+        <b>Drop PDF, TXT or MD files here</b> or click to browse<br>
+        <span style="font-size:11.5px">Everything is processed right in your browser — nothing is uploaded anywhere.</span>
+        <input type="file" id="fileInput" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" multiple hidden>
+      </div>
+      <div class="vision-row" id="visionRow">
+        <label class="vswitch"><input type="checkbox" id="setVision">
+          <span id="visionLbl"><b>Describe figures</b> with a local vision model — pages containing images are sent to Ollama (e.g. <span class="mono">llava</span>) and the descriptions become searchable chunks. Slower, needs Ollama connected.</span></label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;align-items:center">
+          <select class="model" id="visionModel" aria-label="Vision model"><option value="llava">llava</option></select>
+          <select class="model" id="visionScope" aria-label="Which pages to describe">
+            <option value="auto">pages with embedded images (auto)</option>
+            <option value="all">all pages (catches vector figures)</option>
+          </select>
+        </div>
+        <div class="vstat" id="visionStat" style="display:none;font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:7px"></div>
+        <details id="visionFigsBox" style="margin-top:8px;display:none">
+          <summary id="visionFigsSum" style="cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--muted)"></summary>
+          <div id="visionFigs" class="figrow" style="margin-top:8px"></div>
+        </details>
+      </div>
+      <div class="or">or paste text</div>
+      <textarea id="pasteText" placeholder="Paste lecture notes, a paper section, documentation …"></textarea>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" id="btnAddText">Add pasted text as document</button>
+      </div>
+
+      <div class="settings">
+        <div class="field"><label for="setChunk">Chunk size (words)</label><input type="number" id="setChunk" value="220" min="40" max="800"></div>
+        <div class="field"><label for="setOverlap">Overlap (words)</label><input type="number" id="setOverlap" value="60" min="0" max="400"></div>
+        <div class="field full"><label for="setModel">Embedding model (downloaded once, cached by your browser)</label>
+          <select id="setModel">
+            <option value="Xenova/bge-small-en-v1.5" selected>bge-small-en-v1.5 · ~34 MB · closest to the notebook’s bge-base</option>
+            <option value="Xenova/all-MiniLM-L6-v2">all-MiniLM-L6-v2 · ~23 MB · fastest</option>
+            <option value="Xenova/multilingual-e5-small">multilingual-e5-small · ~120 MB · German + Arabic + 90 more</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn primary" id="btnBuild">Build index (chunk + embed)</button>
+        <button class="btn ghost" id="btnClear">Clear corpus</button>
+      </div>
+      <div class="progress" id="prog">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="bar" style="flex:1"><div class="fill" id="progFill"></div></div>
+          <span class="lbl" id="progPct" style="margin:0;min-width:38px;text-align:right;font-weight:600;color:var(--txt)"></span>
+          <button id="btnCancelBuild" title="Cancel embedding" aria-label="Cancel embedding" style="display:none;border:1px solid var(--line);background:#fff;color:var(--red);border-radius:7px;font-size:11px;padding:3px 9px;cursor:pointer">✕</button>
+        </div>
+        <div class="lbl" id="progLbl"></div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat"><div class="v" id="statDocs">0</div><div class="k">documents</div></div>
+        <div class="stat"><div class="v" id="statChunks">0</div><div class="k">chunks</div></div>
+        <div class="stat"><div class="v" id="statDim">–</div><div class="k">embedding dim</div></div>
+      </div>
+      <div class="doclist" id="docList"></div>
+
+      <div class="btn-row">
+        <button class="btn" id="btnExport">Export index (.json)</button>
+        <button class="btn" id="btnImport">Import index</button>
+        <input type="file" id="importInput" accept="application/json" hidden>
+      </div>
+      <p class="note">The index (chunks + vectors) lives in memory. <b>Export</b> saves it to a file so a rebuilt index — and the model download — isn’t needed next time.</p>
+    </div>
+  </section>
+
+  <!-- ── Right: ask ── -->
+  <section class="panel">
+    <div class="panel-h">
+      <span class="ph-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+      <h2>2 · Ask your documents</h2>
+      <span class="tag">hybrid RRF → Ollama</span>
+      <div class="conn" style="margin-left:auto">
+        <span class="lamp" id="olLamp"></span><span class="txt" id="olTxt">Ollama: not checked</span>
+        <button class="btn" style="padding:5px 11px;font-size:12px" id="btnOllama">Connect</button>
+        <button class="btn ghost" style="padding:5px 11px;font-size:12px" id="btnGuide" title="Install Ollama, pull models, allow this page">Setup guide</button>
+        <select class="model" id="modelSel" aria-label="Ollama model"><option value="mistral">mistral</option></select>
+      </div>
+    </div>
+    <div class="panel-b">
+      <div class="ask-row">
+        <input type="text" id="query" placeholder="e.g. What is the formula for variance?" aria-label="Your question">
+        <button class="btn primary" id="btnAsk">Ask</button>
+        <button class="btn" id="btnPlot" title="Answer as a chart (Chart.js) built from data in the retrieved context">Plot</button>
+        <button class="btn" id="btnStop" style="display:none">Stop</button>
+      </div>
+      <div class="settings" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr))">
+        <div class="field"><label for="setK">Top‑k chunks</label><input type="number" id="setK" value="5" min="1" max="20"></div>
+        <div class="field"><label for="setTemp">Temperature</label><input type="number" id="setTemp" value="0.2" min="0" max="1" step="0.1"></div>
+        <div class="field"><label for="setRrf">RRF k</label><input type="number" id="setRrf" value="60" min="1" max="200"></div>
+        <div class="field"><label for="setMaxTok">Answer length</label>
+          <select id="setMaxTok">
+            <option value="1024">short · 1024 tok</option>
+            <option value="2048" selected>medium · 2048 tok</option>
+            <option value="4096">long · 4096 tok</option>
+            <option value="-1">unlimited</option>
+          </select></div>
+      </div>
+
+      <div class="answer" id="answerBox">
+        <div class="a-label"><span id="ansLbl">Answer</span> <span class="spinner" id="spin"></span><span id="aMeta" style="color:var(--muted);text-transform:none;letter-spacing:0"></span>
+          <button class="btn ghost" id="btnCopyAns" style="padding:2px 10px;font-size:11px;margin-left:auto">Copy</button></div>
+        <div class="a-body" id="answerBody"></div>
+      </div>
+
+      <div class="chartbox" id="chartBox">
+        <div class="a-label" style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin:16px 0 6px;display:flex;align-items:center;gap:10px">
+          <span id="chartLbl">Chart</span>
+          <button class="btn ghost" id="btnPng" style="padding:3px 10px;font-size:11px">Download PNG</button>
+        </div>
+        <div class="chart-wrap"><canvas id="chartCanvas"></canvas></div>
+        <pre id="chartRaw" class="chart-raw"></pre>
+      </div>
+
+      <div class="ctx" id="ctxBox" style="display:none">
+        <h3>Retrieved context — RRF‑fused from vector + BM25</h3>
+        <div id="ctxCards"></div>
+      </div>
+
+      <div class="evalbox" id="evalBox" style="display:none">
+        <div class="a-label" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin:18px 0 8px;display:flex;align-items:center;gap:10px">
+          <span id="evalTitle">RAGAS evaluation</span>
+          <button class="btn" id="btnEval" style="padding:4px 12px;font-size:12px">Evaluate this answer</button>
+          <span class="spinner" id="evalSpin"></span>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <label for="evalRef" id="evalRefLbl">Reference answer (optional — enables Context Recall)</label>
+          <textarea id="evalRef" style="min-height:56px" placeholder="Paste the ideal / ground-truth answer here, or leave empty…"></textarea>
+        </div>
+        <div class="lbl" id="evalStatus" style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+        <div class="eval-grid" id="evalResults" style="display:none">
+          <div>
+            <div class="eval-chart"><div class="ec-title" id="ecT1">Generation (RAGAS)</div><canvas id="evalCanvas"></canvas></div>
+            <div class="eval-chart" style="margin-top:14px"><div class="ec-title" id="ecT2">Retrieval (classic IR)</div><canvas id="evalCanvasIR"></canvas></div>
+            <div class="eval-chart" id="ecRefBox" style="margin-top:14px;display:none"><div class="ec-title" id="ecT3">Reference-based (BLEU · ROUGE · BERTScore)</div><canvas id="evalCanvasRef"></canvas></div>
+          </div>
+          <div class="eval-metrics" id="evalMetrics"></div>
+        </div>
+        <details id="evalDetails" style="display:none;margin-top:10px">
+          <summary id="evalDetSum" style="cursor:pointer;font-size:13px;font-weight:600;color:var(--txt)">Judge verdicts (details)</summary>
+          <div id="evalDetBody" style="font-size:13px;margin-top:8px"></div>
+        </details>
+      </div>
+
+      <div class="figstrip" id="figStrip" style="display:none">
+        <h3 id="figTitle" style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px">Figures from the retrieved pages</h3>
+        <div class="figrow" id="figRow"></div>
+      </div>
+
+      <div class="history" id="historyBox" style="display:none">
+        <h3 id="histTitle" style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px">Previous questions</h3>
+        <div id="histList"></div>
+      </div>
+
+      <p class="note" id="askHint"><b>How it works:</b> your question is embedded in‑browser and matched against the corpus by cosine similarity <i>and</i> BM25 keyword scoring; the two rankings are fused with Reciprocal Rank Fusion (rank k·3 candidates, score = Σ 1/(k<sub>RRF</sub>+rank)). The top chunks go into the same anti‑LaTeX prompt as the notebook, your selected Ollama model answers locally, and any leftover LaTeX is converted to Unicode.</p>
+    </div>
+  </section>
+</div>
+
+<footer>
+  Built by <a href="https://www.linkedin.com/feed/" target="_blank" rel="noopener">Dr. Kawther Aboalam</a> and AI‑Agents — <a href="https://github.com/abka0002/Machine-Learning-Explained" target="_blank" rel="noopener">View on GitHub</a>
+</footer>
+
+<div class="modal-bg" id="olModal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+  <div class="modal" style="max-width:680px">
+    <button class="close" data-close aria-label="Close">×</button>
+    <h3 id="guideTitle">Setup guide — Ollama for the RAG Browser Lab</h3>
+    <p style="margin-bottom:12px">Everything in this page runs locally in your browser except the final LLM call, which goes to <b>Ollama</b> on your own machine. Three steps: install Ollama, pull a model, allow this page to talk to it.</p>
+
+    <div class="os-tabs" role="tablist" aria-label="Operating system">
+      <button class="os-tab active" data-os="win" role="tab" aria-selected="true">Windows</button>
+      <button class="os-tab" data-os="mac" role="tab" aria-selected="false">macOS</button>
+      <button class="os-tab" data-os="linux" role="tab" aria-selected="false">Linux</button>
+    </div>
+
+    <!-- ═══ WINDOWS ═══ -->
+    <div class="os-pane" data-pane="win">
+      <div class="gstep">① Install Ollama</div>
+      <p>Download <b>OllamaSetup.exe</b> from <a href="https://ollama.com/download/windows" target="_blank" rel="noopener">ollama.com/download/windows</a> and run it. Then verify in PowerShell:</p>
+      <div class="cmd"><span>ollama --version</span><button data-copy="ollama --version">Copy</button></div>
+      <div class="gstep">② Pull the models</div>
+      <p><b>mistral</b> (~4.1&nbsp;GB) is the default, but <b>any</b> Ollama model works — the model dropdown in the app lists everything you have pulled. Add a smaller one for speed or a bigger one for quality.</p>
+      <div class="cmd"><span>ollama pull mistral</span><button data-copy="ollama pull mistral">Copy</button></div>
+      <div class="cmd"><span>ollama pull llama3.2</span><button data-copy="ollama pull llama3.2">Copy</button></div>
+      <div class="cmd"><span>ollama list</span><button data-copy="ollama list">Copy</button></div>
+      <div class="gstep">③ Connect this page (CORS)</div>
+      <p><b>1.</b> Quit Ollama: right‑click the llama icon in the system tray → <b>Quit Ollama</b> (otherwise it restarts itself without the setting). Then force‑stop any leftover server:</p>
+      <div class="cmd"><span>taskkill /F /IM ollama.exe</span><button data-copy="taskkill /F /IM ollama.exe">Copy</button></div>
+      <p><b>2.</b> Allow this page (same PowerShell window, no restart needed):</p>
+      <div class="cmd"><span>$env:OLLAMA_ORIGINS="*"</span><button data-copy='$env:OLLAMA_ORIGINS="*"'>Copy</button></div>
+      <p><b>3.</b> Start the server — <b>keep this window open</b> while you use the lab:</p>
+      <div class="cmd"><span>ollama serve</span><button data-copy="ollama serve">Copy</button></div>
+      <p class="gnote">Check: <code>echo $env:OLLAMA_ORIGINS</code> should print <code>*</code>. If step 3 says the port is already in use, an old server survived — repeat step 1 and make sure the tray app is quit. Finally click <b>Connect</b> in the app header.</p>
+    </div>
+
+    <!-- ═══ MACOS ═══ -->
+    <div class="os-pane" data-pane="mac" hidden>
+      <div class="gstep">① Install Ollama</div>
+      <p>Download the app from <a href="https://ollama.com/download/mac" target="_blank" rel="noopener">ollama.com/download/mac</a>, unzip and drag it into <b>Applications</b> — or with Homebrew:</p>
+      <div class="cmd"><span>brew install ollama</span><button data-copy="brew install ollama">Copy</button></div>
+      <div class="cmd"><span>ollama --version</span><button data-copy="ollama --version">Copy</button></div>
+      <div class="gstep">② Pull the models</div>
+      <div class="cmd"><span>ollama pull mistral</span><button data-copy="ollama pull mistral">Copy</button></div>
+      <div class="cmd"><span>ollama pull llama3.2</span><button data-copy="ollama pull llama3.2">Copy</button></div>
+      <div class="cmd"><span>ollama list</span><button data-copy="ollama list">Copy</button></div>
+      <div class="gstep">③ Connect this page (CORS)</div>
+      <p><b>Simplest (one‑off, Terminal):</b> quit the menu‑bar app first (llama icon → Quit Ollama), then run — and keep the Terminal open:</p>
+      <div class="cmd"><span>OLLAMA_ORIGINS="*" ollama serve</span><button data-copy='OLLAMA_ORIGINS="*" ollama serve'>Copy</button></div>
+      <p><b>Persistent (menu‑bar app):</b> set the variable system‑wide, then quit and reopen the Ollama app:</p>
+      <div class="cmd"><span>launchctl setenv OLLAMA_ORIGINS "*"</span><button data-copy='launchctl setenv OLLAMA_ORIGINS "*"'>Copy</button></div>
+      <p class="gnote">Then click <b>Connect</b> in the app header. (The launchctl setting lasts until reboot; run it again after restarting the Mac, or use the one‑off variant.)</p>
+    </div>
+
+    <!-- ═══ LINUX ═══ -->
+    <div class="os-pane" data-pane="linux" hidden>
+      <div class="gstep">① Install Ollama</div>
+      <div class="cmd"><span>curl -fsSL https://ollama.com/install.sh | sh</span><button data-copy="curl -fsSL https://ollama.com/install.sh | sh">Copy</button></div>
+      <div class="cmd"><span>ollama --version</span><button data-copy="ollama --version">Copy</button></div>
+      <div class="gstep">② Pull the models</div>
+      <div class="cmd"><span>ollama pull mistral</span><button data-copy="ollama pull mistral">Copy</button></div>
+      <div class="cmd"><span>ollama pull llama3.2</span><button data-copy="ollama pull llama3.2">Copy</button></div>
+      <div class="cmd"><span>ollama list</span><button data-copy="ollama list">Copy</button></div>
+      <div class="gstep">③ Connect this page (CORS)</div>
+      <p><b>Simplest (one‑off):</b> stop the background service, then run in a terminal you keep open:</p>
+      <div class="cmd"><span>sudo systemctl stop ollama</span><button data-copy="sudo systemctl stop ollama">Copy</button></div>
+      <div class="cmd"><span>OLLAMA_ORIGINS="*" ollama serve</span><button data-copy='OLLAMA_ORIGINS="*" ollama serve'>Copy</button></div>
+      <p><b>Persistent (systemd service):</b></p>
+      <div class="cmd"><span>sudo systemctl edit ollama</span><button data-copy="sudo systemctl edit ollama">Copy</button></div>
+      <p>Add these lines in the editor that opens, then save:</p>
+      <div class="cmd"><span>[Service]<br>Environment="OLLAMA_ORIGINS=*"</span><button data-copy='[Service]
+Environment="OLLAMA_ORIGINS=*"'>Copy</button></div>
+      <div class="cmd"><span>sudo systemctl daemon-reload &amp;&amp; sudo systemctl restart ollama</span><button data-copy="sudo systemctl daemon-reload && sudo systemctl restart ollama">Copy</button></div>
+      <p class="gnote">Then click <b>Connect</b> in the app header.</p>
+    </div>
+
+    <p style="color:var(--muted);font-size:12.5px;margin-top:14px">Hosting this page on GitHub Pages? You can restrict the origin instead of <code>"*"</code>: <code>OLLAMA_ORIGINS=https://abka0002.github.io</code></p>
+  </div>
+</div>
+
+<div class="fig-lightbox" id="figLightbox" role="dialog" aria-label="Figure"><img alt="Figure from document"></div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ═══════════════ state ═══════════════ */
+const S = {
+  docs: [],          // {name, chars}
+  chunks: [],        // {id, text, source, emb: number[]|null}
+  dim: null,
+  embedder: null,    // transformers.js pipeline
+  embedModelId: null,
+  bm25: null,
+  ollamaOK: false,
+  abort: null,
+  cancelBuild: false,
+  figures: {},          // '<doc>#p<N>' -> dataURL (page thumbnail)
+};
+const $ = id => document.getElementById(id);
+const toastEl = $('toast');
+function toast(m){ toastEl.textContent = m; toastEl.classList.add('show');
+  clearTimeout(toastEl._t); toastEl._t = setTimeout(()=>toastEl.classList.remove('show'), 2400); }
+function copyText(t){ navigator.clipboard.writeText(t).then(()=>toast(T('Copied','Kopiert'))); }
+function step(id, mode){ const el = $('st-'+id); el.classList.remove('done','active');
+  if (mode) el.classList.add(mode); if (mode==='done') el.querySelector('.pip').textContent='✓'; }
+
+/* ═══════════════ 1 · extraction (pdf.js) ═══════════════ */
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const VISION_PROMPT =
+  'You are analyzing a figure from a lecture PDF page. Describe the visual content precisely and factually: ' +
+  'type of plot or diagram, axes and units, trends, key values, and what the figure demonstrates. ' +
+  'If there are multiple figures, describe each. Use plain text, no LaTeX. Be concise (max ~150 words).';
+
+async function pageHasImages(page){
+  try {
+    const ops = await page.getOperatorList();
+    const O = pdfjsLib.OPS;
+    return ops.fnArray.some(fn => fn === O.paintImageXObject || fn === O.paintInlineImageXObject ||
+                                  fn === O.paintImageMaskXObject || fn === O.paintJpegXObject);
+  } catch (e){ return false; }
+}
+async function rasterizePage(page){
+  const vp1 = page.getViewport({scale: 1});
+  const scale = Math.min(1.5, 1200 / vp1.width);
+  const vp = page.getViewport({scale});
+  const canvas = document.createElement('canvas');
+  canvas.width = vp.width; canvas.height = vp.height;
+  await page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise;
+  // smaller thumbnail for storage/display (kept in the exported index)
+  const tw = Math.min(760, canvas.width), th = Math.round(canvas.height * tw / canvas.width);
+  const tc = document.createElement('canvas'); tc.width = tw; tc.height = th;
+  tc.getContext('2d').drawImage(canvas, 0, 0, tw, th);
+  return {b64: canvas.toDataURL('image/jpeg', 0.8).split(',')[1],
+          thumb: tc.toDataURL('image/jpeg', 0.72)};
+}
+async function ollamaErr(r){
+  let detail = '';
+  try { detail = (await r.json()).error || ''; } catch(e){ try { detail = await r.text(); } catch(_){} }
+  return 'Ollama HTTP ' + r.status + (detail ? ' — ' + detail.slice(0,180) : '');
+}
+async function describeImage(b64, model){
+  // primary path: /api/generate
+  const r = await fetch('http://localhost:11434/api/generate', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({model, prompt: VISION_PROMPT, images: [b64], stream: false,
+                          options: {temperature: 0, num_predict: 400}})
+  });
+  if (r.ok) return (await r.json()).response || '';
+  const genErr = await ollamaErr(r);
+  // fallback: /api/chat — required by some Ollama builds for mllama models (llama3.2-vision)
+  const r2 = await fetch('http://localhost:11434/api/chat', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({model, stream: false,
+      messages: [{role: 'user', content: VISION_PROMPT, images: [b64]}],
+      options: {temperature: 0, num_predict: 400}})
+  });
+  if (r2.ok) return ((await r2.json()).message || {}).content || '';
+  throw new Error(genErr + ' | chat fallback: ' + await ollamaErr(r2));
+}
+
+function visionStat(msg, isErr){
+  const el = $('visionStat'); el.style.display = '';
+  el.style.color = isErr ? 'var(--red)' : 'var(--muted)';
+  el.textContent = msg;
+}
+async function extractPdf(file){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  const useVision = $('setVision').checked;
+  const scope = $('visionScope').value;
+  let visionOK = useVision, visionErr = null;
+  if (useVision && !S.ollamaOK){
+    visionOK = await checkOllama(true);
+    if (!visionOK) visionErr = T('Ollama not reachable','Ollama nicht erreichbar');
+  }
+  let text = '', described = 0, candidates = 0;
+  for (let p = 1; p <= pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    const pageText = tc.items.map(i => i.str).join(' ').replace(/\s+/g,' ').trim();
+    text += `[Page ${p}] ${pageText}\n\n`;
+    progress(p/pdf.numPages*100, T(`Extracting ${file.name} — page ${p}/${pdf.numPages}`, `Extrahiere ${file.name} — Seite ${p}/${pdf.numPages}`));
+    if (visionOK){
+      const isCandidate = scope === 'all' ? true : await pageHasImages(page);
+      if (!isCandidate) continue;
+      candidates++;
+      try {
+        const dmsg = T(`Describing figures — page ${p}/${pdf.numPages} (vision model)…`,
+                       `Beschreibe Abbildungen — Seite ${p}/${pdf.numPages} (Vision‑Modell)…`);
+        progress(p/pdf.numPages*100, dmsg);
+        visionStat(dmsg);
+        const ras = await rasterizePage(page);
+        const desc = (await describeImage(ras.b64, $('visionModel').value)).trim();
+        if (desc){
+          text += `[Page ${p} — Figure description] ${desc}\n\n`; described++;
+          S.figures[file.name + '#p' + p] = ras.thumb;
+        }
+      } catch (e){
+        visionErr = e.message; visionOK = false;   // don't retry every page
+      }
+    }
+  }
+  /* loud, persistent diagnostics under the vision option */
+  if (!useVision){
+    visionStat(T('Vision: off — no figures were captured for this document.','Vision: aus — für dieses Dokument wurden keine Abbildungen erfasst.'));
+  } else if (visionErr){
+    visionStat(T('Vision FAILED: ','Vision FEHLGESCHLAGEN: ') + visionErr +
+      T(' — check that Ollama is connected and the vision model is pulled (ollama pull llava).',' — prüfen Sie, ob Ollama verbunden und das Vision‑Modell geladen ist (ollama pull llava).'), true);
+  } else if (described === 0 && scope === 'auto'){
+    visionStat(T(`Vision: 0 of ${pdf.numPages} pages had embedded raster images. Plots from LaTeX/Matplotlib/PowerPoint are often VECTOR graphics — switch the scope to “all pages” and re-add the PDF.`,
+                 `Vision: 0 von ${pdf.numPages} Seiten enthielten eingebettete Rasterbilder. Plots aus LaTeX/Matplotlib/PowerPoint sind oft VEKTOR‑Grafiken — stellen Sie den Umfang auf „alle Seiten" und fügen Sie die PDF erneut hinzu.`), true);
+  } else {
+    visionStat(T(`Vision: ${described} page(s) described (${candidates} candidate(s), ${pdf.numPages} total).`,
+                 `Vision: ${described} Seite(n) beschrieben (${candidates} Kandidat(en), ${pdf.numPages} gesamt).`));
+  }
+  renderVisionPreview();
+  return text;
+}
+function renderVisionPreview(){
+  const keys = Object.keys(S.figures);
+  const box = $('visionFigsBox');
+  box.style.display = keys.length ? '' : 'none';
+  box.open = false;   // collapsed by default — only query-relevant figures are shown with answers
+  $('visionFigsSum').textContent = T(`Captured figures: ${keys.length} (click to inspect)`,
+                                     `Erfasste Abbildungen: ${keys.length} (zum Prüfen aufklappen)`);
+  $('visionFigs').innerHTML = keys.slice(-24).map(k => figThumbHtml(k, 58)).join('');
+}
+
+function addDocument(name, text){
+  if (!text.trim()){ toast(T('No extractable text found','Kein extrahierbarer Text gefunden')); return; }
+  S.docs.push({name, chars: text.length, text});
+  renderDocs(); step('extract','done');
+  toast(T(`Added “${name}” (${text.length.toLocaleString()} characters)`, `„${name}“ hinzugefügt (${text.length.toLocaleString()} Zeichen)`));
+}
+
+$('drop').addEventListener('click', () => $('fileInput').click());
+$('drop').addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') $('fileInput').click(); });
+['dragover','dragleave','drop'].forEach(ev => $('drop').addEventListener(ev, e => {
+  e.preventDefault(); $('drop').classList.toggle('over', ev==='dragover');
+  if (ev==='drop') handleFiles(e.dataTransfer.files);
+}));
+$('fileInput').addEventListener('change', e => handleFiles(e.target.files));
+async function handleFiles(files){
+  progressShow(true);
+  try {
+    for (const f of files){
+      if (/\.(txt|md)$/i.test(f.name)){ addDocument(f.name, await f.text()); continue; }
+      if (!/\.pdf$/i.test(f.name)){ toast(T(`Skipped ${f.name} — unsupported type`, `${f.name} übersprungen — Dateityp nicht unterstützt`)); continue; }
+      addDocument(f.name, await extractPdf(f));
+    }
+  } catch (err){ toast(T('PDF extraction failed: ','PDF-Extraktion fehlgeschlagen: ') + err.message); }
+  progressShow(false); $('fileInput').value = '';
+}
+$('btnAddText').addEventListener('click', () => {
+  const t = $('pasteText').value;
+  if (!t.trim()){ toast(T('Paste some text first','Bitte zuerst Text einfügen')); return; }
+  addDocument('pasted-text-' + (S.docs.length+1) + '.txt', t);
+  $('pasteText').value = '';
+});
+
+function renderDocs(){
+  $('statDocs').textContent = S.docs.length;
+  $('docList').innerHTML = S.docs.map((d,i) =>
+    `<div class="doc-row"><span aria-hidden="true">📄</span>` +
+    `<span class="dname" title="${escapeHtml(d.name)}">${escapeHtml(d.name)}</span>` +
+    `<span class="mono">${d.chars.toLocaleString()} ch</span>` +
+    `<button data-del="${i}" title="${T('Remove this document','Dieses Dokument entfernen')}" aria-label="Remove ${escapeHtml(d.name)}">×</button></div>`).join('');
+}
+$('docList').addEventListener('click', e => {
+  const i = e.target.dataset.del; if (i === undefined) return;
+  const name = S.docs[+i]?.name;
+  S.docs.splice(+i,1);
+  if (name) Object.keys(S.figures).forEach(k => { if (k.startsWith(name + '#p')) delete S.figures[k]; });
+  renderDocs(); renderVisionPreview();
+  toast(T('Document removed — rebuild the index','Dokument entfernt — Index neu erstellen'));
+});
+function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ═══════════════ 2 · chunking (sentence-based overlap) ═══════════════ */
+function chunkTextSemantic(text, chunkWords, overlapWords){
+  const sentences = text.split(/(?<=[.!?])\s+|\n{2,}/).filter(s => s.trim());
+  const chunks = [];
+  let cur = [], curWords = 0;
+  const wc = s => s.split(/\s+/).filter(Boolean).length;
+  for (const sent of sentences){
+    const w = wc(sent);
+    if (curWords + w > chunkWords && cur.length){
+      chunks.push(cur.join(' '));
+      // sentence-based overlap: keep trailing sentences up to overlapWords
+      let keep = [], kw = 0;
+      for (let i = cur.length-1; i >= 0 && kw < overlapWords; i--){ keep.unshift(cur[i]); kw += wc(cur[i]); }
+      cur = keep; curWords = kw;
+    }
+    cur.push(sent); curWords += w;
+  }
+  if (cur.length) chunks.push(cur.join(' '));
+  return chunks.filter(c => wc(c) >= 5);
+}
+
+/* ═══════════════ 3 · embeddings (transformers.js) ═══════════════ */
+const QUERY_PREFIX = {
+  'Xenova/bge-small-en-v1.5': 'Represent this sentence for searching relevant passages: ',
+  'Xenova/multilingual-e5-small': 'query: ',
+};
+const PASSAGE_PREFIX = { 'Xenova/multilingual-e5-small': 'passage: ' };
+
+async function ensureEmbedder(modelId){
+  if (window.__mockEmbedder) { S.dim = 8; return window.__mockEmbedder; }   // test hook
+  if (S.embedder && S.embedModelId === modelId) return S.embedder;
+  progress(0, T('Downloading embedding model — first time only, then cached…','Embedding-Modell wird geladen — nur beim ersten Mal, danach gecacht…'));
+  const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+  S.embedder = await pipeline('feature-extraction', modelId, {
+    quantized: true,
+    progress_callback: p => { if (p.status === 'progress' && p.total)
+      progress(p.loaded/p.total*100, `Model: ${p.file} — ${(p.loaded/1048576).toFixed(1)} / ${(p.total/1048576).toFixed(1)} MB`); }
+  });
+  S.embedModelId = modelId;
+  return S.embedder;
+}
+async function embed(texts, isQuery, onProgress){
+  const modelId = $('setModel').value;
+  const fn = await ensureEmbedder(modelId);
+  const pre = isQuery ? (QUERY_PREFIX[modelId] || '') : (PASSAGE_PREFIX[modelId] || '');
+  const out = [], t0 = performance.now();
+  for (let i = 0; i < texts.length; i++){
+    if (S.cancelBuild) throw new Error(T('Embedding cancelled','Einbettung abgebrochen'));
+    if (window.__mockEmbedder){
+      out.push(window.__mockEmbedder(texts[i]));
+      if (window.__mockDelay) await new Promise(r => setTimeout(r, window.__mockDelay));
+    } else {
+      const r = await fn(pre + texts[i], {pooling: 'mean', normalize: true});
+      out.push(Array.from(r.data));
+    }
+    if (onProgress){
+      const elapsed = (performance.now() - t0) / 1000;
+      const eta = (elapsed / (i + 1)) * (texts.length - i - 1);
+      onProgress(i + 1, texts.length, eta, elapsed);
+      await new Promise(r => setTimeout(r, 0));   // let the UI paint
+    }
+  }
+  S.dim = out[0]?.length || S.dim;
+  return out;
+}
+function fmtEta(sec){
+  if (!isFinite(sec) || sec < 0) return '…';
+  if (sec < 60) return Math.ceil(sec) + 's';
+  return Math.floor(sec/60) + 'm ' + String(Math.round(sec%60)).padStart(2,'0') + 's';
+}
+const cosine = (a,b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i]*b[i]; return s; }; // normalized
+
+/* ═══════════════ BM25 Okapi (port of rank_bm25) ═══════════════ */
+class BM25Okapi {
+  constructor(corpusTokens, k1=1.5, b=0.75){
+    this.k1 = k1; this.b = b; this.corpus = corpusTokens;
+    this.docLen = corpusTokens.map(d => d.length);
+    this.avgdl = this.docLen.reduce((a,x)=>a+x,0) / (corpusTokens.length || 1);
+    this.df = new Map(); this.tf = [];
+    for (const doc of corpusTokens){
+      const f = new Map();
+      for (const t of doc) f.set(t, (f.get(t)||0)+1);
+      this.tf.push(f);
+      for (const t of f.keys()) this.df.set(t, (this.df.get(t)||0)+1);
+    }
+    const N = corpusTokens.length;
+    this.idf = new Map();
+    for (const [t, df] of this.df)
+      this.idf.set(t, Math.log((N - df + 0.5) / (df + 0.5) + 1));
+  }
+  getScores(queryTokens){
+    return this.corpus.map((_, i) => {
+      let score = 0;
+      for (const t of queryTokens){
+        const f = this.tf[i].get(t); if (!f) continue;
+        const idf = this.idf.get(t) || 0;
+        score += idf * (f * (this.k1+1)) / (f + this.k1 * (1 - this.b + this.b * this.docLen[i]/this.avgdl));
+      }
+      return score;
+    });
+  }
+}
+
+/* ═══════════════ build index ═══════════════ */
+function progressShow(on){ $('prog').classList.toggle('show', on); }
+function progress(pct, lbl){ progressShow(true); $('progFill').style.width = Math.min(100,pct)+'%'; $('progLbl').textContent = lbl; }
+
+$('btnBuild').addEventListener('click', async () => {
+  if (!S.docs.length){ toast(T('Add a PDF or paste text first','Zuerst eine PDF hinzufügen oder Text einfügen')); return; }
+  const btn = $('btnBuild'); btn.disabled = true;
+  step('chunk','active');
+  try {
+    const cw = +$('setChunk').value || 220, ow = Math.min(+$('setOverlap').value || 0, cw-10);
+    S.chunks = [];
+    for (const d of S.docs)
+      for (const c of chunkTextSemantic(d.text, cw, ow)){
+        const figs = [...c.matchAll(/\[Page (\d+) — Figure description\]/g)]
+          .map(m => d.name + '#p' + m[1]).filter(k => S.figures[k]);
+        S.chunks.push({id: 'c'+S.chunks.length, text: c, source: d.name, emb: null,
+                       figs: [...new Set(figs)]});
+      }
+    $('statChunks').textContent = S.chunks.length;
+    step('chunk','done'); step('embed','active');
+    progress(20, T(`Chunked into ${S.chunks.length} pieces — loading embedding model…`, `In ${S.chunks.length} Chunks zerlegt — Embedding-Modell wird geladen…`));
+
+    S.cancelBuild = false; $('btnCancelBuild').style.display = '';
+    const total = S.chunks.length;
+    const embs = await embed(S.chunks.map(c => c.text), false, (done, tot, eta) => {
+      const src = S.chunks[done-1].source;
+      const pct = done / tot * 100;
+      $('progPct').textContent = pct.toFixed(0) + '%';
+      progress(pct, T(
+        `Embedding ${done} / ${tot} chunks — ${src} — ~${fmtEta(eta)} remaining`,
+        `Bette ${done} / ${tot} Chunks ein — ${src} — noch ~${fmtEta(eta)}`));
+      $('statChunks').textContent = done + ' / ' + tot;
+    });
+    embs.forEach((e,i) => S.chunks[i].emb = e);
+    $('statChunks').textContent = total;
+    $('statDim').textContent = S.dim;
+
+    S.bm25 = new BM25Okapi(S.chunks.map(c => c.text.toLowerCase().split(/\s+/)));
+    step('embed','done'); step('ask','active');
+    $('btnCancelBuild').style.display = 'none'; $('progPct').textContent = '';
+    progress(100, T(`Index ready — ${S.chunks.length} chunks, dim ${S.dim}`, `Index fertig — ${S.chunks.length} Chunks, Dim ${S.dim}`));
+    toast(T('Index built — ask away!','Index erstellt — fragen Sie los!'));
+    setTimeout(()=>progressShow(false), 1800);
+  } catch (err){
+    progressShow(false);
+    $('btnCancelBuild').style.display = 'none'; $('progPct').textContent = '';
+    step('embed',''); $('statChunks').textContent = S.chunks.filter(c=>c.emb).length;
+    toast(T('Build failed: ','Erstellen fehlgeschlagen: ') + err.message);
+    console.error(err);
+  } finally { btn.disabled = false; S.cancelBuild = false; }
+});
+
+$('btnCancelBuild').addEventListener('click', () => { S.cancelBuild = true; });
+$('btnClear').addEventListener('click', () => {
+  S.docs = []; S.chunks = []; S.bm25 = null; S.figures = {}; $('figStrip').style.display = 'none'; $('visionFigs').innerHTML = ''; $('visionFigsBox').style.display = 'none'; $('visionStat').style.display = 'none';
+  renderDocs(); $('statChunks').textContent = 0; $('statDim').textContent = '–';
+  ['extract','chunk','embed','ask'].forEach(s => step(s,''));
+  ['st-extract','st-chunk','st-embed','st-ask'].forEach((id,i)=>$(id).querySelector('.pip').textContent = i+1);
+  toast(T('Corpus cleared','Korpus geleert'));
+});
+
+/* ═══════════════ export / import ═══════════════ */
+$('btnExport').addEventListener('click', () => {
+  if (!S.chunks.length){ toast(T('Nothing to export — build the index first','Nichts zu exportieren — zuerst Index erstellen')); return; }
+  const used = new Set(S.chunks.flatMap(c => c.figs || []));
+  const figures = Object.fromEntries(Object.entries(S.figures).filter(([k]) => used.has(k)));
+  const data = {model: S.embedModelId || $('setModel').value, dim: S.dim,
+    docs: S.docs.map(d=>({name:d.name,chars:d.chars})),
+    figures,
+    chunks: S.chunks.map(c => ({id:c.id, text:c.text, source:c.source, emb:c.emb, figs:c.figs||[]}))};
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type:'application/json'}));
+  a.download = 'rag_index.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  toast(T('Index exported','Index exportiert'));
+});
+$('btnImport').addEventListener('click', () => $('importInput').click());
+$('importInput').addEventListener('change', async e => {
+  try {
+    const data = JSON.parse(await e.target.files[0].text());
+    applyIndexData(data, T('Index imported','Index importiert'));
+  } catch (err){ toast(T('Import failed: ','Import fehlgeschlagen: ') + err.message); }
+  e.target.value = '';
+});
+
+/* ═══════════════ hybrid retrieval + RRF ═══════════════ */
+async function hybridRetrieve(query, k, rrfK){
+  const cand = k * 3;
+  const qEmb = (await embed([query], true))[0];
+  const vecRanked = S.chunks.map((c,i)=>({i, s: cosine(qEmb, c.emb)}))
+    .sort((a,b)=>b.s-a.s).slice(0, cand);
+  const bmScores = S.bm25.getScores(query.toLowerCase().split(/\s+/));
+  const bmRanked = bmScores.map((s,i)=>({i,s})).filter(x=>x.s>0)
+    .sort((a,b)=>b.s-a.s).slice(0, cand);
+
+  const rrf = new Map(), why = new Map();
+  vecRanked.forEach((x,rank) => { rrf.set(x.i, (rrf.get(x.i)||0) + 1/(rrfK+rank+1));
+    why.set(x.i, {...(why.get(x.i)||{}), vecRank: rank+1, cos: x.s}); });
+  bmRanked.forEach((x,rank) => { rrf.set(x.i, (rrf.get(x.i)||0) + 1/(rrfK+rank+1));
+    why.set(x.i, {...(why.get(x.i)||{}), bmRank: rank+1, bm: x.s}); });
+
+  return [...rrf.entries()].sort((a,b)=>b[1]-a[1]).slice(0,k)
+    .map(([i,score]) => ({chunk: S.chunks[i], score, why: why.get(i)}));
+}
+
+/* ═══════════════ prompt builder (anti-LaTeX, as in the notebook) ═══════════════ */
+function buildPrompt(query, retrieved){
+  const context = retrieved.map(r =>
+    `📄 TEXT (from ${r.chunk.source}):\n${r.chunk.text}`).join('\n\n---\n\n');
+  return `You are a helpful assistant answering questions about the user's documents.
+
+ANSWERING RULES:
+- If the context below contains the answer: answer based ONLY on the context.
+- If the context does NOT contain the answer: your reply MUST begin with the exact tag [NOT_IN_DOCS] followed by a newline, and then you answer the question from your own general knowledge. Do not use the tag if the context answers the question.
+
+⚠️ CRITICAL FORMATTING RULES - YOU MUST FOLLOW THESE:
+1. NEVER use LaTeX notation like \\( \\) or \\[ \\] or $ $ or \\frac or \\sigma
+2. NEVER use backslash commands like \\mu, \\sigma, \\sum, \\frac
+3. ALWAYS write math in plain Unicode text
+
+USE THESE UNICODE SYMBOLS INSTEAD:
+- Greek: α β γ δ ε σ μ π θ λ Σ Δ Ω
+- Superscripts: ⁰ ¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ⁿ ⁱ
+- Subscripts: ₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉ ₙ ᵢ
+- Operators: × ÷ ± √ ∑ ∏ ∫ ∞ ≤ ≥ ≠ ≈
+- Fractions: Write as (a)/(b) not \\frac{a}{b}
+- Mean: Write as x̄ (x with bar)
+
+EXAMPLES OF CORRECT FORMAT:
+❌ WRONG: \\sigma^2 = \\frac{1}{N} \\sum_{i=1}^{N} (x_i - \\mu)^2
+✅ RIGHT: σ² = (1/N) × Σᵢ₌₁ᴺ (xᵢ - μ)²
+
+CONTEXT:
+${context}
+
+QUESTION: ${query}
+
+ANSWER (use ONLY plain text with Unicode symbols, absolutely NO LaTeX):`;
+}
+
+/* ═══════════════ LaTeX → Unicode (port of the notebook converter) ═══════════════ */
+const GREEK = {alpha:'α',beta:'β',gamma:'γ',delta:'δ',epsilon:'ε',varepsilon:'ε',zeta:'ζ',eta:'η',
+  theta:'θ',iota:'ι',kappa:'κ',lambda:'λ',mu:'μ',nu:'ν',xi:'ξ',pi:'π',rho:'ρ',sigma:'σ',tau:'τ',
+  upsilon:'υ',phi:'φ',varphi:'φ',chi:'χ',psi:'ψ',omega:'ω',Gamma:'Γ',Delta:'Δ',Theta:'Θ',Lambda:'Λ',
+  Xi:'Ξ',Pi:'Π',Sigma:'Σ',Upsilon:'Υ',Phi:'Φ',Psi:'Ψ',Omega:'Ω'};
+const SYMS = {infty:'∞',pm:'±',mp:'∓',times:'×',div:'÷',cdot:'·',leq:'≤',le:'≤',geq:'≥',ge:'≥',
+  neq:'≠',ne:'≠',approx:'≈',equiv:'≡',sim:'∼',simeq:'≃',partial:'∂',nabla:'∇',forall:'∀',exists:'∃',
+  in:'∈',notin:'∉',subset:'⊂',supset:'⊃',subseteq:'⊆',supseteq:'⊇',cup:'∪',cap:'∩',emptyset:'∅',
+  rightarrow:'→',to:'→',leftarrow:'←',Rightarrow:'⇒',Leftarrow:'⇐',leftrightarrow:'↔',Leftrightarrow:'⇔',
+  sum:'Σ',prod:'Π',int:'∫',oint:'∮',sqrt:'√',ldots:'…',cdots:'⋯',vdots:'⋮',
+  langle:'⟨',rangle:'⟩',lfloor:'⌊',rfloor:'⌋',lceil:'⌈',rceil:'⌉'};
+const SUP = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹',
+  n:'ⁿ',i:'ⁱ','+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾',a:'ᵃ',b:'ᵇ',c:'ᶜ',d:'ᵈ',e:'ᵉ',f:'ᶠ',g:'ᵍ',
+  h:'ʰ',j:'ʲ',k:'ᵏ',l:'ˡ',m:'ᵐ',o:'ᵒ',p:'ᵖ',r:'ʳ',s:'ˢ',t:'ᵗ',u:'ᵘ',v:'ᵛ',w:'ʷ',x:'ˣ',y:'ʸ',z:'ᶻ',
+  N:'ᴺ',T:'ᵀ',M:'ᴹ',A:'ᴬ',B:'ᴮ'};
+const SUB = {'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉',
+  a:'ₐ',e:'ₑ',h:'ₕ',i:'ᵢ',j:'ⱼ',k:'ₖ',l:'ₗ',m:'ₘ',n:'ₙ',o:'ₒ',p:'ₚ',r:'ᵣ',s:'ₛ',t:'ₜ',u:'ᵤ',
+  v:'ᵥ',x:'ₓ','+':'₊','-':'₋','=':'₌','(':'₍',')':'₎'};
+const mapChars = (s, m) => [...s].map(c => m[c] || c).join('');
+
+function convertLatexToUnicode(text){
+  if (!text) return text;
+  let r = text.replace(/<think>[\s\S]*?<\/think>/g, '');
+  r = r.replace(/\\\[|\\\]|\\\(|\\\)|\$\$/g, '').replace(/(?<!\$)\$(?!\$)/g, '');
+  r = r.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)');
+  r = r.replace(/\\bar\{([^{}]*)\}/g, '$1\u0304');
+  r = r.replace(/\\(?:text|mathrm|mathbf|mathit)\{([^{}]*)\}/g, '$1');
+  for (const [k,v] of Object.entries(GREEK)) r = r.replace(new RegExp('\\\\'+k+'(?![a-zA-Z])','g'), v);
+  for (const [k,v] of Object.entries(SYMS)) r = r.replace(new RegExp('\\\\'+k+'(?![a-zA-Z])','g'), v);
+  r = r.replace(/\^\{([^{}]+)\}/g, (_,g) => mapChars(g, SUP));
+  r = r.replace(/_\{([^{}]+)\}/g, (_,g) => mapChars(g, SUB));
+  r = r.replace(/\^([0-9a-zA-Z+\-=()])/g, (_,c) => SUP[c] || '^'+c);
+  r = r.replace(/_([0-9a-zA-Z+\-=()])/g, (_,c) => SUB[c] || '_'+c);
+  r = r.replace(/\\left|\\right/g, '').replace(/\\\\/g, '\n');
+  return r;
+}
+
+/* ═══════════════ Ollama ═══════════════ */
+async function checkOllama(silent){
+  $('olLamp').className = 'lamp'; $('olTxt').textContent = T('Ollama: checking…','Ollama: prüfe…');
+  try {
+    const ctrl = new AbortController(); setTimeout(()=>ctrl.abort(), 2500);
+    const r = await fetch('http://localhost:11434/api/tags', {signal: ctrl.signal});
+    const j = await r.json();
+    const models = (j.models || []).map(m => m.name);
+    S.ollamaOK = true;
+    $('olLamp').className = 'lamp ok';
+    $('olTxt').textContent = T('Ollama: connected','Ollama: verbunden');
+    if (models.length){
+      const sel = $('modelSel'); const prev = sel.value;
+      sel.innerHTML = models.map(m => `<option value="${m}">${m}</option>`).join('');
+      const mistral = models.find(m => m.startsWith('mistral'));
+      sel.value = models.includes(prev) ? prev : (mistral || models[0]);
+      const visionish = models.filter(m => /llava|vision|moondream|bakllava|minicpm|qwen.*vl/i.test(m))
+        .filter(m => !/llama3\.2-vision/i.test(m));   // excluded: unreliable across Ollama versions
+      const vsel = $('visionModel'); const vprev = vsel.value;
+      vsel.innerHTML = (visionish.length ? visionish : ['llava']).map(m => `<option value="${m}">${m}</option>`).join('');
+      if ([...vsel.options].some(o => o.value === vprev)) vsel.value = vprev;
+    }
+    if (!silent) toast(T('Ollama connected — ','Ollama verbunden — ') + models.length + T(' model(s)',' Modell(e)'));
+    return true;
+  } catch (e){
+    S.ollamaOK = false;
+    $('olLamp').className = 'lamp bad'; $('olTxt').textContent = T('Ollama: not reachable','Ollama: nicht erreichbar');
+    if (!silent) $('olModal').classList.add('show');
+    return false;
+  }
+}
+$('btnOllama').addEventListener('click', () => checkOllama(false));
+$('olModal').addEventListener('click', e => {
+  if (e.target.dataset.copy){ copyText(e.target.dataset.copy); return; }
+  if (e.target.dataset.close !== undefined || e.target.id === 'olModal')
+    $('olModal').classList.remove('show');
+});
+document.addEventListener('keydown', e => { if (e.key==='Escape') $('olModal').classList.remove('show'); });
+$('btnGuide').addEventListener('click', () => $('olModal').classList.add('show'));
+document.querySelectorAll('.os-tab').forEach(tab => tab.addEventListener('click', () => {
+  document.querySelectorAll('.os-tab').forEach(t => { t.classList.toggle('active', t===tab);
+    t.setAttribute('aria-selected', t===tab); });
+  document.querySelectorAll('.os-pane').forEach(p => p.hidden = p.dataset.pane !== tab.dataset.os);
+}));
+// preselect the visitor's OS
+(() => { const ua = navigator.userAgent;
+  const os = /Mac/i.test(ua) ? 'mac' : /Linux|X11/i.test(ua) && !/Android/i.test(ua) ? 'linux' : 'win';
+  document.querySelector('.os-tab[data-os="'+os+'"]')?.click(); })();
+
+async function generateStream(prompt, model, temperature, numPredict, onChunk, signal, jsonMode){
+  const payload = {model, prompt, options: {temperature, num_predict: numPredict, num_ctx: 8192}};
+  if (jsonMode) payload.format = 'json';   // Ollama structured output: decoder-enforced valid JSON
+  const r = await fetch('http://localhost:11434/api/generate', {
+    method: 'POST', signal,
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  if (!r.ok){
+    let detail = '';
+    try { detail = (await r.json()).error || ''; } catch(e){}
+    throw new Error('Ollama HTTP ' + r.status + (detail ? ' — ' + detail.slice(0,180) : ''));
+  }
+  const reader = r.body.getReader(), dec = new TextDecoder();
+  let buf = '', full = '';
+  for (;;){
+    const {done, value} = await reader.read(); if (done) break;
+    buf += dec.decode(value, {stream: true});
+    let nl;
+    while ((nl = buf.indexOf('\n')) >= 0){
+      const line = buf.slice(0, nl).trim(); buf = buf.slice(nl+1);
+      if (!line) continue;
+      try { const j = JSON.parse(line);
+        if (j.response){ full += j.response; onChunk(full); }
+        if (j.done) return full;
+      } catch (_){}
+    }
+  }
+  return full;
+}
+
+/* ═══════════════ plot mode ═══════════════ */
+let chartLib = null, chartInst = null;
+async function ensureChartJs(){
+  if (window.Chart) return window.Chart;
+  if (chartLib) return chartLib;
+  chartLib = new Promise((res, rej) => {
+    const el = document.createElement('script');
+    el.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+    el.onload = () => res(window.Chart);
+    el.onerror = () => rej(new Error(T('Could not load Chart.js from the CDN.','Chart.js konnte nicht vom CDN geladen werden.')));
+    document.head.appendChild(el);
+  });
+  return chartLib;
+}
+function buildPlotPrompt(query, retrieved){
+  const context = retrieved.map(r => `📄 TEXT (from ${r.chunk.source}):\n${r.chunk.text}`).join('\n\n---\n\n');
+  return `You are a data visualization assistant. Using ONLY numeric data found in the context below, produce a chart that answers the question.
+
+STRICT OUTPUT RULES:
+1. Respond with ONE valid JSON object and NOTHING else — no markdown fences, no commentary, no LaTeX.
+2. The JSON must be a valid Chart.js v4 configuration: {"type": "...", "data": {"labels": [...], "datasets": [{"label": "...", "data": [...]}]}, "options": {"plugins": {"title": {"display": true, "text": "..."}}, "scales": {"x": {"title": {"display": true, "text": "..."}}, "y": {"title": {"display": true, "text": "..."}}}}}
+3. Allowed "type" values: "line", "bar", "scatter", "pie", "radar".
+4. PREFER numbers that literally appear in the context. If (and only if) the context contains NO usable numeric data for this request, INVENT plausible illustrative values from your general knowledge that correctly demonstrate the concept (e.g. a typical elbow curve shape), add a top-level field "synthetic": true, and append " (illustrative example)" to the chart title. When you use numbers from the context, set "synthetic": false.
+5. Respond with {"error": "<one short sentence why>"} ONLY if the question cannot be answered with any chart at all (e.g. it is not a plottable request).
+
+CONTEXT:
+${context}
+
+QUESTION: ${query}
+
+JSON:`;
+}
+function extractJson(text){
+  let t = text.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```(?:json)?/g, '').trim();
+  const start = t.indexOf('{'); if (start < 0) return null;
+  let depth = 0;
+  for (let i = start; i < t.length; i++){
+    if (t[i] === '{') depth++;
+    else if (t[i] === '}'){ depth--; if (depth === 0){
+      try { return JSON.parse(t.slice(start, i+1)); } catch(e){ return null; } } }
+  }
+  return null;
+}
+function showChartFallback(raw, msg){
+  $('chartLbl').textContent = msg;
+  $('chartRaw').textContent = raw; $('chartRaw').classList.add('show');
+  document.querySelector('.chart-wrap').classList.remove('show');
+  $('btnPng').style.display = 'none';
+}
+async function renderChart(config, raw){
+  const Chart = await ensureChartJs();
+  const wrap = document.querySelector('.chart-wrap');
+  $('chartRaw').classList.remove('show'); wrap.classList.add('show');
+  $('btnPng').style.display = '';
+  $('chartLbl').textContent = T('Chart','Diagramm');
+  config.options = Object.assign({responsive: true, maintainAspectRatio: false}, config.options || {});
+  if (chartInst){ chartInst.destroy(); chartInst = null; }
+  try {
+    chartInst = new Chart($('chartCanvas').getContext('2d'), config);
+  } catch (err){
+    wrap.classList.remove('show');
+    showChartFallback(raw, T('Chart.js rejected the configuration — raw model output:','Chart.js hat die Konfiguration abgelehnt — Roh‑Ausgabe des Modells:'));
+  }
+}
+$('btnPng').addEventListener('click', () => {
+  if (!chartInst) return;
+  const a = document.createElement('a');
+  a.href = $('chartCanvas').toDataURL('image/png');
+  a.download = 'rag_chart.png'; a.click();
+});
+
+/* ═══════════════ ask flow ═══════════════ */
+$('query').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnAsk').click(); });
+$('btnStop').addEventListener('click', () => S.abort?.abort());
+
+let lastExchange = null;
+function pushHistory(){
+  if (!lastExchange) return;
+  $('historyBox').style.display = '';
+  const d = document.createElement('details');
+  const sum = document.createElement('summary'); sum.textContent = lastExchange.q;
+  const a = document.createElement('div'); a.className = 'h-a'; a.textContent = lastExchange.a;
+  d.append(sum, a);
+  $('histList').prepend(d);
+  lastExchange = null;
+}
+async function runQuery(mode){
+  const q = $('query').value.trim();
+  if (!q){ toast(T('Type a question first','Bitte zuerst eine Frage eingeben')); return; }
+  if (!S.chunks.length || !S.chunks[0].emb){ toast(T('Build the index first (left panel)','Zuerst den Index erstellen (linkes Panel)')); return; }
+
+  const box = $('answerBox'), body = $('answerBody'), spin = $('spin');
+  pushHistory();
+  box.classList.add('show'); body.className = 'a-body'; body.textContent = '';
+  spin.classList.add('show'); $('aMeta').textContent = '';
+  $('chartBox').classList.remove('show');
+  $('btnAsk').disabled = true; $('btnPlot').disabled = true; $('btnStop').style.display = '';
+
+  try {
+    const k = +$('setK').value || 5, rrfK = +$('setRrf').value || 60;
+    body.textContent = T('Retrieving…','Suche Kontext…');
+    const retrieved = await hybridRetrieve(q, k, rrfK);
+    renderContext(retrieved, q);
+    renderFigStrip(retrieved);
+    if (!retrieved.length) throw new Error(T('No relevant chunks found in the corpus.','Keine relevanten Chunks im Korpus gefunden.'));
+
+    if (!S.ollamaOK && !(await checkOllama(true))){
+      body.className = 'a-body err';
+      body.textContent = T('Retrieval worked (see context below) — but Ollama is not reachable, so no answer can be generated.\n\nClick “Connect” above for one-line setup instructions, then ask again.', 'Die Suche hat funktioniert (siehe Kontext unten) — aber Ollama ist nicht erreichbar, daher kann keine Antwort generiert werden.\n\nKlicken Sie oben auf „Verbinden“ für die Einrichtungsanleitung und fragen Sie dann erneut.');
+      $('olModal').classList.add('show');
+      return;
+    }
+
+    const prompt = mode === 'plot' ? buildPlotPrompt(q, retrieved) : buildPrompt(q, retrieved);
+    const t0 = performance.now();
+    S.abort = new AbortController();
+    body.textContent = mode === 'plot' ? T('Generating chart…','Erzeuge Diagramm…') : T('Generating…','Generiere…');
+    const full = await generateStream(prompt, $('modelSel').value,
+      mode === 'plot' ? 0 : (+$('setTemp').value || 0.2),
+      parseInt($('setMaxTok').value) || 2048,
+      txt => { if (mode !== 'plot') body.textContent = convertLatexToUnicode(txt.replace('[NOT_IN_DOCS]','')); }, S.abort.signal,
+      mode === 'plot');
+    if (mode === 'plot'){
+      $('chartBox').classList.add('show');
+      const obj = extractJson(full);
+      if (!obj){
+        body.className = 'a-body err';
+        body.textContent = T('The model did not return a valid chart configuration — its raw output is shown below. Try rephrasing, lowering top-k, or a stronger model (e.g. qwen2.5-coder).','Das Modell hat keine gültige Diagramm‑Konfiguration geliefert — die Roh‑Ausgabe steht unten. Versuchen Sie eine andere Formulierung, kleineres Top‑k oder ein stärkeres Modell (z. B. qwen2.5-coder).');
+        showChartFallback(full, T('Raw model output','Roh‑Ausgabe des Modells'));
+      } else if (obj.error){
+        body.className = 'a-body err';
+        body.textContent = T('No chart possible: ','Kein Diagramm möglich: ') + obj.error;
+        $('chartBox').classList.remove('show');
+      } else {
+        const synthetic = !!obj.synthetic; delete obj.synthetic;
+        await renderChart(obj, full);
+        if (synthetic){
+          $('chartLbl').textContent = T('Chart — illustrative example (NOT from your documents)','Diagramm — anschauliches Beispiel (NICHT aus Ihren Dokumenten)');
+          body.className = 'a-body err';
+          body.textContent = T('⚠ No usable numeric data was found in your documents for this request. The chart below uses example values invented by the model to illustrate the concept — do not treat them as measured or course data.','⚠ In Ihren Dokumenten wurden keine verwertbaren Zahlen für diese Anfrage gefunden. Das Diagramm unten verwendet vom Modell erfundene Beispielwerte zur Veranschaulichung des Konzepts — nicht als Mess- oder Kursdaten verwenden.');
+        } else {
+          body.textContent = T('Chart generated from the retrieved context — verify the values against the source chunks below.','Diagramm aus dem gefundenen Kontext erzeugt — prüfen Sie die Werte anhand der Quell‑Chunks unten.');
+        }
+      }
+    } else {
+      let out = (convertLatexToUnicode(full) || '').trim();
+      const NID = '[NOT_IN_DOCS]';
+      if (out.startsWith(NID)){
+        out = out.slice(NID.length).trim();
+        body.className = 'a-body warn';
+        body.textContent = T('⚠ Not found in your documents. The answer below comes from the model’s general knowledge, not from your course material — treat it accordingly:',
+                             '⚠ Nicht in Ihren Dokumenten gefunden. Die folgende Antwort stammt aus dem Allgemeinwissen des Modells, nicht aus Ihrem Kursmaterial — entsprechend einordnen:')
+                           + '\n\n' + (out || T('(empty answer)','(leere Antwort)'));
+      } else {
+        body.textContent = out || T('(empty answer)','(leere Antwort)');
+      }
+    }
+    $('aMeta').textContent = ' · ' + $('modelSel').value + ' · ' + ((performance.now()-t0)/1000).toFixed(1) + 's';
+    lastExchange = {q, a: body.textContent};
+    if (mode !== 'plot'){
+      S.lastQA = {q, answer: convertLatexToUnicode(full).replace('[NOT_IN_DOCS]','').trim(), retrieved};
+      $('evalBox').style.display = '';
+      $('evalResults').style.display = 'none'; $('evalDetails').style.display = 'none'; $('evalStatus').textContent = '';
+    } else { $('evalBox').style.display = 'none'; }
+    step('ask','done');
+  } catch (err){
+    body.className = 'a-body err';
+    body.textContent = err.name === 'AbortError' ? T('Generation stopped.','Generierung gestoppt.') : (T('Error: ','Fehler: ') + err.message);
+  } finally {
+    spin.classList.remove('show'); $('btnAsk').disabled = false; $('btnPlot').disabled = false;
+    $('btnStop').style.display = 'none'; S.abort = null;
+  }
+}
+$('btnCopyAns').addEventListener('click', () => {
+  const t = $('answerBody').textContent;
+  if (t.trim()) copyText(t);
+});
+$('btnAsk').addEventListener('click', () => runQuery('text'));
+$('btnPlot').addEventListener('click', () => runQuery('plot'));
+
+function highlightTerms(html, query){
+  const terms = [...new Set(query.toLowerCase().split(/\W+/).filter(w => w.length > 2))];
+  if (!terms.length) return html;
+  const re = new RegExp('(' + terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')', 'gi');
+  return html.replace(re, '<mark>$1</mark>');
+}
+function figThumbHtml(key, h){
+  const pg = (key.match(/#p(\d+)$/) || [])[1];
+  return `<div><img src="${S.figures[key]}" data-fig="${key}" alt="Figure p.${pg}" ${h?`style="height:${h}px"`:''}>` +
+         `<div class="figcap">${escapeHtml(key.split('#p')[0])} · ${T('p.','S.')} ${pg}</div></div>`;
+}
+function renderFigStrip(retrieved){
+  const keys = [...new Set(retrieved.flatMap(r => r.chunk.figs || []))].filter(k => S.figures[k]);
+  $('figStrip').style.display = keys.length ? '' : 'none';
+  $('figRow').innerHTML = keys.map(k => figThumbHtml(k)).join('');
+}
+document.addEventListener('click', e => {
+  const img = e.target.closest('img[data-fig]');
+  if (img){ const lb = $('figLightbox'); lb.querySelector('img').src = img.src; lb.classList.add('show'); return; }
+  if (e.target.closest('#figLightbox')) $('figLightbox').classList.remove('show');
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('figLightbox').classList.remove('show'); });
+
+function renderContext(retrieved, q){
+  $('ctxBox').style.display = '';
+  $('ctxCards').innerHTML = retrieved.map(r => {
+    const w = r.why || {};
+    const pg = (r.chunk.text.match(/\[Page (\d+)/) || [])[1];
+    return `<div class="ctx-card">
+      <div class="meta">
+        <span class="pill rrf">RRF ${r.score.toFixed(4)}</span>
+        ${w.vecRank ? `<span class="pill vec">vector #${w.vecRank} · cos ${w.cos.toFixed(3)}</span>` : ''}
+        ${w.bmRank ? `<span class="pill bm">BM25 #${w.bmRank} · ${w.bm.toFixed(2)}</span>` : ''}
+        <span class="pill src">${escapeHtml(r.chunk.source)}${pg ? ' · ' + T('p.','S.') + ' ' + pg : ''}</span>
+      </div>
+      <div class="body">${highlightTerms(escapeHtml(r.chunk.text), q || '')}</div>
+      ${(r.chunk.figs || []).filter(k => S.figures[k]).length ? `<div class="figs">${r.chunk.figs.filter(k => S.figures[k]).map(k => `<img src="${S.figures[k]}" data-fig="${k}" alt="Figure">`).join('')}</div>` : ''}
+      <button class="more">${T('Show full chunk','Ganzen Chunk zeigen')}</button>
+    </div>`;
+  }).join('');
+}
+$('ctxCards').addEventListener('click', e => {
+  if (!e.target.classList.contains('more')) return;
+  const card = e.target.closest('.ctx-card');
+  card.classList.toggle('open');
+  e.target.textContent = card.classList.contains('open') ? T('Collapse','Einklappen') : T('Show full chunk','Ganzen Chunk zeigen');
+});
+
+
+/* ═══════════════ i18n (EN/DE) ═══════════════ */
+let LANG = 'en';
+const T = (en, de) => LANG === 'de' ? de : en;
+const _ORIG = new Map();
+const DE = {
+'header .kicker': 'Browser‑nativ · kein Python nötig',
+'header p': 'Die komplette Pipeline — PDF‑Extraktion, semantisches Chunking, Embeddings, hybride BM25‑ + Vektor‑Suche mit RRF‑Fusion und Antwortgenerierung mit <b style="color:#dfe8ec">jedem Modell aus Ihrem Ollama</b> (Mistral, Llama&nbsp;3, Qwen, Gemma, …) — alles läuft in dieser Seite. Nur der LLM‑Aufruf geht an Ihren eigenen Rechner.',
+'#st-extract .lbl-txt': 'Extrahieren', '#st-chunk .lbl-txt': 'Zerlegen',
+'#st-embed .lbl-txt': 'Einbetten', '#st-ask .lbl-txt': 'Fragen',
+'.panel:nth-of-type(1) .panel-h h2': '1 · Korpus aufbauen',
+'#drop': '<b>PDF‑Dateien hier ablegen</b> oder klicken zum Auswählen<br><span style="font-size:11.5px">Der Text wird Seite für Seite direkt im Browser extrahiert — nichts wird irgendwohin hochgeladen.</span><input type="file" id="fileInput" accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown" multiple hidden>',
+'.or': 'oder Text einfügen',
+'#btnAddText': 'Eingefügten Text als Dokument hinzufügen',
+'#visionLbl': '<b>Abbildungen beschreiben</b> mit einem lokalen Vision‑Modell — Seiten mit Bildern werden an Ollama gesendet (z.\u2009B. <span class="mono">llava</span>), die Beschreibungen werden durchsuchbare Chunks. Langsamer, Ollama muss verbunden sein.',
+'label[for=setChunk]': 'Chunk‑Größe (Wörter)', 'label[for=setOverlap]': 'Überlappung (Wörter)',
+'label[for=setModel]': 'Embedding‑Modell (einmaliger Download, vom Browser gecacht)',
+'#setModel option:nth-child(1)': 'bge-small-en-v1.5 · ~34 MB · am nächsten am bge-base des Notebooks',
+'#setModel option:nth-child(2)': 'all-MiniLM-L6-v2 · ~23 MB · am schnellsten',
+'#setModel option:nth-child(3)': 'multilingual-e5-small · ~120 MB · Deutsch + Arabisch + 90 weitere',
+'#btnBuild': 'Index erstellen (zerlegen + einbetten)', '#btnClear': 'Korpus leeren',
+'.stat:nth-child(1) .k': 'Dokumente', '.stat:nth-child(2) .k': 'Chunks', '.stat:nth-child(3) .k': 'Embedding‑Dim',
+'#btnExport': 'Index exportieren (.json)', '#btnImport': 'Index importieren',
+'.panel:nth-of-type(1) p.note': 'Der Index (Chunks + Vektoren) liegt im Arbeitsspeicher. <b>Exportieren</b> speichert ihn als Datei — beim nächsten Mal entfallen Neuaufbau und Modell‑Download.',
+'.panel:nth-of-type(2) .panel-h h2': '2 · Dokumente befragen',
+'#btnOllama': 'Verbinden', '#btnGuide': 'Einrichtung',
+'label[for=setK]': 'Top‑k Chunks', 'label[for=setTemp]': 'Temperatur', 'label[for=setRrf]': 'RRF k',
+'label[for=setMaxTok]': 'Antwortlänge',
+'#visionScope option:nth-child(1)': 'Seiten mit eingebetteten Bildern (auto)',
+'#visionScope option:nth-child(2)': 'alle Seiten (erfasst auch Vektor‑Grafiken)',
+'#setMaxTok option:nth-child(1)': 'kurz · 1024 Tok.', '#setMaxTok option:nth-child(2)': 'mittel · 2048 Tok.',
+'#setMaxTok option:nth-child(3)': 'lang · 4096 Tok.', '#setMaxTok option:nth-child(4)': 'unbegrenzt',
+'#btnAsk': 'Fragen', '#btnPlot': 'Diagramm', '#btnStop': 'Stopp',
+'.ctx h3': 'Gefundener Kontext — RRF‑fusioniert aus Vektor + BM25',
+'#ansLbl': 'Antwort', '#btnCopyAns': 'Kopieren', '#histTitle': 'Frühere Fragen',
+'#figTitle': 'Abbildungen aus den gefundenen Seiten',
+'#evalTitle': 'RAGAS‑Auswertung', '#btnEval': 'Diese Antwort auswerten',
+'label[for=evalRef]': 'Referenzantwort (optional — aktiviert Context Recall)',
+'#evalDetSum': 'Judge‑Urteile (Details)',
+'#ecT1': 'Generierung (RAGAS)', '#ecT2': 'Retrieval (klassische IR)',
+'#ecT3': 'Referenzbasiert (BLEU · ROUGE · BERTScore)',
+'#askHint': '<b>So funktioniert es:</b> Ihre Frage wird im Browser eingebettet und per Kosinus‑Ähnlichkeit <i>und</i> BM25‑Keyword‑Scoring mit dem Korpus abgeglichen; beide Rankings werden per Reciprocal Rank Fusion verschmolzen (k·3 Kandidaten, Score = Σ 1/(k<sub>RRF</sub>+Rang)). Die besten Chunks gehen in denselben Anti‑LaTeX‑Prompt wie im Notebook, Ihr gewähltes Ollama‑Modell antwortet lokal, und verbliebenes LaTeX wird in Unicode umgewandelt.',
+'#guideTitle': 'Einrichtungsanleitung — Ollama für das RAG Browser Lab',
+'#olModal .modal > p:nth-of-type(1)': 'Alles in dieser Seite läuft lokal in Ihrem Browser — außer dem finalen LLM‑Aufruf an <b>Ollama</b> auf Ihrem eigenen Rechner. Drei Schritte: Ollama installieren, ein Modell laden, dieser Seite den Zugriff erlauben.',
+};
+const DE_ATTR = {
+  '#pasteText': ['placeholder', 'Vorlesungsnotizen, einen Paper‑Abschnitt, Dokumentation einfügen …'],
+  '#query': ['placeholder', 'z. B. Wie lautet die Formel für die Varianz?'],
+};
+const DE_PANES = {
+win: `
+      <div class="gstep">① Ollama installieren</div>
+      <p><b>OllamaSetup.exe</b> von <a href="https://ollama.com/download/windows" target="_blank" rel="noopener">ollama.com/download/windows</a> herunterladen und ausführen. Dann in PowerShell prüfen:</p>
+      <div class="cmd"><span>ollama --version</span><button data-copy="ollama --version">Kopieren</button></div>
+      <div class="gstep">② Modelle laden</div>
+      <p><b>mistral</b> (~4,1&nbsp;GB) ist der Standard, aber <b>jedes</b> Ollama‑Modell funktioniert — das Dropdown in der App zeigt alles, was Sie geladen haben.</p>
+      <div class="cmd"><span>ollama pull mistral</span><button data-copy="ollama pull mistral">Kopieren</button></div>
+      <div class="cmd"><span>ollama pull llama3.2</span><button data-copy="ollama pull llama3.2">Kopieren</button></div>
+      <div class="cmd"><span>ollama list</span><button data-copy="ollama list">Kopieren</button></div>
+      <div class="gstep">③ Diese Seite verbinden (CORS)</div>
+      <p><b>1.</b> Ollama beenden: Rechtsklick auf das Lama‑Symbol im Infobereich → <b>Quit Ollama</b> (sonst startet es sich ohne die Einstellung neu). Dann übrig gebliebene Server stoppen:</p>
+      <div class="cmd"><span>taskkill /F /IM ollama.exe</span><button data-copy="taskkill /F /IM ollama.exe">Kopieren</button></div>
+      <p><b>2.</b> Dieser Seite den Zugriff erlauben (gleiches PowerShell‑Fenster, kein Neustart nötig):</p>
+      <div class="cmd"><span>$env:OLLAMA_ORIGINS="*"</span><button data-copy='$env:OLLAMA_ORIGINS="*"'>Kopieren</button></div>
+      <p><b>3.</b> Server starten — <b>Fenster offen lassen</b>, solange Sie die App nutzen:</p>
+      <div class="cmd"><span>ollama serve</span><button data-copy="ollama serve">Kopieren</button></div>
+      <p class="gnote">Kontrolle: <code>echo $env:OLLAMA_ORIGINS</code> sollte <code>*</code> ausgeben. Meldet Schritt 3 „Port bereits belegt", lebt ein alter Server weiter — Schritt 1 wiederholen und die Tray‑App wirklich beenden. Zum Schluss oben in der App auf <b>Verbinden</b> klicken.</p>`,
+mac: `
+      <div class="gstep">① Ollama installieren</div>
+      <p>App von <a href="https://ollama.com/download/mac" target="_blank" rel="noopener">ollama.com/download/mac</a> laden, entpacken und in <b>Programme</b> ziehen — oder mit Homebrew:</p>
+      <div class="cmd"><span>brew install ollama</span><button data-copy="brew install ollama">Kopieren</button></div>
+      <div class="cmd"><span>ollama --version</span><button data-copy="ollama --version">Kopieren</button></div>
+      <div class="gstep">② Modelle laden</div>
+      <div class="cmd"><span>ollama pull mistral</span><button data-copy="ollama pull mistral">Kopieren</button></div>
+      <div class="cmd"><span>ollama pull llama3.2</span><button data-copy="ollama pull llama3.2">Kopieren</button></div>
+      <div class="cmd"><span>ollama list</span><button data-copy="ollama list">Kopieren</button></div>
+      <div class="gstep">③ Diese Seite verbinden (CORS)</div>
+      <p><b>Am einfachsten (einmalig, Terminal):</b> zuerst die Menüleisten‑App beenden (Lama‑Symbol → Quit Ollama), dann ausführen — Terminal offen lassen:</p>
+      <div class="cmd"><span>OLLAMA_ORIGINS="*" ollama serve</span><button data-copy='OLLAMA_ORIGINS="*" ollama serve'>Kopieren</button></div>
+      <p><b>Dauerhaft (Menüleisten‑App):</b> Variable systemweit setzen, dann Ollama‑App beenden und neu öffnen:</p>
+      <div class="cmd"><span>launchctl setenv OLLAMA_ORIGINS "*"</span><button data-copy='launchctl setenv OLLAMA_ORIGINS "*"'>Kopieren</button></div>
+      <p class="gnote">Danach in der App auf <b>Verbinden</b> klicken. (Die launchctl‑Einstellung gilt bis zum Neustart des Macs.)</p>`,
+linux: `
+      <div class="gstep">① Ollama installieren</div>
+      <div class="cmd"><span>curl -fsSL https://ollama.com/install.sh | sh</span><button data-copy="curl -fsSL https://ollama.com/install.sh | sh">Kopieren</button></div>
+      <div class="cmd"><span>ollama --version</span><button data-copy="ollama --version">Kopieren</button></div>
+      <div class="gstep">② Modelle laden</div>
+      <div class="cmd"><span>ollama pull mistral</span><button data-copy="ollama pull mistral">Kopieren</button></div>
+      <div class="cmd"><span>ollama pull llama3.2</span><button data-copy="ollama pull llama3.2">Kopieren</button></div>
+      <div class="cmd"><span>ollama list</span><button data-copy="ollama list">Kopieren</button></div>
+      <div class="gstep">③ Diese Seite verbinden (CORS)</div>
+      <p><b>Am einfachsten (einmalig):</b> Hintergrund‑Dienst stoppen, dann in einem offen bleibenden Terminal:</p>
+      <div class="cmd"><span>sudo systemctl stop ollama</span><button data-copy="sudo systemctl stop ollama">Kopieren</button></div>
+      <div class="cmd"><span>OLLAMA_ORIGINS="*" ollama serve</span><button data-copy='OLLAMA_ORIGINS="*" ollama serve'>Kopieren</button></div>
+      <p><b>Dauerhaft (systemd‑Dienst):</b></p>
+      <div class="cmd"><span>sudo systemctl edit ollama</span><button data-copy="sudo systemctl edit ollama">Kopieren</button></div>
+      <p>Im sich öffnenden Editor diese Zeilen ergänzen und speichern:</p>
+      <div class="cmd"><span>[Service]<br>Environment="OLLAMA_ORIGINS=*"</span><button data-copy='[Service]
+Environment="OLLAMA_ORIGINS=*"'>Kopieren</button></div>
+      <div class="cmd"><span>sudo systemctl daemon-reload &amp;&amp; sudo systemctl restart ollama</span><button data-copy="sudo systemctl daemon-reload && sudo systemctl restart ollama">Kopieren</button></div>
+      <p class="gnote">Danach in der App auf <b>Verbinden</b> klicken.</p>`,
+};
+function setLang(l){
+  LANG = l;
+  document.querySelectorAll('#langToggle button').forEach(b => b.classList.toggle('active', b.dataset.lang === l));
+  for (const [sel, de] of Object.entries(DE)){
+    const el = document.querySelector(sel); if (!el) continue;
+    if (!_ORIG.has(sel)) _ORIG.set(sel, el.innerHTML);
+    el.innerHTML = l === 'de' ? de : _ORIG.get(sel);
+  }
+  for (const [sel, [attr, de]] of Object.entries(DE_ATTR)){
+    const el = document.querySelector(sel); if (!el) continue;
+    const key = sel + '@' + attr;
+    if (!_ORIG.has(key)) _ORIG.set(key, el.getAttribute(attr));
+    el.setAttribute(attr, l === 'de' ? de : _ORIG.get(key));
+  }
+  for (const [os, de] of Object.entries(DE_PANES)){
+    const el = document.querySelector('.os-pane[data-pane="' + os + '"]'); if (!el) continue;
+    const key = 'pane:' + os;
+    if (!_ORIG.has(key)) _ORIG.set(key, el.innerHTML);
+    el.innerHTML = l === 'de' ? de : _ORIG.get(key);
+  }
+  document.documentElement.lang = l;
+  try { localStorage.setItem('ragLang', l); } catch(e){}
+}
+document.getElementById('langToggle').addEventListener('click', e => {
+  if (e.target.dataset.lang) setLang(e.target.dataset.lang);
+});
+function setTheme(t){
+  if (t === 'dark') document.documentElement.dataset.theme = 'dark';
+  else delete document.documentElement.dataset.theme;
+  try { localStorage.setItem('ragTheme', t); } catch(e){}
+}
+document.getElementById('themeToggle').addEventListener('click', () =>
+  setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+try {
+  const th = localStorage.getItem('ragTheme');
+  if (th === 'dark' || (!th && matchMedia('(prefers-color-scheme: dark)').matches)) setTheme('dark');
+} catch(e){}
+try { const saved = localStorage.getItem('ragLang');
+  if (saved === 'de') setLang('de'); } catch(e){}
+
+
+/* ═══════════════ RAGAS evaluation (browser-native, LLM-as-judge via Ollama) ═══════════════ */
+let evalChart = null, evalChartIR = null, evalChartRef = null;
+async function judgeJson(prompt){
+  const r = await fetch('http://localhost:11434/api/generate', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({model: $('modelSel').value, prompt, stream: false, format: 'json',
+                          options: {temperature: 0, num_predict: 1024, num_ctx: 8192}})
+  });
+  if (!r.ok) throw new Error(await ollamaErr(r));
+  const obj = extractJson((await r.json()).response || '');
+  if (!obj) throw new Error(T('Judge model returned invalid JSON','Judge-Modell lieferte ungültiges JSON'));
+  return obj;
+}
+const clamp01 = x => Math.max(0, Math.min(1, x));
+
+/* ── classic NLG reference metrics (pure JS) ── */
+const tok = t => t.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+function ngrams(ts, n){ const m = new Map();
+  for (let i = 0; i + n <= ts.length; i++){ const g = ts.slice(i, i+n).join(' ');
+    m.set(g, (m.get(g)||0) + 1); } return m; }
+function overlapCount(a, b){ let c = 0;
+  for (const [g, n] of a) c += Math.min(n, b.get(g) || 0); return c; }
+
+function bleu4(cand, ref){
+  const c = tok(cand), r = tok(ref);
+  if (!c.length || !r.length) return 0;
+  let logSum = 0;
+  for (let n = 1; n <= 4; n++){
+    const cg = ngrams(c, n), rg = ngrams(r, n);
+    const total = Math.max(0, c.length - n + 1);
+    const match = overlapCount(cg, rg);
+    const p = n === 1 ? (total ? match/total : 0)
+                      : (match + 1) / (total + 1);      // smoothing-1 for n>1
+    if (p <= 0) return 0;
+    logSum += Math.log(p) / 4;
+  }
+  const bp = c.length >= r.length ? 1 : Math.exp(1 - r.length / c.length);
+  return clamp01(bp * Math.exp(logSum));
+}
+function rougeN(cand, ref, n){
+  const cg = ngrams(tok(cand), n), rg = ngrams(tok(ref), n);
+  const ov = overlapCount(cg, rg);
+  const ct = [...cg.values()].reduce((a,x)=>a+x,0), rt = [...rg.values()].reduce((a,x)=>a+x,0);
+  const p = ct ? ov/ct : 0, r = rt ? ov/rt : 0;
+  return (p + r) ? 2*p*r/(p+r) : 0;
+}
+function rougeL(cand, ref){
+  const a = tok(cand), b = tok(ref);
+  if (!a.length || !b.length) return 0;
+  let prev = new Array(b.length + 1).fill(0);
+  for (let i = 1; i <= a.length; i++){
+    const cur = [0];
+    for (let j = 1; j <= b.length; j++)
+      cur[j] = a[i-1] === b[j-1] ? prev[j-1] + 1 : Math.max(prev[j], cur[j-1]);
+    prev = cur;
+  }
+  const lcs = prev[b.length], p = lcs/a.length, r = lcs/b.length;
+  return (p + r) ? 2*p*r/(p+r) : 0;
+}
+async function bertScoreF1(cand, ref){
+  if (window.__mockEmbedder){                       // test hook: sentence-level proxy
+    const e = await embed([cand, ref], false);
+    return clamp01(cosine(e[0], e[1]));
+  }
+  const fn = await ensureEmbedder($('setModel').value);
+  const tokenEmb = async t => {
+    const r = await fn(t);                          // no pooling → [1, seq, dim]
+    const [, seq, dim] = r.dims;
+    const vecs = [];
+    for (let i = 1; i < seq - 1; i++){              // drop [CLS]/[SEP]
+      const v = Array.from(r.data.slice(i*dim, (i+1)*dim));
+      const n = Math.hypot(...v) || 1;
+      vecs.push(v.map(x => x/n));
+    }
+    return vecs;
+  };
+  const C = await tokenEmb(cand), R = await tokenEmb(ref);
+  if (!C.length || !R.length) return 0;
+  const maxSim = (A, B) => A.reduce((s,a) => s + Math.max(...B.map(b => cosine(a,b))), 0) / A.length;
+  const p = maxSim(C, R), r = maxSim(R, C);
+  return clamp01((p + r) ? 2*p*r/(p+r) : 0);
+}
+
+async function ragasEvaluate(qa, reference, onStep){
+  const ctxText = qa.retrieved.map((r,i) => `[${i+1}] ${r.chunk.text}`).join('\n\n');
+  const out = {details: {}};
+
+  /* 1 · Faithfulness: claims of the answer supported by the context? */
+  onStep(T('1/4 Faithfulness — verifying answer claims against the context…','1/4 Faithfulness — prüfe Antwort-Aussagen gegen den Kontext…'));
+  const f = await judgeJson(
+`You are a strict evaluator. Break the ANSWER into its individual factual claims, and for each decide whether it is supported by the CONTEXT.
+Respond ONLY with JSON: {"claims":[{"claim":"...","supported":true|false}]}
+
+CONTEXT:
+${ctxText}
+
+ANSWER:
+${qa.answer}`);
+  const claims = (f.claims || []).filter(c => c && typeof c.claim === 'string');
+  out.faithfulness = claims.length ? claims.filter(c => c.supported).length / claims.length : 0;
+  out.details.claims = claims;
+
+  /* 2 · Answer relevancy: generate questions from the answer, compare embeddings with the original question */
+  onStep(T('2/4 Answer relevancy — generating questions from the answer…','2/4 Answer Relevancy — erzeuge Fragen aus der Antwort…'));
+  const g = await judgeJson(
+`Given this ANSWER, write 3 different questions that this answer would be a complete answer to.
+Respond ONLY with JSON: {"questions":["...","...","..."]}
+
+ANSWER:
+${qa.answer}`);
+  const genQ = (g.questions || []).filter(x => typeof x === 'string' && x.trim()).slice(0,3);
+  if (genQ.length){
+    const embs = await embed([qa.q, ...genQ], true);
+    const sims = genQ.map((_,i) => cosine(embs[0], embs[i+1]));
+    out.answer_relevancy = clamp01(sims.reduce((a,x)=>a+x,0) / sims.length);
+    out.details.genQuestions = genQ.map((t,i) => ({q: t, cos: sims[i]}));
+  } else out.answer_relevancy = 0;
+
+  /* 3 · Context precision: are the retrieved chunks relevant, weighted by rank (RAGAS precision@k)? */
+  onStep(T('3/4 Context precision — judging each retrieved chunk…','3/4 Context Precision — bewerte jeden gefundenen Chunk…'));
+  const p = await judgeJson(
+`For each numbered CONTEXT CHUNK, decide if it is useful for answering the QUESTION.
+Respond ONLY with JSON: {"verdicts":[{"chunk":1,"relevant":true|false}, ...]} covering every chunk number.
+
+QUESTION: ${qa.q}
+
+CONTEXT CHUNKS:
+${ctxText}`);
+  const k = qa.retrieved.length;
+  const rel = new Array(k).fill(false);
+  (p.verdicts || []).forEach(v => { const i = (+v.chunk) - 1; if (i >= 0 && i < k) rel[i] = !!v.relevant; });
+  let hits = 0, acc = 0;
+  rel.forEach((r,i) => { if (r){ hits++; acc += hits / (i+1); } });
+  out.context_precision = hits ? acc / hits : 0;
+  out.details.chunkVerdicts = rel;
+
+  /* classic IR retrieval metrics, derived from the same verdicts */
+  out.precision_at_k = hits / k;
+  out.hit_rate = hits > 0 ? 1 : 0;
+  const firstRel = rel.findIndex(r => r);
+  out.mrr = firstRel >= 0 ? 1 / (firstRel + 1) : 0;
+  let dcg = 0, idcg = 0;
+  rel.forEach((r,i) => { if (r) dcg += 1 / Math.log2(i + 2); });
+  for (let i = 0; i < hits; i++) idcg += 1 / Math.log2(i + 2);
+  out.ndcg = hits ? dcg / idcg : 0;
+  /* hybrid diagnostic: share of top-k found by BOTH retrievers */
+  const both = qa.retrieved.filter(r => r.why && r.why.vecRank && r.why.bmRank).length;
+  out.hybrid_overlap = k ? both / k : 0;
+
+  /* 4 · Context recall (needs reference): reference statements attributable to the context */
+  if (reference && reference.trim()){
+    onStep(T('4/4 Context recall — checking the reference answer against the context…','4/4 Context Recall — prüfe Referenzantwort gegen den Kontext…'));
+    const c = await judgeJson(
+`Break the REFERENCE ANSWER into individual statements. For each, decide whether it can be attributed to (found in) the CONTEXT.
+Respond ONLY with JSON: {"statements":[{"statement":"...","attributable":true|false}]}
+
+CONTEXT:
+${ctxText}
+
+REFERENCE ANSWER:
+${reference}`);
+    const st = (c.statements || []).filter(x => x && typeof x.statement === 'string');
+    out.context_recall = st.length ? st.filter(x => x.attributable).length / st.length : 0;
+    out.details.refStatements = st;
+    onStep(T('5/5 BLEU / ROUGE / BERTScore against the reference…','5/5 BLEU / ROUGE / BERTScore gegen die Referenz…'));
+    out.bleu = bleu4(qa.answer, reference);
+    out.rouge1 = rougeN(qa.answer, reference, 1);
+    out.rouge2 = rougeN(qa.answer, reference, 2);
+    out.rougeL = rougeL(qa.answer, reference);
+    out.bertscore = await bertScoreF1(qa.answer, reference);
+  } else { out.context_recall = null; out.bleu = out.rouge1 = out.rouge2 = out.rougeL = out.bertscore = null; }
+  return out;
+}
+
+function metricRow(name, desc, v){
+  const cls = v === null ? '' : v >= 0.8 ? 'good' : v >= 0.5 ? 'mid' : 'bad';
+  const val = v === null ? '–' : v.toFixed(2);
+  return `<div class="eval-metric"><span class="mv ${cls}">${val}</span><span><span class="mn">${name}</span><br><span class="md">${desc}</span></span></div>`;
+}
+
+async function renderRagas(res){
+  $('evalResults').style.display = '';
+  const sub = t => `<div style="font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:4px 0 7px">${t}</div>`;
+  $('evalMetrics').innerHTML =
+    sub(T('Generation (RAGAS)','Generierung (RAGAS)')) +
+    metricRow('Faithfulness', T('Share of answer claims supported by the retrieved context (anti-hallucination).','Anteil der Antwort-Aussagen, die der Kontext stützt (gegen Halluzination).'), res.faithfulness) +
+    metricRow('Answer relevancy', T('How well the answer addresses the question (embedding similarity of reverse-generated questions).','Wie gut die Antwort die Frage trifft (Embedding-Ähnlichkeit rückgenerierter Fragen).'), res.answer_relevancy) +
+    metricRow('Context precision', T('Rank-weighted share of retrieved chunks that are actually relevant.','Rang-gewichteter Anteil tatsächlich relevanter Chunks.'), res.context_precision) +
+    metricRow('Context recall', res.context_recall === null ?
+      T('Needs a reference answer — fill the field above and evaluate again.','Braucht eine Referenzantwort — Feld oben ausfüllen und erneut auswerten.') :
+      T('Share of the reference answer covered by the retrieved context.','Anteil der Referenzantwort, den der Kontext abdeckt.'), res.context_recall) +
+    sub(T('Retrieval (classic IR)','Retrieval (klassische IR)')) +
+    metricRow('Precision@k', T('Share of the k retrieved chunks judged relevant.','Anteil der k gefundenen Chunks, die als relevant beurteilt wurden.'), res.precision_at_k) +
+    metricRow('Hit rate@k', T('1 if at least one relevant chunk was retrieved, else 0.','1, wenn mindestens ein relevanter Chunk gefunden wurde, sonst 0.'), res.hit_rate) +
+    metricRow('MRR', T('Reciprocal rank of the first relevant chunk (1 = top hit relevant).','Reziproker Rang des ersten relevanten Chunks (1 = Top-Treffer relevant).'), res.mrr) +
+    metricRow('nDCG@k', T('Ranking quality: relevant chunks should sit at the top.','Ranking-Qualität: relevante Chunks sollten oben stehen.'), res.ndcg) +
+    metricRow('Hybrid overlap', T('Share of top-k found by BOTH vector and BM25 (diagnostic, not quality).','Anteil der Top-k, den Vektor UND BM25 fanden (Diagnose, keine Qualität).'), res.hybrid_overlap) +
+    sub(T('Reference-based (needs reference answer)','Referenzbasiert (braucht Referenzantwort)')) +
+    metricRow('BLEU‑4', T('N-gram precision vs the reference with brevity penalty (surface overlap).','N-Gramm-Präzision zur Referenz mit Kürze-Strafe (Oberflächen-Überlappung).'), res.bleu) +
+    metricRow('ROUGE‑1 F1', T('Unigram overlap with the reference (content words covered).','Unigramm-Überlappung mit der Referenz (abgedeckte Inhaltswörter).'), res.rouge1) +
+    metricRow('ROUGE‑2 F1', T('Bigram overlap — rewards matching phrases, not just words.','Bigramm-Überlappung — belohnt übereinstimmende Phrasen, nicht nur Wörter.'), res.rouge2) +
+    metricRow('ROUGE‑L F1', T('Longest common subsequence — sentence-structure similarity.','Längste gemeinsame Teilsequenz — Ähnlichkeit der Satzstruktur.'), res.rougeL) +
+    metricRow('BERTScore F1', T('Token-embedding similarity (semantic, using the current embedding model).','Token-Embedding-Ähnlichkeit (semantisch, mit dem aktuellen Embedding-Modell).'), res.bertscore);
+
+  const Chart = await ensureChartJs();
+  const css = getComputedStyle(document.documentElement);
+  const lineC = css.getPropertyValue('--line').trim();
+  const radarOpts = {responsive: true, maintainAspectRatio: false,
+    scales: {r: {min: 0, max: 1, ticks: {stepSize: 0.2, backdropColor: 'transparent'},
+      grid: {color: lineC}, angleLines: {color: lineC}, pointLabels: {font: {size: 11.5}}}},
+    plugins: {legend: {display: false}}};
+  const mkRadar = (canvasId, labels, data, color, old) => {
+    if (old) old.destroy();
+    return new Chart($(canvasId).getContext('2d'), {type: 'radar',
+      data: {labels, datasets: [{data, fill: true, backgroundColor: color + '33',
+        borderColor: color, pointBackgroundColor: color, borderWidth: 2}]},
+      options: radarOpts});
+  };
+  const accent = css.getPropertyValue('--green').trim() || '#d9530b';
+  const gray = css.getPropertyValue('--blue').trim() || '#57666f';
+  evalChart = mkRadar('evalCanvas',
+    ['Faithfulness','Answer relevancy','Context precision','Context recall'],
+    [res.faithfulness, res.answer_relevancy, res.context_precision, res.context_recall ?? 0],
+    accent, evalChart);
+  evalChartIR = mkRadar('evalCanvasIR',
+    ['Precision@k','Hit rate','MRR','nDCG@k','Hybrid overlap'],
+    [res.precision_at_k, res.hit_rate, res.mrr, res.ndcg, res.hybrid_overlap],
+    gray, evalChartIR);
+  const hasRef = res.bleu !== null;
+  $('ecRefBox').style.display = hasRef ? '' : 'none';
+  if (hasRef){
+    const amber = css.getPropertyValue('--amber').trim() || '#b45309';
+    evalChartRef = mkRadar('evalCanvasRef',
+      ['BLEU-4','ROUGE-1','ROUGE-2','ROUGE-L','BERTScore'],
+      [res.bleu, res.rouge1, res.rouge2, res.rougeL, res.bertscore],
+      amber, evalChartRef);
+  }
+
+  /* verdict details */
+  const D = res.details; let html = '';
+  if (D.claims?.length) html += '<b>' + T('Answer claims','Antwort-Aussagen') + ':</b>' + D.claims.map(c =>
+    `<div class="verdict"><span class="${c.supported?'v-ok':'v-no'}">${c.supported?'✓':'✗'}</span><span>${escapeHtml(c.claim)}</span></div>`).join('');
+  if (D.genQuestions?.length) html += '<b style="display:block;margin-top:10px">' + T('Reverse-generated questions','Rückgenerierte Fragen') + ':</b>' + D.genQuestions.map(x =>
+    `<div class="verdict"><span class="v-ok">cos ${x.cos.toFixed(2)}</span><span>${escapeHtml(x.q)}</span></div>`).join('');
+  if (D.chunkVerdicts?.length) html += '<b style="display:block;margin-top:10px">' + T('Chunk relevance (by rank)','Chunk-Relevanz (nach Rang)') + ':</b> ' +
+    D.chunkVerdicts.map((r,i) => `<span class="${r?'v-ok':'v-no'}" style="margin-right:8px">#${i+1} ${r?'✓':'✗'}</span>`).join('');
+  if (D.refStatements?.length) html += '<b style="display:block;margin-top:10px">' + T('Reference statements','Referenz-Aussagen') + ':</b>' + D.refStatements.map(c =>
+    `<div class="verdict"><span class="${c.attributable?'v-ok':'v-no'}">${c.attributable?'✓':'✗'}</span><span>${escapeHtml(c.statement)}</span></div>`).join('');
+  $('evalDetails').style.display = html ? '' : 'none';
+  $('evalDetBody').innerHTML = html;
+}
+
+$('btnEval').addEventListener('click', async () => {
+  if (!S.lastQA){ toast(T('Ask a question first','Zuerst eine Frage stellen')); return; }
+  if (!S.ollamaOK && !(await checkOllama(true))){ $('olModal').classList.add('show'); return; }
+  const btn = $('btnEval'); btn.disabled = true; $('evalSpin').classList.add('show');
+  $('evalResults').style.display = 'none'; $('evalDetails').style.display = 'none';
+  try {
+    const res = await ragasEvaluate(S.lastQA, $('evalRef').value, msg => { $('evalStatus').textContent = msg; });
+    $('evalStatus').textContent = T('Done — 4 judge calls with ','Fertig — 4 Judge-Aufrufe mit ') + $('modelSel').value;
+    await renderRagas(res);
+  } catch (err){
+    $('evalStatus').textContent = T('Evaluation failed: ','Auswertung fehlgeschlagen: ') + err.message;
+  } finally { btn.disabled = false; $('evalSpin').classList.remove('show'); }
+});
+
+/* ═══════════════ persistent settings ═══════════════ */
+const SETTING_IDS = ['setChunk','setOverlap','setModel','setK','setTemp','setRrf','setMaxTok','setVision','visionModel','visionScope','modelSel'];
+function saveSettings(){
+  try {
+    const o = {};
+    SETTING_IDS.forEach(id => { const el = $(id);
+      o[id] = el.type === 'checkbox' ? el.checked : el.value; });
+    localStorage.setItem('ragLabSettings', JSON.stringify(o));
+  } catch(e){}
+}
+function loadSettings(){
+  try {
+    const o = JSON.parse(localStorage.getItem('ragLabSettings') || '{}');
+    SETTING_IDS.forEach(id => { if (!(id in o)) return; const el = $(id);
+      if (el.type === 'checkbox') el.checked = o[id];
+      else if (el.tagName === 'SELECT'){ if ([...el.options].some(x => x.value === o[id])) el.value = o[id]; }
+      else el.value = o[id]; });
+  } catch(e){}
+}
+loadSettings();
+SETTING_IDS.forEach(id => $(id).addEventListener('change', saveSettings));
+
+/* ═══════════════ auto-load prebuilt course index ═══════════════ */
+function applyIndexData(data, label){
+  S.chunks = data.chunks; S.dim = data.dim;
+  S.figures = data.figures || {};
+  S.docs = (data.docs || []).map(d => ({...d, text: ''}));
+  S.bm25 = new BM25Okapi(S.chunks.map(c => c.text.toLowerCase().split(/\s+/)));
+  if (data.model){ const sel = $('setModel');
+    if ([...sel.options].some(o => o.value === data.model)) sel.value = data.model; }
+  renderDocs(); $('statChunks').textContent = S.chunks.length; $('statDim').textContent = S.dim;
+  renderVisionPreview();
+  ['extract','chunk','embed'].forEach(x => step(x,'done')); step('ask','active');
+  toast(label + ' — ' + S.chunks.length + ' Chunks');
+}
+(async () => {
+  if (!/^https?:$/.test(location.protocol)) return;   // fetch of local files only works when hosted
+  try {
+    const r = await fetch('rag_index.json', {cache: 'no-store'});
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data && Array.isArray(data.chunks) && data.chunks[0]?.emb)
+      applyIndexData(data, T('Course index loaded','Kurs-Index geladen'));
+  } catch(e){ /* no prebuilt index — normal */ }
+})();
+
+/* quiet first paint */
+checkOllama(true);
+</script>
+</body>
+</html>

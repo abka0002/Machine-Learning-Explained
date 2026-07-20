@@ -34,16 +34,17 @@ A collection of interactive web tools for exploring machine learning algorithms 
 | [RAG-System Simulator](https://abka0002.github.io/Machine-Learning-Explained/RAGSystemSimulator/) | Retrieval-Augmented Generation· Step-by-Step |
 | [Low-Rank Adaptation (LoRA) LLMS](https://abka0002.github.io/Machine-Learning-Explained/LowRankAdaptationLLMS/) | LoRA (Low-Rank Adaptation, Hu et al. 2021) is a parameter-efficient fine-tuning method that freezes a pre-trained model's weights and learns a small rank-r update on the side. |
 | [RAG & Fine-Tuned LLM Evaluation Guide](https://abka0002.github.io/Machine-Learning-Explained/RAGFineTunedEvaluation/) | Evaluating Retrieval-Augmented Generation Systems and Fine-Tuned Large Language Models. An introduction with examples, mathematical derivation, and discussion of common evaluation metrics.|
+| 🧪 [RAG Browser Lab](https://abka0002.github.io/Machine-Learning-Explained/RAGBrowserLab/) | A working RAG system rather than a simulation — upload your own PDF, TXT or MD files and the full pipeline runs in the browser: pdf.js text extraction (with optional vision-model figure descriptions), semantic chunking, transformers.js embeddings, hybrid BM25 + vector retrieval fused with RRF, and RAGAS plus classic IR and reference-based evaluation. The index can be exported and re-imported. Only the answer generation is delegated to any model you have pulled in Ollama on your own machine. Interface available in English and German. |
 
 ## About
 
 These tools are designed for students and practitioners who want to go beyond using ML libraries as black boxes. Each app lets you follow the actual math behind an algorithm — see how distances are computed, how neighbors are selected, and how new samples are generated.
 
-All tools run entirely in the browser. No server, no installation, no sign-up required.
+All tools run entirely in the browser. No server, no installation, no sign-up required — the one exception is the RAG Browser Lab, whose retrieval pipeline is also fully browser-native but which needs a locally running [Ollama](https://ollama.com) instance for the final answer generation (a setup guide is built into the app).
 
 ## Tech Stack
 
-Pure HTML, CSS, and JavaScript — no build step, no frameworks, no dependencies.
+Pure HTML, CSS, and JavaScript — no build step, no frameworks, no dependencies. A few apps additionally load browser-native libraries from a CDN at runtime (Pyodide for runnable Python, pdf.js and transformers.js for the RAG Browser Lab).
 
 ## Contributing
 
