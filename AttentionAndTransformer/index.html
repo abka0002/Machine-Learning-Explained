@@ -144,6 +144,9 @@ canvas{border-radius:var(--radius);display:block;max-width:100%;margin:0.4rem au
 .analogy{display:grid;grid-template-columns:60px 1fr;gap:0.8rem;align-items:start;padding:0.9rem 1rem;border-radius:var(--radius);margin:0.5rem 0;}
 .analogy-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
 
+.sa-btn{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:0.28rem 0.6rem;border-radius:6px;border:1px solid var(--border2);background:var(--card);color:var(--txt2);cursor:pointer;display:inline-flex;align-items:center;gap:0.35rem;transition:all .15s;}
+.sa-btn:hover{border-color:var(--txtm);}.sa-btn.on{border-color:var(--purple);background:var(--purplebg);color:var(--purple);font-weight:600;}
+.sa-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
 .ref{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--txtf);margin-top:0.35rem;}
 </style>
 </head>
@@ -243,88 +246,100 @@ canvas{border-radius:var(--radius);display:block;max-width:100%;margin:0.4rem au
 <p class="desc">The final input is the element-wise <strong>sum</strong> of token embedding + positional encoding. One vector carries both meaning and position.</p>
 <div id="embed-final"></div>
 </div>
+
+<div class="cd">
+<div class="ct"><span class="ic ia">◱</span> Step 4: 2D view — embedding before vs. after positional encoding</div>
+<p class="desc">The vectors in the tables above live in <span class="ilc">d_model=4</span>. Here the same numbers are projected down to <strong>2D</strong>, so you can see what positional encoding actually does: <strong style="color:var(--blue);">blue</strong> = token embedding alone (√d_model·E), <strong style="color:var(--green);">green</strong> = embedding + PE (the real model input), and the <strong style="color:var(--purple);">purple arrow</strong> is the positional shift.</p>
+<div class="pill-row" id="e2d-pills"></div>
+<div class="cr">
+<div class="igrp" style="flex:0 0 auto;"><button class="btn bo" onclick="rerollEmbed()">↻ New random embeddings</button></div>
+<div class="igrp" style="flex:0 0 auto;"><label style="display:flex;align-items:center;gap:0.35rem;text-transform:none;font-size:0.72rem;"><input type="checkbox" id="e2d-arrows" onchange="draw2DEmbed()" style="width:auto;"> draw vectors from origin</label></div>
+</div>
+<div class="viz-wrap"><div class="viz-label">2D projection — each token before (● blue) and after (● green) adding PE</div><canvas id="e2d-canvas" height="360"></canvas></div>
+<div id="e2d-note"></div>
+<div class="sb s-purple"><div class="sl">Why the PCA option</div>With d_model=4 no single pair of axes tells the whole story. <strong>PCA</strong> fits one shared 2D plane to all before- and after-vectors together, so distances in the picture are the closest honest 2D summary of the real 4D geometry. The raw-dimension options show two literal coordinates instead — useful for checking the numbers in the tables above.</div>
+</div>
 </div>
 
 <!-- ═══════ NEW: INTUITION ═══════ -->
 <div id="s-intuition" class="sec">
-<div class="sh"><h2><span class="num">03</span>The Intuition Behind Self-Attention</h2><p>Before we see the math, let's understand <em>why</em> self-attention works. The core idea: every word should be able to "look at" every other word to understand context.</p></div>
+<div class="sh"><h2><span class="num">03</span>The Intuition Behind Self-Attention</h2><p>Before the math: what does self-attention actually do to a sentence? Three ideas carry the whole section. Every word <strong>reads</strong> the other words. Reading is <strong>directional</strong> — how much <em>it</em> reads from <em>animal</em> is a different number from how much <em>animal</em> reads from <em>it</em>. And what a word ends up with is a <strong>weighted mix of the other words' values</strong>, with the weights coming out of a softmax.</p></div>
 
 <div class="cd">
-<div class="ct"><span class="ic io">◉</span> The problem self-attention solves</div>
-<p class="desc">Consider this sentence:</p>
-<div style="font-size:1.15rem;font-weight:500;padding:0.8rem 0;text-align:center;letter-spacing:-0.01em;">
-"The <span style="color:var(--acc);font-weight:700;text-decoration:underline;">animal</span> didn't cross the street because <span style="color:var(--blue);font-weight:700;text-decoration:underline;">it</span> was too <span style="color:var(--green);font-weight:700;text-decoration:underline;">tired</span>."
+<div class="ct"><span class="ic io">◉</span> 1 · The problem: a word on its own does not know enough</div>
+<div style="font-size:1.15rem;font-weight:500;padding:0.6rem 0;text-align:center;letter-spacing:-0.01em;">
+"The <span style="color:var(--green);font-weight:700;text-decoration:underline;">tired</span> <span style="color:var(--acc);font-weight:700;text-decoration:underline;">animal</span> didn't cross the <span style="color:var(--green);font-weight:700;text-decoration:underline;">wide</span> street because <span style="color:var(--blue);font-weight:700;text-decoration:underline;">it</span> was afraid of the cars."
 </div>
-<p class="desc">What does <strong>"it"</strong> refer to? A human instantly knows it's the <strong>animal</strong> (not the street). But a model processing words one-by-one (like an RNN) may lose this connection over the intervening tokens. Self-attention solves this by letting <em>every</em> word directly examine <em>every other</em> word.</p>
-<div class="sb s-rose"><div class="sl">Key insight</div>Self-attention computes a <strong>relevance score</strong> between every pair of words, then uses those scores to create context-aware representations. The word "it" can directly attend to "animal" regardless of distance.</div>
+<p class="desc">The embedding of <strong>"it"</strong> is the same vector in every sentence ever written. On its own it cannot tell you whether it means the animal or the street. To be useful at this position it has to <strong>go and get</strong> that information from the rest of the sentence — and it has to decide <em>where</em> to get it from: mostly from <em>animal</em>, a little from <em>street</em> and <em>cars</em>, hardly anything from <em>because</em>. The two adjectives have the same problem in miniature: <em>tired</em> belongs to <em>animal</em>, <em>wide</em> belongs to <em>street</em>, and each has to find its own noun.</p>
+<p class="desc">Notice that the need is one-sided. <em>it</em> badly needs <em>animal</em>. <em>animal</em> does not need <em>it</em> at all — it already knows what it is. Whatever mechanism we build should let the traffic run mostly <strong>from animal to it</strong>, not equally in both directions.</p>
+<div class="sb s-rose"><div class="sl">Key insight</div>Self-attention gives <strong>each</strong> word its own set of weights over <strong>all</strong> words — a row of numbers saying how much that word reads from each other word — and then builds the word's new vector as the weighted mix. Different words, different rows. That is what makes it directional.</div>
 </div>
 
 <div class="cd">
-<div class="ct"><span class="ic ib">⊞</span> The library analogy for Q, K, V</div>
-<p class="desc">The Query/Key/Value mechanism is like a <strong>library search system</strong>:</p>
+<div class="ct"><span class="ic ib">⊞</span> 2 · Every word plays two roles: reader and read</div>
+<p class="desc">Each word is turned into <strong>three</strong> vectors by three learned matrices W<sup>Q</sup>, W<sup>K</sup>, W<sup>V</sup>. Two of them belong to the word <em>as something that is read</em>; one belongs to it <em>as a reader</em>.</p>
 <div class="g3">
-<div class="analogy s-rose" style="grid-template-columns:1fr;">
-<div>
+<div class="analogy s-rose" style="grid-template-columns:1fr;"><div>
 <div style="font-size:1.4rem;margin-bottom:0.3rem;">🔍</div>
-<strong style="color:var(--acc);">Query (Q)</strong> — "What am I looking for?"<br>
-<span style="font-size:0.82rem;color:var(--txt2);">You walk into a library with a question in mind. Each word creates a query vector representing what information it needs from context.</span>
-</div>
-</div>
-<div class="analogy s-blue" style="grid-template-columns:1fr;">
-<div>
+<strong style="color:var(--acc);">Query q<sub>i</sub></strong> — the word as a <strong>reader</strong><br>
+<span style="font-size:0.82rem;color:var(--txt2);">"What am I looking for?" For <em>it</em>: a noun, preferably a living one, somewhere near me.</span>
+</div></div>
+<div class="analogy s-blue" style="grid-template-columns:1fr;"><div>
 <div style="font-size:1.4rem;margin-bottom:0.3rem;">🏷️</div>
-<strong style="color:var(--blue);">Key (K)</strong> — "What do I contain?"<br>
-<span style="font-size:0.82rem;color:var(--txt2);">Each book has a label describing its contents. Each word creates a key vector advertising what information it offers.</span>
-</div>
-</div>
-<div class="analogy s-green" style="grid-template-columns:1fr;">
-<div>
+<strong style="color:var(--blue);">Key k<sub>j</sub></strong> — the word as something to be <strong>found</strong><br>
+<span style="font-size:0.82rem;color:var(--txt2);">"This is what I can offer." For <em>animal</em>: I am a noun, I am animate, I am at position 2.</span>
+</div></div>
+<div class="analogy s-green" style="grid-template-columns:1fr;"><div>
 <div style="font-size:1.4rem;margin-bottom:0.3rem;">📖</div>
-<strong style="color:var(--green);">Value (V)</strong> — "Here's my actual content."<br>
-<span style="font-size:0.82rem;color:var(--txt2);">Once you find the right book (Q·K match), you read its content. Each word provides a value vector — the actual information to extract.</span>
+<strong style="color:var(--green);">Value v<sub>j</sub></strong> — the word as something to be <strong>copied</strong><br>
+<span style="font-size:0.82rem;color:var(--txt2);">"This is what you get if you read me." For <em>animal</em>: the content that will actually flow into <em>it</em>.</span>
+</div></div>
 </div>
-</div>
-</div>
-<p class="desc" style="margin-top:0.7rem;">The process: (1) Compare your query against all keys → get relevance scores. (2) Turn scores into probabilities (softmax). (3) Read a weighted mix of all values. The output is a <strong>context-enriched</strong> version of each word.</p>
+<div class="sb s-blue" style="margin-top:0.7rem;"><div class="sl">Why the direction is built in</div>A pair of words (i, j) is scored with <strong>q<sub>i</sub>·k<sub>j</sub></strong> — the <em>query</em> of the reader against the <em>key</em> of the one being read. Swap the roles and you get <strong>q<sub>j</sub>·k<sub>i</sub></strong>, a completely different product, because W<sup>Q</sup> and W<sup>K</sup> are different matrices. "Does <em>it</em> want <em>animal</em>?" and "does <em>animal</em> want <em>it</em>?" are two different questions, and they get two different answers.</div>
 </div>
 
 <div class="cd">
-<div class="ct"><span class="ic ig">◈</span> Interactive: sentence-level attention</div>
-<p class="desc">Click any word below to see which other words it attends to most. This simulates how self-attention lets each word gather context from the full sentence.</p>
-<div class="igrp"><label>Sentence</label>
-<input type="text" id="sent-input" value="The cat sat on the mat because it was tired" onchange="buildSentAttn()">
+<div class="ct"><span class="ic ip">≡</span> 3 · Three steps, for one reader i</div>
+<div class="g3">
+<div class="sb s-rose"><div class="sl">Score every word</div>score<sub>ij</sub> = q<sub>i</sub>·k<sub>j</sub> / √d<sub>k</sub><br><span style="font-size:0.78rem;color:var(--txt2);">One number per other word j, positive or negative. This is the only place Q and K appear.</span></div>
+<div class="sb s-purple"><div class="sl">Softmax the row</div>A<sub>ij</sub> = softmax<sub>j</sub>(score<sub>i·</sub>)<br><span style="font-size:0.78rem;color:var(--txt2);">Turns the row of scores into <strong>attention weights</strong>: all ≥ 0, summing to 1. <strong>These weights are "the attention".</strong> They do not touch V.</span></div>
+<div class="sb s-green"><div class="sl">Mix the values</div>z<sub>i</sub> = Σ<sub>j</sub> A<sub>ij</sub> · v<sub>j</sub><br><span style="font-size:0.78rem;color:var(--txt2);">Only now does V enter: the weights multiply the value vectors and the sum is the new vector for word i.</span></div>
 </div>
-<div id="sent-tokens" style="text-align:center;padding:0.5rem 0;"></div>
+<div class="fb" style="margin-top:0.7rem;">A = softmax( Q·K<sup>T</sup> / √d_k )      <span class="cm">// n×n, row i = how reader i spreads its attention</span><br>Z = A · V                       <span class="cm">// n×d_v, row i = what reader i ends up holding</span></div>
+<div class="sb s-amber"><div class="sl">Read the index the right way round</div><strong>A[i][j]</strong> = reader <strong>i</strong> (query) attends to word <strong>j</strong> (key). Row i belongs to reader i and sums to 1. A[j][i] lives in a <em>different row</em>, is computed from a different query and key, and is in general a different number. Columns sum to nothing in particular.</div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ig">◈</span> 4 · Interactive: one head, the whole sentence, computed live</div>
+<p class="desc">Click a word in the <strong>top row</strong> to choose the reader i; click a word in the <strong>bottom row</strong> to choose which j to compare with. Lines go from the reader to the words it reads; opacity is the attention weight. Nothing here is typed in: q, k and v are built from a tiny embedding and the three steps above are run in the browser.</p>
 <div class="viz-wrap">
-<div class="viz-label">Attention weights — click a word above, then see where it attends</div>
-<div id="sent-heatmap" style="overflow-x:auto;"></div>
+<div class="viz-label">Top row: the reader (query). Bottom row: the words it reads (keys). Every word reads every word — no mask</div>
+<div id="sa-lines" style="overflow-x:auto;"></div>
 </div>
-<div class="sb s-amber"><div class="sl">Note</div>These weights are synthetic illustrations using positional + lexical similarity heuristics, not from a trained model. In a real Transformer, attention patterns are learned from data and vary by head.</div>
+<div id="sa-detail"></div>
+<div class="sb s-amber"><div class="sl">What is faithful here and what is not</div>Faithful to the paper: the three steps, the √d<sub>k</sub> scaling, the softmax, no mask, every row summing to 1, and the picture (the layout of Figure 3 in the appendix). Not faithful: the numbers. The paper reads attention out of a <strong>trained</strong> encoder with d<sub>model</sub>=512 and 8 heads. Here each word is a 15-dimensional toy vector (8 part-of-speech features, one "animate" feature, and six sinusoidal position features, so that similarity decays with distance the way the paper's positional encoding does), d<sub>k</sub>=8, d<sub>v</sub>=4, and W<sup>Q</sup>, W<sup>K</sup>, W<sup>V</sup> were set by hand so that a pronoun asks "which noun, preferably a living one?", an adjective asks "which noun is next to me?", a noun answers "me", and values carry four readable features. Words the head cannot link in one step — <em>afraid</em> back to <em>animal</em> — are left for other heads and layers, as in the real model. Nothing was trained.</div>
 </div>
 
 <div class="cd">
-<div class="ct"><span class="ic ia">△</span> Before vs. after self-attention</div>
-<p class="desc">Self-attention transforms <strong>isolated</strong> word vectors into <strong>contextualized</strong> representations. The word "bank" means something different in "river bank" vs. "bank account" — self-attention resolves this by mixing in context.</p>
-<div class="g2">
-<div class="sb s-blue"><div class="sl">Before (input embeddings)</div>Each word is an <strong>independent</strong> vector based only on the word itself. "bank" has the same representation regardless of context. No interaction between words.</div>
-<div class="sb s-green"><div class="sl">After (self-attention output)</div>Each word is now a <strong>weighted mixture</strong> of all words. "bank" near "river" absorbs river-related meaning. "bank" near "account" absorbs financial meaning. <strong>Same word, different representation.</strong></div>
-</div>
+<div class="ct"><span class="ic ia">△</span> 5 · Same word, new vector</div>
+<p class="desc">Nothing about the word <em>it</em> changed. What changed is the vector standing at its position: before attention it was the value of a pronoun — empty — and after one head it is mostly the value of <em>animal</em>, with a little <em>street</em> and <em>cars</em> mixed in. The next layer, and eventually the output, works with this new vector. That is what "contextualised representation" means, and it is why <em>bank</em> next to <em>river</em> and <em>bank</em> next to <em>account</em> end up as different vectors even though they start as the same one.</p>
+<div id="sa-beforeafter"></div>
 </div>
 </div>
 
 <!-- ═══════ SELF-ATTENTION (MATH) ═══════ -->
 <div id="s-attention" class="sec">
-<div class="sh"><h2><span class="num">04</span>Scaled Dot-Product Attention</h2><p>Now the math. Each token creates a Query, Key, and Value vector. Attention weights come from Q·K similarity, scaled by √d_k, then softmaxed to produce weights over V.</p></div>
+<div class="sh"><h2><span class="num">04</span>Scaled Dot-Product Attention</h2><p>Now the math. Each token gets a Query, a Key and a Value vector. The score of reader i for token j is q<sub>i</sub>·k<sub>j</sub>, scaled by √d<sub>k</sub>; a softmax over each row turns the scores into attention weights; the weights then multiply V. Every number below is computed, and the example is deliberately <strong>not symmetric</strong>.</p></div>
 
 <div class="cd">
 <div class="ct"><span class="ic io">≡</span> The attention formula (Equation 1)</div>
 <div class="fb" style="font-size:0.95rem;text-align:center;padding:1rem;">Attention(Q, K, V) = softmax( <span class="hl">QK<sup>T</sup></span> / √<span class="hl">d_k</span> ) · <span class="gn">V</span></div>
-<p class="desc" style="margin-top:0.5rem;">Four steps: (1) <strong>Score</strong> — compute QK<sup>T</sup> to measure similarity between each pair of tokens. (2) <strong>Scale</strong> — divide by √d_k to prevent softmax saturation. (3) <strong>Normalize</strong> — softmax turns scores into probabilities (rows sum to 1). (4) <strong>Aggregate</strong> — weighted sum of V vectors.</p>
+<p class="desc" style="margin-top:0.5rem;">Five steps: (1) <strong>Project</strong> — Q = XW<sup>Q</sup>, K = XW<sup>K</sup>, V = XW<sup>V</sup>. (2) <strong>Score</strong> — QK<sup>T</sup>; cell (i, j) = q<sub>i</sub>·k<sub>j</sub>, reader i against token j. (3) <strong>Scale</strong> — divide by √d<sub>k</sub> to keep softmax out of its flat region. (4) <strong>Normalize</strong> — softmax per row, so each row sums to 1; these are the attention weights. (5) <strong>Aggregate</strong> — weights × V, a weighted sum of the value vectors.</p>
 </div>
 
 <div class="cd">
 <div class="ct"><span class="ic ib">▥</span> Interactive: step-by-step calculation</div>
-<p class="desc">A tiny 3-token, 4-dimensional example showing every number. Tokens are projected to Q, K, V through learned weight matrices. Click each step:</p>
+<p class="desc">A tiny 3-token, 4-dimensional example showing every number — and, under each step, the same numbers drawn as <strong>2D geometry</strong>. Because <span class="ilc">d_k = d_v = 2</span> here, Q, K and V are genuinely two-dimensional: nothing is projected away. Click each step:</p>
 <div class="pill-row" id="attn-pills"></div>
 <div id="attn-content"></div>
 </div>
@@ -345,60 +360,93 @@ canvas{border-radius:var(--radius);display:block;max-width:100%;margin:0.4rem au
 
 <!-- ═══════ MULTI-HEAD ═══════ -->
 <div id="s-multihead" class="sec">
-<div class="sh"><h2><span class="num">05</span>Multi-Head Attention</h2><p>Instead of one attention function, the model runs <strong>h parallel attention heads</strong>, each looking at different aspects of the relationships between tokens.</p></div>
+<div class="sh"><h2><span class="num">05</span>Multi-Head Attention</h2><p>One head can only ask one kind of question per token — "which noun is near me?" is a different question from "which word comes before me?", and one softmax cannot answer both at once. So the paper runs <strong>h = 8 heads in parallel</strong>, each with its own small W<sup>Q</sup>, W<sup>K</sup>, W<sup>V</sup>, and glues their answers together.</p></div>
 
 <div class="cd">
-<div class="ct"><span class="ic io">⧉</span> The formula (Equations 2–3)</div>
-<div class="fb"><span class="kw">MultiHead</span>(Q, K, V) = Concat(head₁, ..., headₕ) · <span class="hl">W<sup>O</sup></span><br><br>where head_i = Attention(Q·<span class="hl">Wᵢ<sup>Q</sup></span>, K·<span class="hl">Wᵢ<sup>K</sup></span>, V·<span class="hl">Wᵢ<sup>V</sup></span>)<br><br><span class="cm">// h=8 heads, d_k = d_v = d_model/h = 512/8 = 64</span></div>
+<div class="ct"><span class="ic io">⧉</span> The formula (Section 3.2.2)</div>
+<div class="fb"><span class="kw">MultiHead</span>(Q, K, V) = Concat(head₁, ..., headₕ) · <span class="hl">W<sup>O</sup></span><br><br>where head<sub>i</sub> = Attention(X·<span class="hl">Wᵢ<sup>Q</sup></span>, X·<span class="hl">Wᵢ<sup>K</sup></span>, X·<span class="hl">Wᵢ<sup>V</sup></span>)<br><br><span class="cm">// Wᵢ^Q, Wᵢ^K: d_model × d_k    Wᵢ^V: d_model × d_v    W^O: h·d_v × d_model</span><br><span class="cm">// paper: h = 8, d_k = d_v = d_model / h = 512 / 8 = 64</span></div>
+<div class="sb s-amber"><div class="sl">Where the split really happens</div>A head does <strong>not</strong> get a slice of the input. Every head reads the <em>whole</em> 512-dimensional token vector and projects it into its own 64-dimensional space with its own three matrices. The slicing is on the <em>output</em> side: the h results, 64 numbers each, are laid side by side into 512 numbers, and W<sup>O</sup> mixes them back into one vector.</div>
 </div>
 
 <div class="cd">
-<div class="ct"><span class="ic ib">▤</span> How heads split the embedding</div>
-<p class="desc">Each head gets a different "slice" of dimensions. With 8 heads and d_model=512, each head works with d_k=64 dimensions — learning different relationship types in parallel.</p>
+<div class="ct"><span class="ic ib">▤</span> The shape of it</div>
 <div class="cr">
 <div class="igrp"><label>d_model</label><input type="number" id="mh-dmodel" value="512" min="32" max="1024" step="32" onchange="drawMH()"></div>
 <div class="igrp"><label>Heads (h)</label><input type="number" id="mh-heads" value="8" min="1" max="16" onchange="drawMH()"></div>
 </div>
 <div id="mh-dims"></div>
-<div class="viz-wrap"><div class="viz-label">Head allocation — each color = one head's subspace</div><canvas id="mh-canvas" height="100"></canvas></div>
+<div class="viz-wrap"><div class="viz-label">One token through multi-head attention — full vector in, h small projections, concat, W<sup>O</sup>, full vector out</div><canvas id="mh-canvas" height="190"></canvas></div>
+<div class="sb s-teal"><div class="sl">Cost</div>h heads of size d<sub>k</sub> = d<sub>model</sub>/h have exactly as many parameters as one head of size d<sub>model</sub>: 4·d<sub>model</sub>² for W<sup>Q</sup>, W<sup>K</sup>, W<sup>V</sup>, W<sup>O</sup> together, whatever h is. The diversity of attention patterns is free.</div>
 </div>
 
 <div class="cd">
-<div class="ct"><span class="ic ig">◉</span> What different heads learn</div>
-<p class="desc">Research shows heads specialize in different linguistic patterns:</p>
-<div class="g3">
-<div class="sb s-rose"><div class="sl">Head A — positional</div>Attends to adjacent tokens. Captures local syntax: adjective → noun, determiner → noun.</div>
-<div class="sb s-blue"><div class="sl">Head B — semantic</div>Attends to semantically related tokens across the sentence, even far apart.</div>
-<div class="sb s-purple"><div class="sl">Head C — structural</div>Attends to punctuation and special tokens. Tracks sentence boundaries and clause structure.</div>
+<div class="ct"><span class="ic ig">◈</span> Interactive: two heads on the sentence from Section 03</div>
+<p class="desc">Same sentence, same toy embedding — now with a <strong>second head</strong> that has its own W<sup>Q</sup> and W<sup>K</sup>. Head 1 is the one you already know (a pronoun or adjective looks for a noun). Head 2 knows nothing about nouns: its query is built only from position, and it points one word to the left. Click a word; each head draws its own lines in its own colour, exactly as the paper's Figures 3–5 do.</p>
+<div style="display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap;margin:0.3rem 0;">
+<button class="sa-btn" id="mh-h0" onclick="mhSetHead(0)"><span class="sa-dot" style="background:var(--acc);"></span>head 1 — which noun?</button>
+<button class="sa-btn" id="mh-h1" onclick="mhSetHead(1)"><span class="sa-dot" style="background:var(--blue);"></span>head 2 — the word before me</button>
+<button class="sa-btn" id="mh-h2" onclick="mhSetHead(2)">both</button>
 </div>
-<div class="sb s-teal"><div class="sl">Cost</div>Multi-head with h heads of d_k dimensions costs the same as single-head with d_model dimensions, because h × d_k = d_model. Diversity of attention patterns is free.</div>
+<div class="viz-wrap">
+<div class="viz-label">Click a word in the top row · red = head 1, blue = head 2 · opacity = weight</div>
+<div id="mh-lines" style="overflow-x:auto;"></div>
+</div>
+<div id="mh-detail"></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ip">▥</span> The numbers: two heads on the three tokens from Section 04</div>
+<p class="desc">Head 1 is the head of Section 04. Head 2 uses different projection matrices on the <em>same</em> X and therefore lands on a different weight matrix. The two outputs (3 × 2 each) are concatenated into 3 × 4 and mixed by W<sup>O</sup> (4 × 4):</p>
+<div id="mh-toy"></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ia">◉</span> What trained heads turn out to do</div>
+<p class="desc">Nobody tells a head what to attend to; the specialisation emerges from training. Analyses of trained Transformers (e.g. Clark et al. 2019, Voita et al. 2019) find recurring types:</p>
+<div class="g3">
+<div class="sb s-rose"><div class="sl">Positional heads</div>Attend to the previous or next token, or to the token itself. Your head 2 above is one of these. Very common in the lower layers.</div>
+<div class="sb s-blue"><div class="sl">Syntactic heads</div>Follow a dependency: verb → its subject, preposition → its object, adjective → its noun. Your head 1 is a toy version.</div>
+<div class="sb s-purple"><div class="sl">Rare-token / delimiter heads</div>Park attention on punctuation, [SEP] or &lt;eos&gt; when there is nothing useful to read — a learned "no-op". Many heads can be pruned with little loss.</div>
+</div>
+<div class="sb s-green"><div class="sl">Why several small heads beat one big one</div>A single head with d<sub>k</sub> = 512 still produces <em>one</em> softmax row per token — one weighting of the other words. Eight heads produce eight weightings, each in its own 64-dimensional subspace where a different similarity can be measured; W<sup>O</sup> then decides how much of each answer the token keeps.</div>
 </div>
 </div>
 
 <!-- ═══════ ENCODER ═══════ -->
 <div id="s-encoder" class="sec">
-<div class="sh"><h2><span class="num">06</span>The Encoder Block</h2><p>Each encoder layer has two sub-layers: (1) multi-head self-attention and (2) a position-wise feed-forward network. Both use <strong>residual connections</strong> and <strong>layer normalization</strong>.</p></div>
+<div class="sh"><h2><span class="num">06</span>The Encoder Block</h2><p>One encoder layer is attention plus a small per-token network, each wrapped in the same two-line habit: <strong>add the input back</strong> (residual), then <strong>normalise</strong> (LayerNorm). Below, the three tokens from Section 04 are pushed all the way through one layer, every number computed.</p></div>
 
 <div class="cd">
-<div class="ct"><span class="ic io">↻</span> Residual connection + LayerNorm</div>
-<p class="desc">Every sub-layer is wrapped with: <span class="ilc">LayerNorm(x + SubLayer(x))</span>. The residual path lets gradients flow directly through deep networks. LayerNorm stabilizes training.</p>
-<div class="fb">output = <span class="kw">LayerNorm</span>( x + <span class="hl">SubLayer</span>(x) )<br><br><span class="cm">// LayerNorm normalizes across the d_model dimension:</span><br>LayerNorm(x) = γ · (x − μ) / (σ + ε) + β</div>
+<div class="ct"><span class="ic io">↻</span> The wrapper: Add &amp; Norm</div>
+<p class="desc">Every sub-layer — attention or feed-forward — is used as a <em>correction</em> to its input, not a replacement: <span class="ilc">x + SubLayer(x)</span>. Then each token's vector is normalised on its own, across its d<sub>model</sub> numbers.</p>
+<div class="fb">output = <span class="kw">LayerNorm</span>( x + <span class="hl">SubLayer</span>(x) )<br><br><span class="cm">// LayerNorm works on ONE token vector at a time, across its d_model entries:</span><br>μ = mean(x),  σ² = var(x)<br>LayerNorm(x) = γ · (x − μ) / √(σ² + ε) + β    <span class="cm">// γ, β learned, one pair per dimension</span></div>
+<div class="g2">
+<div class="sb s-blue"><div class="sl">Why add x back</div>If a sub-layer has nothing useful to say, it can output ≈ 0 and the token passes through unchanged. With N=6 layers stacked, this identity path is what lets gradients reach the first layer and lets the network start from "do nothing" and learn corrections.</div>
+<div class="sb s-green"><div class="sl">Why normalise per token</div>After several additions the vectors drift in scale. LayerNorm re-centres each token to mean 0 and variance 1 before the next sub-layer sees it — no dependence on the batch, no dependence on other positions. Contrast with BatchNorm, which normalises across examples.</div>
+</div>
 </div>
 
 <div class="cd">
-<div class="ct"><span class="ic ig">▦</span> Position-wise feed-forward network</div>
-<p class="desc">Two linear layers with ReLU, applied to each token independently. The inner dimension d_ff=2048 is 4× the model dimension — think of it as "thinking in a higher-dimensional space."</p>
+<div class="ct"><span class="ic ig">▦</span> Position-wise feed-forward network (Equation 2)</div>
+<p class="desc">Attention moved information <em>between</em> tokens; the FFN now processes each token <em>on its own</em>. It is the same two-layer network at every position — expand to d<sub>ff</sub>, ReLU, contract back — and it holds about two thirds of the layer's parameters.</p>
 <div class="fb"><span class="kw">FFN</span>(x) = max(0, x·W₁ + b₁) · W₂ + b₂<br><br><span class="cm">// W₁: 512 × 2048 (expand) → ReLU → W₂: 2048 × 512 (contract)</span></div>
 <div class="cr">
 <div class="igrp"><label>d_model</label><input type="number" id="ffn-dm" value="512" min="32" max="1024" step="32" onchange="drawFFN()"></div>
 <div class="igrp"><label>d_ff</label><input type="number" id="ffn-dff" value="2048" min="64" max="4096" step="64" onchange="drawFFN()"></div>
 </div>
 <div class="viz-wrap"><div class="viz-label">FFN shape — expand then contract</div><canvas id="ffn-canvas" height="140"></canvas></div>
+<div class="sb s-amber"><div class="sl">The ReLU is the point</div>Two linear layers in a row would collapse into one. The ReLU in between is the only place in the whole encoder layer where a non-linearity acts on a token's own content — attention is linear in V once the weights are fixed. The wide inner layer gives the ReLU 2048 different "features" to switch on or off per token.</div>
 </div>
 
 <div class="cd">
-<div class="ct"><span class="ic ib">→</span> Full encoder data flow</div>
-<p class="desc">Trace tokens through one complete encoder layer:</p>
+<div class="ct"><span class="ic ib">▥</span> Interactive: the three tokens from Section 04, through one whole layer</div>
+<p class="desc">Section 04 stopped at Z, the attention output (3 × 2). A real layer has four more moves before the next layer starts. Toy sizes: <span class="ilc">d_model = 4</span>, <span class="ilc">d_ff = 8</span>, one head. Click each step:</p>
+<div class="pill-row" id="enc-pills"></div>
+<div id="enc-content"></div>
+</div>
+
+<div class="cd">
+<div class="ct"><span class="ic ib">→</span> The whole layer at a glance</div>
 <div class="viz-wrap"><canvas id="enc-flow" height="260"></canvas></div>
 <div id="enc-params"></div>
 </div>
@@ -406,71 +454,67 @@ canvas{border-radius:var(--radius);display:block;max-width:100%;margin:0.4rem au
 
 <!-- ═══════ DECODER ═══════ -->
 <div id="s-decoder" class="sec">
-<div class="sh"><h2><span class="num">07</span>The Decoder & Masking</h2><p>The decoder adds two things: (1) <strong>masked self-attention</strong> that prevents looking at future tokens, and (2) <strong>cross-attention</strong> that reads the encoder's output.</p></div>
+<div class="sh"><h2><span class="num">07</span>The Decoder &amp; Masking</h2><p>The decoder adds three things to the encoder block: (1) <strong>masked self-attention</strong>, so that position i can only read positions ≤ i; (2) <strong>cross-attention</strong>, which reads the encoder's output; and (3) the <strong>output head</strong>, a linear layer plus softmax over the vocabulary on the last layer (Section 08). The numbers below reuse the three-token example.</p></div>
 
 <div class="cd">
-<div class="ct"><span class="ic io">◧</span> Masked self-attention — preventing future leakage</div>
-<p class="desc">During training, the decoder sees the full target at once (for parallelism). The mask sets future positions to −∞ before softmax, giving them zero weight.</p>
-<div class="fb">Masked_Attention = softmax( QK<sup>T</sup>/√d_k + <span class="hl">Mask</span> ) · V<br><br><span class="cm">// Mask[i][j] = 0 if j ≤ i (allowed), −∞ if j > i (blocked)</span></div>
-<div class="igrp"><label>Sequence length</label><input type="number" id="mask-len" value="5" min="3" max="8" onchange="drawMask()"></div>
+<div class="ct"><span class="ic io">◧</span> Masked self-attention — the same three tokens, with the future hidden</div>
+<p class="desc">The decoder is trained to predict the <em>next</em> token, so if position 0 could read position 1 it would simply copy the answer. The mask adds −∞ to every score above the diagonal <strong>before</strong> the softmax. Left: the scores from Section 04. Right: what the softmax does with them, unmasked (encoder) and masked (decoder).</p>
+<div id="mask-toy"></div>
+<div class="g2" style="margin-top:0.6rem;">
+<div class="sb s-rose"><div class="sl">Why −∞ and not 0?</div>softmax(−∞) = e<sup>−∞</sup> = 0 exactly, whatever the other scores are. A score of 0 would still get e<sup>0</sup> = 1 unit of weight. In code the mask is a large negative number like −10⁹, which is the same thing after exp.</div>
+<div class="sb s-blue"><div class="sl">What changes and what does not</div>Row 0 becomes 100 % on itself — with nothing to its left it has nothing else to read. Row 1 loses tok₂, and the two remaining weights are renormalised so they still sum to 1. Row 2 is untouched: the last position can see everything. The mask is <strong>always on</strong>, also at inference — the decoder is causal by construction.</div>
+</div>
+<div class="igrp" style="margin-top:0.8rem;"><label>Mask for a longer sequence</label><input type="number" id="mask-len" value="5" min="3" max="8" onchange="drawMask()"></div>
 <div class="g2">
-<div><div class="viz-label">Attention mask</div><div id="mask-grid"></div></div>
-<div><div class="viz-label">After softmax (rows sum to 1)</div><div id="mask-softmax"></div></div>
+<div><div class="viz-label">Mask added to the scores</div><div id="mask-grid"></div></div>
+<div><div class="viz-label">Shape of the weights after softmax (rows sum to 1)</div><div id="mask-softmax"></div></div>
 </div>
-<div class="sb s-rose"><div class="sl">Why −∞ and not 0?</div>softmax(−∞) = 0 exactly. This guarantees zero attention weight for future positions regardless of the QK<sup>T</sup> scores.</div>
-</div>
-
-<div class="cd">
-<div class="ct"><span class="ic it">⇋</span> Cross-attention — the encoder-decoder bridge</div>
-<p class="desc">The decoder's second attention uses <strong>K, V from the encoder</strong> but <strong>Q from the decoder</strong>. The decoder asks: "what parts of the input are relevant to what I'm generating now?"</p>
-<div class="fb"><span class="kw">Q</span> = decoder states × W<sup>Q</sup>  <span class="cm">// "what am I looking for?"</span><br><span class="hl">K</span> = <span class="hl">encoder output</span> × W<sup>K</sup>  <span class="cm">// "what does the source contain?"</span><br><span class="gn">V</span> = <span class="gn">encoder output</span> × W<sup>V</sup>  <span class="cm">// "what to extract?"</span></div>
-<div class="viz-wrap"><canvas id="cross-canvas" height="200"></canvas></div>
 </div>
 
 <div class="cd">
-<div class="ct"><span class="ic ib">⊞</span> Three types of attention compared</div>
-<div class="g3">
-<div class="sb s-rose"><div class="sl">Encoder self-attention</div>Q, K, V all from <strong>encoder input</strong>. Every token attends to every other. <strong>No mask.</strong></div>
-<div class="sb s-blue"><div class="sl">Decoder masked self-attn</div>Q, K, V from <strong>decoder input</strong>. Token i attends only to positions ≤ i. <strong>Causal mask.</strong></div>
-<div class="sb s-teal"><div class="sl">Decoder cross-attention</div>Q from <strong>decoder</strong>, K+V from <strong>encoder</strong>. Decoder reads all encoder positions. <strong>No mask.</strong></div>
+<div class="ct"><span class="ic it">⇋</span> Cross-attention — the decoder reads the encoder</div>
+<p class="desc">Same formula, different sources: the <strong>queries come from the decoder</strong> (what am I generating now?), the <strong>keys and values come from the encoder output</strong> (what does the source sentence contain?). Because the two sides have different lengths, the weight matrix is <strong>rectangular</strong>: one row per target position, one column per source token.</p>
+<div class="fb"><span class="kw">Q</span> = decoder states × W<sup>Q</sup>   <span class="cm">// m target positions</span><br><span class="hl">K</span> = <span class="hl">encoder output</span> × W<sup>K</sup>   <span class="cm">// n source tokens</span><br><span class="gn">V</span> = <span class="gn">encoder output</span> × W<sup>V</sup><br><br>A = softmax( Q K<sup>T</sup> / √d_k )   <span class="cm">// m × n — no mask: the whole source is always visible</span></div>
+<div id="cross-toy"></div>
+<div class="viz-wrap" style="margin-top:0.6rem;"><canvas id="cross-canvas" height="200"></canvas></div>
+<div class="sb s-teal"><div class="sl">Where the encoder's work ends up</div>The encoder runs once; its final output is what <em>every</em> decoder layer reads through cross-attention. This is the only road from source to target — the gradient of the translation loss reaches the encoder only through these K and V.</div>
 </div>
+
+<div class="cd">
+<div class="ct"><span class="ic ib">⊞</span> Three attentions, one formula</div>
+<div style="overflow-x:auto;"><table class="mtx" style="font-size:0.72rem;"><tr><td style="background:var(--txt);color:var(--bg);"></td><td style="background:var(--txt);color:var(--bg);">Q from</td><td style="background:var(--txt);color:var(--bg);">K, V from</td><td style="background:var(--txt);color:var(--bg);">shape of A</td><td style="background:var(--txt);color:var(--bg);">mask</td><td style="background:var(--txt);color:var(--bg);">where</td></tr>
+<tr><td class="hi">encoder self-attention</td><td>source</td><td>source</td><td>n × n</td><td>none (padding only)</td><td>every encoder layer</td></tr>
+<tr><td class="hi2">decoder self-attention</td><td>target</td><td>target</td><td>m × m</td><td>causal (+ padding)</td><td>every decoder layer, first sub-layer</td></tr>
+<tr><td style="background:var(--tealbg);color:var(--teal);font-weight:600;">cross-attention</td><td>target</td><td>source</td><td>m × n</td><td>none (source padding only)</td><td>every decoder layer, second sub-layer</td></tr></table></div>
+<div class="sb s-amber" style="margin-top:0.6rem;"><div class="sl">Decoder-only models</div>GPT-style models keep only the middle row: a stack of masked self-attention + FFN blocks, no encoder, no cross-attention. Encoder-only models (BERT) keep only the top row. The original paper needs all three because it translates.</div>
 </div>
 </div>
 
 <!-- ═══════ TRAINING ═══════ -->
 <div id="s-training" class="sec">
-<div class="sh"><h2><span class="num">08</span>Training & Generation</h2><p>Trained with <strong>teacher forcing</strong> (parallel), generates output <strong>auto-regressively</strong> (sequential). The paper's optimization recipe became standard practice.</p></div>
+<div class="sh"><h2><span class="num">08</span>Training &amp; Generation</h2><p>Training and generation use the same network in two different ways: during training the decoder sees the whole target sentence at once and is scored at every position in parallel; at generation time it produces one token, feeds it back, and produces the next. The mask is what makes the first possible without cheating.</p></div>
 
 <div class="cd">
-<div class="ct"><span class="ic io">▶</span> Teacher forcing (training)</div>
-<p class="desc">The decoder receives ground-truth target (shifted right) as input. All positions are computed in parallel — masking prevents cheating.</p>
-<div class="fb"><span class="cm">// Translate "I love ML" → "Ich liebe ML"</span><br><br>Encoder input:  [I] [love] [ML]<br>Decoder input:  [&lt;SOS&gt;] [Ich] [liebe] [ML]  <span class="cm">// shifted right</span><br>Decoder target: [Ich] [liebe] [ML] [&lt;EOS&gt;]  <span class="cm">// predict this</span><br><br><span class="cm">// Loss = cross-entropy(predictions, targets)</span></div>
+<div class="ct"><span class="ic io">▶</span> Teacher forcing — the target appears twice, one position apart</div>
+<p class="desc">The decoder <em>input</em> is the target shifted right by one (a start token in front); the decoder <em>target</em> is the same sentence with the end token behind. Position t reads inputs 0…t and is asked for target t — which is input t+1. Thanks to the mask, one forward pass of one training step produces the prediction and the loss for <em>every</em> position at once, instead of one position per pass as in an RNN. The model is still trained over many such steps (100 k for the base model).</p>
+<div class="fb"><span class="cm">// Translate "I love ML" → "Ich liebe ML"</span><br><br>Encoder input:   [I] [love] [ML]<br>Decoder input:   [&lt;bos&gt;] [Ich] [liebe] [ML]     <span class="cm">// what the decoder reads</span><br>Decoder target:  [Ich] [liebe] [ML] [&lt;eos&gt;]     <span class="cm">// what it must predict, one step ahead</span></div>
+<div id="tf-table"></div>
+<div class="sb s-amber"><div class="sl">Exposure bias — the catch</div>In training the decoder always reads the <em>correct</em> previous words. At generation it reads its <em>own</em> previous words, mistakes included, and it has never practised recovering from them. The paper does not solve this; beam search and label smoothing soften it.</div>
 </div>
 
 <div class="cd">
 <div class="ct"><span class="ic ig">↝</span> Auto-regressive generation (inference)</div>
-<p class="desc">No ground truth available. Generate one token at a time: predict → append → predict next → ... until &lt;EOS&gt;.</p>
+<p class="desc">Encoder once, decoder in a loop: predict → append → predict again, until &lt;eos&gt;. Each step re-runs the decoder on the whole prefix; the causal mask is still applied (it is part of the layer), and in practice the keys and values of earlier positions are cached rather than recomputed.</p>
+<div class="fb"><span class="cm">// Translate "I love ML" → "Ich liebe ML"  — at inference</span><br><br>Encoder input:   [I] [love] [ML]                        <span class="cm">// run once, output kept</span><br>Decoder input:   [&lt;bos&gt;]                               <span class="cm">// step 1 → predicts  Ich</span><br>                 [&lt;bos&gt;] [Ich]                         <span class="cm">// step 2 → predicts  liebe</span><br>                 [&lt;bos&gt;] [Ich] [liebe]                 <span class="cm">// step 3 → predicts  ML</span><br>                 [&lt;bos&gt;] [Ich] [liebe] [ML]            <span class="cm">// step 4 → predicts  &lt;eos&gt;  → stop</span><br>Decoder target:  none                                    <span class="cm">// nothing to compare against; the last prediction is appended and fed back</span></div>
+<div class="sb s-amber"><div class="sl">Training vs. inference, same three lines</div>Encoder input: identical, and the encoder runs once in both cases. Decoder input: in training the whole shifted target at once; at inference the model's own output so far, one token longer each step. Decoder target: only exists in training — at inference there is nothing to score, only a next token to pick. The causal mask is applied in both.</div>
 <div class="viz-wrap"><canvas id="gen-canvas" height="180"></canvas></div>
 <div id="gen-steps"></div>
+<div class="sb s-blue"><div class="sl">Greedy vs. beam search</div>Taking the single most likely token at every step (greedy) can paint the sentence into a corner. The paper keeps the 4 best partial sentences at each step (beam size 4, length penalty α = 0.6) and returns the best complete one.</div>
 </div>
 
-<div class="cd">
-<div class="ct"><span class="ic ib">⚙</span> Learning rate schedule</div>
-<div class="fb"><span class="kw">lr</span> = d_model<sup>−0.5</sup> · min(step<sup>−0.5</sup>, step · warmup<sup>−1.5</sup>)<br><span class="cm">// Linear warmup → inverse-sqrt decay</span></div>
-<div class="cr"><div class="igrp"><label>Warmup steps</label><input type="number" id="lr-warmup" value="4000" min="500" max="10000" step="500" onchange="drawLR()"></div></div>
-<div class="viz-wrap"><div class="viz-label">Learning rate schedule</div><canvas id="lr-canvas" height="180"></canvas></div>
 </div>
-
-<div class="cd">
-<div class="ct"><span class="ic ip">◊</span> Model configurations</div>
-<div class="g2">
-<div class="sb s-rose"><div class="sl">Transformer (base)</div><span class="ilc">N=6</span> <span class="ilc">d=512</span> <span class="ilc">d_ff=2048</span> <span class="ilc">h=8</span> · ~65M params · BLEU 25.8</div>
-<div class="sb s-blue"><div class="sl">Transformer (big)</div><span class="ilc">N=6</span> <span class="ilc">d=1024</span> <span class="ilc">d_ff=4096</span> <span class="ilc">h=16</span> · ~213M params · BLEU 28.4</div>
-</div>
-</div>
-</div>
-
 </main>
+
 
 <script>
 // ═══════ NAVIGATION ═══════
@@ -480,13 +524,13 @@ document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
 document.getElementById('s-'+id).classList.add('on');el.classList.add('on');
 window.scrollTo({top:0,behavior:'smooth'});
 const init={
-embed:()=>{computeEmbed();drawPE();},
+embed:()=>{initE2D();computeEmbed();drawPE();},
 intuition:()=>buildSentAttn(),
 attention:()=>{initAttn();drawTemp();},
-multihead:()=>drawMH(),
-encoder:()=>{drawFFN();drawEncFlow();},
-decoder:()=>{drawMask();drawCross();},
-training:()=>{drawGen();drawLR();}
+multihead:()=>{drawMH();initMH();drawMHToy();},
+encoder:()=>{drawFFN();drawEncFlow();initEnc();},
+decoder:()=>{drawMask();drawMaskToy();drawCross();drawCrossToy();},
+training:()=>{drawGen();drawTF();}
 };
 if(init[id])setTimeout(init[id],50);
 }
@@ -500,7 +544,7 @@ const info={
 emb:{t:'Input/Output Embedding',c:'Learned lookup table: each token → d_model=512 vector. Shared between encoder/decoder embeddings and pre-softmax linear (Section 3.4). Multiplied by √d_model.'},
 pe:{t:'Positional Encoding',c:'Sinusoidal encoding: PE(pos,2i) = sin(pos/10000^(2i/d_model)). Added to embeddings so the model knows word order. Allows learning relative positions (Section 3.5).'},
 mha:{t:'Multi-Head Self-Attention',c:'Each token attends to all others via Q, K, V projections. h=8 parallel heads of d_k=64 each capture different relationship types simultaneously (Section 3.2.2).'},
-masked:{t:'Masked Multi-Head Attention',c:'Same as self-attention but with causal mask: position i attends only to ≤ i. Future = −∞ before softmax → zero weight. Preserves auto-regressive property (Section 3.2.3.1).'},
+masked:{t:'Masked Multi-Head Attention',c:'Same as self-attention but with causal mask: position i attends only to ≤ i. Future = −∞ before softmax → zero weight. Preserves the auto-regressive property (Section 3.2.3).'},
 cross:{t:'Cross-Attention',c:'Q from decoder, K+V from encoder output. This is how the decoder "reads" the source. Every decoder position attends to all encoder positions (Section 3.2.3).'},
 ffn:{t:'Feed-Forward Network',c:'FFN(x) = max(0, xW₁+b₁)W₂+b₂. Per-token, two linear layers with ReLU. d_ff=2048 = 4× d_model. A per-position nonlinear transformation (Section 3.3).'},
 linear:{t:'Output Linear + Softmax',c:'Projects d_model → vocabulary size, then softmax for next-token probabilities. Weight-tied with embedding layer (Section 3.4).'}
@@ -541,6 +585,7 @@ const sum=+(em.scaled[d]+pv).toFixed(3);
 fh+=`<td class="hi3">${em.scaled[d]} <span style="color:var(--purple);">+${pv.toFixed(2)}</span><br><strong>${sum}</strong></td>`;
 }fh+='</tr>';});
 document.getElementById('embed-final').innerHTML=fh+'</table></div>';
+draw2DEmbed();
 }
 
 // ═══════ POSITIONAL ENCODING HEATMAP ═══════
@@ -569,96 +614,128 @@ ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.fillRect(lx+i,ly,1,8);}
 ctx.fillStyle='#78716c';ctx.font='500 8px IBM Plex Mono';ctx.textAlign='left';ctx.fillText('-1',lx,ly-2);ctx.textAlign='center';ctx.fillText('0',lx+lw/2,ly-2);ctx.textAlign='right';ctx.fillText('+1',lx+lw,ly-2);
 }
 
-// ═══════ SENTENCE-LEVEL ATTENTION (NEW) ═══════
-let sentAttnWeights=[];
-let sentTokens=[];
-let selectedSentToken=-1;
-
-function buildSentAttn(){
-const s=document.getElementById('sent-input').value.trim();
-sentTokens=s.split(/\s+/);
-const n=sentTokens.length;
-// Synthetic attention: position-based + same-word boost
-sentAttnWeights=[];
-for(let i=0;i<n;i++){
-const row=[];
-for(let j=0;j<n;j++){
-let score=1.0/(1+Math.abs(i-j)*0.5);// position proximity
-if(sentTokens[i].toLowerCase()===sentTokens[j].toLowerCase()&&i!==j)score+=0.6;
-// "it" → nouns heuristic
-const pronouns=['it','its','they','them','he','she','this','that'];
-const nouns=['cat','dog','animal','man','woman','child','car','bird','mat','street'];
-if(pronouns.includes(sentTokens[i].toLowerCase())&&nouns.includes(sentTokens[j].toLowerCase()))score+=1.2;
-if(nouns.includes(sentTokens[i].toLowerCase())&&pronouns.includes(sentTokens[j].toLowerCase()))score+=0.5;
-// Adjective-noun (crude: word before a noun)
-if(j===i+1&&nouns.includes(sentTokens[j].toLowerCase()))score+=0.4;
-row.push(score);
-}
-// Softmax the row
-const mx=Math.max(...row),ex=row.map(v=>Math.exp(v-mx)),sm=ex.reduce((a,b)=>a+b,0);
-sentAttnWeights.push(ex.map(v=>v/sm));
-}
-selectedSentToken=0;
-renderSentTokens();
-renderSentHeatmap();
-}
-
-function renderSentTokens(){
-const el=document.getElementById('sent-tokens');
-el.innerHTML=sentTokens.map((t,i)=>
-`<span class="attn-token${i===selectedSentToken?' sel':''}" onclick="selectSentToken(${i})">${t}</span>`
-).join('');
-}
-
-function selectSentToken(i){
-selectedSentToken=i;renderSentTokens();renderSentHeatmap();
-}
-
-function renderSentHeatmap(){
-const el=document.getElementById('sent-heatmap');
-const n=sentTokens.length;
-if(n===0||sentAttnWeights.length===0)return;
-const weights=sentAttnWeights[selectedSentToken];
-const maxW=Math.max(...weights);
-
-// Bar-style visualization
-let h='<div style="padding:0.5rem;">';
-h+=`<div style="font-size:0.78rem;font-weight:600;margin-bottom:0.5rem;color:var(--acc);">"${sentTokens[selectedSentToken]}" attends to:</div>`;
-const sorted=weights.map((w,i)=>({w,i,tok:sentTokens[i]})).sort((a,b)=>b.w-a.w);
-sorted.forEach(({w,i,tok})=>{
-const pct=(w*100).toFixed(1);
-const barW=Math.round(w/maxW*100);
-const isSelf=i===selectedSentToken;
-const color=isSelf?'var(--purple)':'var(--acc)';
-h+=`<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-family:'IBM Plex Mono',monospace;font-size:0.74rem;">`;
-h+=`<span style="min-width:70px;text-align:right;color:${isSelf?'var(--purple)':'var(--txt2)'};font-weight:${isSelf?'600':'400'};">${tok}</span>`;
-h+=`<div style="flex:1;height:20px;background:var(--card2);border-radius:4px;overflow:hidden;">`;
-h+=`<div style="width:${barW}%;height:100%;background:${color};opacity:${0.25+w*0.75};border-radius:4px;transition:width .3s;"></div>`;
-h+=`</div>`;
-h+=`<span style="min-width:42px;font-size:0.68rem;color:var(--txtm);">${pct}%</span>`;
-h+=`</div>`;
-});
-
-// Also show as heatmap row
-h+=`<div style="margin-top:1rem;display:flex;gap:3px;flex-wrap:wrap;align-items:end;">`;
-sentTokens.forEach((tok,j)=>{
-const w=weights[j],pct=(w*100).toFixed(1);
-const intensity=Math.round(w/maxW*255);
-const bg=j===selectedSentToken?`rgba(124,58,237,${0.15+w*0.6})`:`rgba(225,29,72,${0.08+w*0.7})`;
-h+=`<div style="text-align:center;flex:1;min-width:40px;">`;
-h+=`<div style="font-size:0.58rem;color:var(--txtm);margin-bottom:2px;">${pct}%</div>`;
-h+=`<div style="background:${bg};padding:0.35rem 0.2rem;border-radius:5px;font-size:0.68rem;font-family:'IBM Plex Mono',monospace;font-weight:500;">${tok}</div>`;
-h+=`</div>`;
-});
-h+=`</div></div>`;
-el.innerHTML=h;
+// ═══════ SENTENCE-LEVEL SELF-ATTENTION (one head, encoder, computed) ═══════
+// score = Q Kᵀ / √d_k,  A = softmax(score) row-wise (no mask),  Z = A·V
+// X = toy embedding: 8 one-hot part-of-speech dims + ANIMATE + sinusoidal position (3 sin/cos pairs, periods 1.5, 3, 7)
+// head space (d_k=8): dim 0 "looks for / is a noun", dim 1 "looks for / is animate", dims 2–7 position → locality that decays with distance
+const SA_POS=["DET","NOUN","AUX","VERB","CONJ","PRON","ADJ","PREP"];
+const SA_TOKS=[["The","DET"],["tired","ADJ"],["animal","NOUN"],["didn't","AUX"],["cross","VERB"],["the","DET"],["wide","ADJ"],["street","NOUN"],["because","CONJ"],["it","PRON"],["was","AUX"],["afraid","ADJ"],["of","PREP"],["the","DET"],["cars","NOUN"]];
+const SA_I_IT=9,SA_I_ANIMAL=2,SA_I_STREET=7,SA_I_CARS=14,SA_I_TIRED=1;
+const SA_ANIM={animal:1};
+const SA_PER=[1.5,3.0,7.0],SA_LW=[1.5,1.3,1.1];
+const SA_DK=2+2*SA_PER.length,SA_D=SA_POS.length+1+2*SA_PER.length;
+const SA_VDIMS=['ANIMATE','THING','ACTION','STATE'];
+function saW(rows,withPos){const cols=withPos?SA_DK:4;const W=Array.from({length:SA_D},()=>new Array(cols).fill(0));
+for(const f in rows){const r=f==='ANIMATE'?SA_POS.length:SA_POS.indexOf(f);rows[f].forEach((v,c)=>W[r][c]=v);}
+if(withPos)SA_LW.forEach((lw,k)=>{W[SA_POS.length+1+2*k][2+2*k]=lw;W[SA_POS.length+2+2*k][3+2*k]=lw;});
+return W;}
+const SA_WQ=saW({PRON:[1.4,4.2],ADJ:[2.2,0],VERB:[1.5,1.5],AUX:[0.5,0.5],DET:[2.4,0],PREP:[1.6,0]},true);
+const SA_WK=saW({NOUN:[2.0,0],ANIMATE:[0,2.0]},true);
+// value space: what a word hands over when it is read (function words hand over nothing)
+const SA_WV=saW({NOUN:[0,1,0,0],ANIMATE:[1,0,0,0],VERB:[0,0,1,0],ADJ:[0,0,0,1],AUX:[0,0,0.3,0.3]},false);
+const SA_RGB='225,29,72';
+let saPick=9,saPair=2,saCache=null;
+function saEmbed(){return SA_TOKS.map(([w,p],i)=>{const x=new Array(SA_D).fill(0);x[SA_POS.indexOf(p)]=1;x[SA_POS.length]=SA_ANIM[w]||0;SA_PER.forEach((P,k)=>{x[SA_POS.length+1+2*k]=Math.sin(i/P);x[SA_POS.length+2+2*k]=Math.cos(i/P);});return x;});}
+function saMatVec(x,W){return W[0].map((_,c)=>x.reduce((s,xi,r)=>s+xi*W[r][c],0));}
+function saCompute(){
+const X=saEmbed(),Q=X.map(x=>saMatVec(x,SA_WQ)),K=X.map(x=>saMatVec(x,SA_WK)),V=X.map(x=>saMatVec(x,SA_WV));
+const S=Q.map(q=>K.map(k=>q.reduce((s,qi,d)=>s+qi*k[d],0)/Math.sqrt(SA_DK)));
+const A=S.map(row=>{const m=Math.max(...row);const e=row.map(s=>Math.exp(s-m));const z=e.reduce((a,b)=>a+b,0);return e.map(v=>v/z);});
+const Z=A.map(row=>SA_VDIMS.map((_,d)=>row.reduce((s,a,j)=>s+a*V[j][d],0)));
+saCache={Q,K,V,S,A,Z};}
+function saSelect(i){saPick=i;if(saPair===i)saPair=i===SA_I_ANIMAL?SA_I_STREET:SA_I_ANIMAL;renderSA();}
+function saSelectPair(j){if(j===saPick)return;saPair=j;renderSA();}
+function buildSentAttn(){saCompute();renderSA();}
+function esc(w){return w.replace('<','&lt;').replace('>','&gt;');}
+function pct(a){return (a*100).toFixed(0)+' %';}
+function renderSA(){
+if(!saCache)saCompute();
+const {V,S,A,Z}=saCache,n=SA_TOKS.length,i=saPick,j=saPair,row=A[i],w0=SA_TOKS[i][0],wj=SA_TOKS[j][0];
+// ── Figure-3-style line drawing ──
+const cw=66,W=cw*n+40,H=182,yT=30,yB=140,x=k=>20+cw*k+cw/2;
+let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="display:block;max-width:100%;font-family:'IBM Plex Mono',monospace;">`;
+s+=`<text x="4" y="${yT-16}" font-size="8" fill="var(--txtf)">reader i (query)</text><text x="4" y="${yB+30}" font-size="8" fill="var(--txtf)">read j (key + value)</text>`;
+row.forEach((a,k)=>{
+s+=`<path d="M${x(i)},${yT+8} C${x(i)},${(yT+yB)/2} ${x(k)},${(yT+yB)/2} ${x(k)},${yB-12}" fill="none" stroke="rgb(${SA_RGB})" stroke-opacity="${Math.min(1,0.06+a*1.5).toFixed(3)}" stroke-width="${(1+a*6).toFixed(2)}" stroke-linecap="round"/>`;});
+SA_TOKS.forEach(([w],k)=>{const sel=k===i;
+s+=`<text x="${x(k)}" y="${yT}" text-anchor="middle" font-size="11" font-weight="${sel?700:500}" fill="${sel?'var(--purple)':'var(--txt2)'}" style="cursor:pointer" onclick="saSelect(${k})">${esc(w)}</text>`;
+if(sel)s+=`<rect x="${x(k)-cw/2+6}" y="${yT-14}" width="${cw-12}" height="20" rx="4" fill="none" stroke="var(--purple)" stroke-width="1.2"/>`;});
+SA_TOKS.forEach(([w],k)=>{const a=row[k],pj=k===j;
+s+=`<text x="${x(k)}" y="${yB+4}" text-anchor="middle" font-size="11" font-weight="${a>0.15?700:400}" fill="${pj?'var(--blue)':'var(--txt2)'}" style="cursor:pointer" onclick="saSelectPair(${k})">${esc(w)}</text>`;
+if(pj)s+=`<rect x="${x(k)-cw/2+6}" y="${yB-10}" width="${cw-12}" height="20" rx="4" fill="none" stroke="var(--blue)" stroke-width="1.2" stroke-dasharray="3 2"/>`;
+s+=`<text x="${x(k)}" y="${yB+20}" text-anchor="middle" font-size="9" fill="rgba(${SA_RGB},${(0.35+a).toFixed(2)})">${(a*100).toFixed(0)}%</text>`;});
+s+='</svg>';
+document.getElementById('sa-lines').innerHTML=s;
+let h='';
+// ── directional pair ──
+const aij=A[i][j],aji=A[j][i];
+h+=`<div class="viz-wrap" style="margin-top:0.6rem;"><div class="viz-label">Directional: the same pair of words, read both ways</div><div class="g2" style="gap:0.7rem;">`;
+[[i,j,aij,S[i][j],'var(--purple)'],[j,i,aji,S[j][i],'var(--blue)']].forEach(([a,b,val,sc,col])=>{
+h+=`<div style="padding:0.6rem 0.8rem;background:var(--card);border:1px solid var(--border);border-radius:8px;">`;
+h+=`<div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:${col};font-weight:600;">A[${a}][${b}]  &nbsp;<span style="color:var(--txt2);font-weight:400;">"${esc(SA_TOKS[a][0])}" reads "${esc(SA_TOKS[b][0])}"</span></div>`;
+h+=`<div style="display:flex;align-items:baseline;gap:0.6rem;margin-top:0.3rem;"><span style="font-size:1.5rem;font-weight:700;color:${col};">${pct(val)}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--txtf);">q<sub>${a}</sub>·k<sub>${b}</sub>/√d<sub>k</sub> = ${sc>=0?'+':''}${sc.toFixed(2)}</span></div>`;
+h+=`<div style="height:8px;background:var(--card2);border-radius:4px;overflow:hidden;margin-top:0.35rem;"><div style="width:${Math.round(val*100)}%;height:100%;background:${col};border-radius:4px;transition:width .3s;"></div></div></div>`;});
+h+='</div>';
+const ratio=aij>aji?aij/Math.max(aji,1e-6):aji/Math.max(aij,1e-6);
+h+=`<div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--txtm);margin-top:0.45rem;">${Math.abs(aij-aji)<0.02?'These two happen to be close — but they were computed from different queries and keys, and the rows they sit in are different.':`One direction carries ${ratio.toFixed(1)}× the weight of the other. A is not symmetric: q<sub>${i}</sub>·k<sub>${j}</sub> and q<sub>${j}</sub>·k<sub>${i}</sub> are different products.`} Click a bottom-row word to change j.</div></div>`;
+// ── the row + the matrix ──
+h+='<div class="g2" style="gap:0.9rem;margin-top:0.9rem;">';
+h+=`<div class="viz-wrap" style="margin:0;"><div class="viz-label">Row ${i} — "${esc(w0)}" as reader: score → softmax</div>`;
+const mx=Math.max(...row);
+row.map((a,k)=>({a,z:S[i][k],k})).sort((p,q)=>q.a-p.a).forEach(({a,z,k})=>{
+h+=`<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;">`;
+h+=`<span style="min-width:64px;text-align:right;color:${k===i?'var(--purple)':k===j?'var(--blue)':'var(--txt2)'};font-weight:${k===i||k===j?600:400};">${esc(SA_TOKS[k][0])}</span>`;
+h+=`<span style="min-width:52px;font-size:0.62rem;color:var(--txtf);">${z>=0?'+':''}${z.toFixed(2)}</span>`;
+h+=`<div style="flex:1;height:16px;background:var(--card);border-radius:4px;overflow:hidden;"><div style="width:${Math.round(a/mx*100)}%;height:100%;background:var(--acc);opacity:${(0.3+a*0.7).toFixed(2)};border-radius:4px;transition:width .3s;"></div></div>`;
+h+=`<span style="min-width:34px;font-size:0.66rem;color:var(--txtm);">${(a*100).toFixed(0)}%</span></div>`;});
+h+=`<div style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--txtf);margin-top:0.35rem;">grey = q·k/√d<sub>k</sub> (can be negative) · bar = its softmax · the ${n} weights sum to ${row.reduce((p,q)=>p+q,0).toFixed(2)}</div></div>`;
+h+=`<div class="viz-wrap" style="margin:0;"><div class="viz-label">The full matrix A — row i reads, column j is read</div><div style="overflow-x:auto;"><table class="mtx" style="font-size:0.6rem;gap:0;">`;
+h+='<tr><td style="background:var(--txt);color:var(--bg);min-width:0;font-size:0.5rem;">i \\ j</td>';
+SA_TOKS.forEach(([w],k)=>h+=`<td style="background:${k===j?'var(--bluebg)':'var(--txt)'};color:${k===j?'var(--blue)':'var(--bg)'};min-width:0;padding:0.2rem 0.25rem;font-size:0.55rem;cursor:pointer;" onclick="saSelectPair(${k})">${esc(w)}</td>`);
+h+='</tr>';
+A.forEach((r,a)=>{h+=`<tr><td style="background:${a===i?'var(--purplebg)':'var(--txt)'};color:${a===i?'var(--purple)':'var(--bg)'};font-weight:600;padding:0.15rem 0.35rem;min-width:0;text-align:right;cursor:pointer;" onclick="saSelect(${a})">${esc(SA_TOKS[a][0])}</td>`;
+r.forEach((v,b)=>{const hot=(a===i&&b===j),mirror=(a===j&&b===i);
+h+=`<td style="background:rgba(${SA_RGB},${(0.03+v*1.3).toFixed(3)});min-width:30px;padding:0.15rem 0.1rem;border:${hot?'2px solid var(--purple)':mirror?'2px solid var(--blue)':'1px solid var(--border)'};color:${v>0.4?'#fff':'var(--txt2)'};" title="A[${a}][${b}] = ${(v*100).toFixed(1)}%">${(v*100).toFixed(0)}</td>`;});
+h+='</tr>';});
+h+=`</table></div><div style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--txtf);margin-top:0.3rem;"><span style="color:var(--purple);">■</span> A[${i}][${j}] and <span style="color:var(--blue);">■</span> A[${j}][${i}] are mirror cells across the diagonal — compare them · every row sums to 100, columns do not · no cell is masked</div></div>`;
+h+='</div>';
+// ── step 3: multiply by V ──
+const z=Z[i];
+h+=`<div class="viz-wrap" style="margin-top:0.9rem;"><div class="viz-label">Step 3 — the weights multiply the values: z<sub>${i}</sub> = Σ<sub>j</sub> A[${i}][j] · v<sub>j</sub></div>`;
+h+='<div style="overflow-x:auto;"><table class="mtx" style="font-size:0.62rem;gap:0;"><tr><td style="background:var(--txt);color:var(--bg);min-width:0;">j</td><td style="background:var(--txt);color:var(--bg);min-width:0;">A[i][j]</td>';
+SA_VDIMS.forEach(d=>h+=`<td style="background:var(--greenbg);color:var(--green);font-weight:600;min-width:0;padding:0.15rem 0.4rem;">v<sub>j</sub>·${d}</td>`);
+h+='</tr>';
+const contrib=row.map((a,k)=>({a,k})).filter(o=>o.a>=0.03).sort((p,q)=>q.a-p.a);
+contrib.forEach(({a,k})=>{h+=`<tr><td style="min-width:0;text-align:right;font-weight:600;color:${k===i?'var(--purple)':'var(--txt2)'};">${esc(SA_TOKS[k][0])}</td><td style="min-width:0;color:var(--acc);font-weight:600;">${a.toFixed(2)}</td>`;
+V[k].forEach(v=>h+=`<td style="min-width:0;color:${v===0?'var(--txtf)':'var(--txt2)'};">${v===0?'·':v.toFixed(1)}</td>`);h+='</tr>';});
+h+=`<tr><td style="min-width:0;text-align:right;color:var(--txtf);">rest</td><td style="min-width:0;color:var(--txtf);">${(1-contrib.reduce((s,o)=>s+o.a,0)).toFixed(2)}</td>${SA_VDIMS.map(()=>'<td style="min-width:0;color:var(--txtf);">…</td>').join('')}</tr>`;
+h+=`<tr><td style="min-width:0;text-align:right;font-weight:700;color:var(--green);">z<sub>${i}</sub></td><td style="min-width:0;color:var(--txtf);">Σ</td>`;
+z.forEach(v=>h+=`<td style="min-width:0;background:var(--greenbg);color:var(--green);font-weight:700;">${v.toFixed(2)}</td>`);h+='</tr></table></div>';
+h+=`<div style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--txtf);margin-top:0.3rem;">rows with weight under 3 % are folded into "rest" · z<sub>${i}</sub> is a convex combination of the value vectors: it can never leave the region they span</div></div>`;
+if(w0==='it'){
+h+=`<div class="sb s-green" style="margin-top:0.6rem;"><div class="sl">The question from card 1, answered by the numbers</div>As a reader, <em>it</em> puts <strong>${pct(row[SA_I_ANIMAL])} on animal</strong>, ${pct(row[SA_I_STREET])} on <em>street</em> and ${pct(row[SA_I_CARS])} on <em>cars</em>. Three nouns, and <em>street</em> is the closest — but only <em>animal</em> is animate, the pronoun's query asks for exactly that, so its score is higher and the softmax turns the gap into most of the weight. Read the other way round, <em>animal</em> gives <em>it</em> only ${pct(A[SA_I_ANIMAL][SA_I_IT])}: it has nothing to gain from a pronoun. And after step 3 the vector at the position of <em>it</em> holds ANIMATE ${z[0].toFixed(2)}, THING ${z[1].toFixed(2)} — it has become "the animal", seven words to the left, by nothing but dot products.</div>`;}
+if(w0==='tired'||w0==='wide'){const near=w0==='tired'?SA_I_ANIMAL:SA_I_STREET,far=w0==='tired'?SA_I_STREET:SA_I_ANIMAL;
+h+=`<div class="sb s-green" style="margin-top:0.6rem;"><div class="sl">An adjective finds its noun — and the noun barely looks back</div><em>${w0}</em> reads ${pct(row[near])} off <em>${SA_TOKS[near][0]}</em> and only ${pct(row[far])} off <em>${SA_TOKS[far][0]}</em>: here it is position, not animacy, that decides, because an adjective's query cares about nearness more than about life. The mirror cell is small — <em>${SA_TOKS[near][0]}</em> reads <em>${w0}</em> at ${pct(A[near][saPick])} — the noun does not need its adjective the way the adjective needs its noun.</div>`;}
+if(w0==='afraid'){
+h+=`<div class="sb s-green" style="margin-top:0.6rem;"><div class="sl">Same head, a different answer</div><em>afraid</em> has no noun next to it, so this head has nothing sharp to say: its row is spread thin — ${pct(row[SA_I_CARS])} on <em>cars</em>, ${pct(row[SA_I_ANIMAL])} on <em>animal</em>, ${pct(row[SA_I_STREET])} on <em>street</em>, the rest on its neighbours. That is the right answer for a head that only knows "adjective → adjacent noun". Linking <em>afraid</em> back to who is afraid (via <em>it</em>) is a job for a second head or a second layer — which is exactly why the paper stacks both.</div>`;}
+document.getElementById('sa-detail').innerHTML=h;
+// ── card 5: before / after for "it" ──
+const bi=SA_I_IT,vin=V[bi],out=Z[bi],mxo=Math.max(0.01,...vin,...out);
+let b='<div class="g2" style="gap:0.9rem;">';
+[[vin,'before — the value of "it" on its own','var(--blue)'],[out,'after one head — z for the position of "it"','var(--green)']].forEach(([vec,lab,col])=>{
+b+=`<div class="viz-wrap" style="margin:0;"><div class="viz-label" style="color:${col};">${lab}</div>`;
+SA_VDIMS.forEach((d,k)=>{b+=`<div style="display:flex;align-items:center;gap:6px;margin:3px 0;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;"><span style="min-width:60px;text-align:right;color:var(--txtm);">${d}</span><div style="flex:1;height:14px;background:var(--card);border-radius:3px;overflow:hidden;"><div style="width:${Math.round(vec[k]/mxo*100)}%;height:100%;background:${col};opacity:0.75;border-radius:3px;"></div></div><span style="min-width:32px;font-size:0.62rem;color:var(--txtm);">${vec[k].toFixed(2)}</span></div>`;});
+b+='</div>';});
+b+='</div>';
+b+=`<div class="sb s-green" style="margin-top:0.6rem;"><div class="sl">Where the new vector came from</div>${pct(A[bi][SA_I_ANIMAL])} of it is the value of <em>animal</em>, ${pct(A[bi][SA_I_STREET])} the value of <em>street</em> and ${pct(A[bi][SA_I_CARS])} the value of <em>cars</em> — the weights of row ${bi}, applied to V. Change the sentence to "… because it was too wide" and a trained model would move the weight to <em>street</em>; the mechanism is the same, only the learned matrices decide who asks for what.</div>`;
+document.getElementById('sa-beforeafter').innerHTML=b;
 }
 
 // ═══════ SELF-ATTENTION STEP-BY-STEP ═══════
 const A_X=[[1,0,1,0],[0,1,0,1],[1,1,0,0]];
 const A_WQ=[[1,0],[0,1],[1,0],[0,1]];
-const A_WK=[[0,1],[1,0],[0,1],[1,0]];
-const A_WV=[[1,1],[0,0],[1,0],[0,1]];
+const A_WK=[[1,1],[0,1],[1,0],[1,0]];
+const A_WV=[[1,0],[0,2],[1,1],[0,0]];
 function matMul(A,B){const m=A.length,n=B[0].length,p=B.length;const C=Array.from({length:m},()=>Array(n).fill(0));for(let i=0;i<m;i++)for(let j=0;j<n;j++)for(let k=0;k<p;k++)C[i][j]+=A[i][k]*B[k][j];return C;}
 function transpose(A){return A[0].map((_,j)=>A.map(r=>r[j]));}
 function softmaxRow(arr){const mx=Math.max(...arr);const ex=arr.map(v=>Math.exp(v-mx));const s=ex.reduce((a,b)=>a+b,0);return ex.map(v=>v/s);}
@@ -694,19 +771,31 @@ h+='</div><div style="overflow-x:auto;text-align:center;margin-top:0.3rem;">';
 h+=renderMtx(A_X,'X','');h+='<span class="eq">×</span>';h+=renderMtx(A_WV,'W<sup>V</sup>','');h+='<span class="eq">=</span>';h+=renderMtx(V,'V','hi3');
 h+='</div>';
 h+=`<div class="sb s-rose"><div class="sl">Intuition</div><strong style="color:var(--acc);">Q</strong> = "what am I looking for?" &nbsp; <strong style="color:var(--blue);">K</strong> = "what do I contain?" &nbsp; <strong style="color:var(--green);">V</strong> = "what info do I provide?"</div>`;
+h+=`<p class="desc" style="margin-top:0.8rem;">The same three tokens, drawn in <strong>2D</strong> before and after each projection. Each token keeps its colour across all four panels, so you can follow where it moves:`;
+h+=` ${TOKCOL.map((c,j)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin:0 0.2rem 0 0.5rem;"></span><span style="color:${c};font-weight:600;">tok${SUBS[j]}</span>`).join('')}</p>`;
+h+=`<div class="viz-wrap"><div class="viz-label">Token embeddings X and the three linear maps applied to them</div><canvas id="step2d-canvas" height="236"></canvas></div>`;
+h+=`<div class="sb s-amber"><div class="sl">Reading the four panels</div>X lives in <span class="ilc">d_model=4</span>, but its three rows happen to span a plane, so the first panel is an <strong>exact</strong> 2D picture — the distances you see are the true distances. Q, K and V live in <span class="ilc">d_k=d_v=2</span> and are shown directly. Notice that <strong>one linear map is not the other</strong>: W<sup>Q</sup> spreads the tokens apart (q₀ on the x-axis, q₁ on the y-axis, q₂ on the diagonal), W<sup>K</sup> bunches all three keys into the first quadrant around the diagonal, and W<sup>V</sup> puts them somewhere else again — three corners of a triangle that step 5 will need. Those differences are exactly what makes a token's <em>question</em> different from its <em>advertisement</em> and from its <em>content</em> — and, because Q and K differ, what makes the score matrix asymmetric.</div>`;
 }
 else if(step==='qkt'){
-h+=`<p class="desc">Q × K<sup>T</sup> → raw similarity scores. Cell (i,j) = how much token i attends to token j:</p>`;
+h+=`<p class="desc">Q × K<sup>T</sup> → raw scores. Cell (i, j) = q<sub>i</sub>·k<sub>j</sub> = how strongly reader i is drawn to token j:</p>`;
 h+='<div style="overflow-x:auto;text-align:center;">';
 h+=renderMtx(Q,'Q','hi');h+='<span class="eq">×</span>';h+=renderMtx(KT,'K<sup>T</sup>','hi2');h+='<span class="eq">=</span>';h+=renderMtx(scores,'QK<sup>T</sup>','hi4');
 h+='</div>';
-h+=`<div class="sb s-blue"><div class="sl">Reading the matrix</div>Row i = token i's attention to all tokens. score[0][2]=${scores[0][2]} means tok₀ has score ${scores[0][2]} for attending to tok₂.</div>`;
+h+=`<div class="sb s-blue"><div class="sl">Reading the matrix</div>Row i = reader i's scores over all tokens. score[0][2]=${scores[0][2]} means tok₀ has score ${scores[0][2]} for attending to tok₂.</div>`;
+h+=`<div class="sb s-purple"><div class="sl">Not symmetric</div>score[1][2] = ${scores[1][2]} but score[2][1] = ${scores[2][1]}: tok₁ is strongly drawn to tok₂, tok₂ only mildly to tok₁. The two cells are different dot products — q₁·k₂ versus q₂·k₁ — built from different matrices W<sup>Q</sup> and W<sup>K</sup>. Only when W<sup>K</sup> happened to equal W<sup>Q</sup> would QK<sup>T</sup> be symmetric.</div>`;
+h+=`<p class="desc" style="margin-top:0.8rem;">Each token keeps its colour in every panel: ${TOKCOL.map((c,j)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin:0 0.2rem 0 0.5rem;"></span><span style="color:${c};font-weight:600;">tok${SUBS[j]}</span>`).join('')}</p>`;
+h+=`<div class="viz-wrap"><div class="viz-label">One panel per row of QKᵀ — the query in red, the three keys, and where each key projects onto it</div><canvas id="step2d-canvas" height="244"></canvas></div>`;
+h+=`<div class="sb s-amber"><div class="sl">Why a dot product is the right similarity</div>Drop a perpendicular from kⱼ onto the query line: the score is the query's length times the signed length of that shadow. A key pointing the same way as the query gets a long shadow and a big score; a key at 90° would cast no shadow at all and score exactly 0. Look at k₁ = (1, 1): it sits at 45° to both axis-aligned queries, so q₀ and q₁ see the same shadow and both give it the score 2. And compare panels 1 and 2: q₁ sees k₂ at score 4, but in panel 2 q₂ sees k₁ only at 2 — the same pair of tokens, different query, different key, different shadow.</div>`;
+
 }
 else if(step==='scale'){
 h+=`<p class="desc">Divide by √d_k = √${dk} ≈ ${Math.sqrt(dk).toFixed(3)} to stabilize gradients:</p>`;
 h+='<div style="overflow-x:auto;text-align:center;">';
 h+=renderMtx(scores,'QK<sup>T</sup>','hi4');h+=`<span class="eq">÷ √${dk}</span>`;h+=renderMtx(scaled.map(r=>r.map(v=>+v.toFixed(3))),'Scaled','hi');
 h+='</div>';
+h+=`<p class="desc" style="margin-top:0.8rem;">Each token keeps its colour in every panel: ${TOKCOL.map((c,j)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin:0 0.2rem 0 0.5rem;"></span><span style="color:${c};font-weight:600;">tok${SUBS[j]}</span>`).join('')}</p>`;
+h+=`<div class="viz-wrap"><div class="viz-label">Dividing the scores by √d_k is the same as shrinking the query vector to 1/√d_k of its length</div><canvas id="step2d-canvas" height="244"></canvas></div>`;
+h+=`<div class="sb s-amber"><div class="sl">Scaling is a geometric shrink</div>Nothing rotates. Since q·k is linear in q, dividing every score by √d_k is <em>exactly</em> replacing q by q/√d_k — the faint arrow is the original, the solid one is the shrunken query. The angles, and therefore the ranking of the keys, are untouched; only the spread of the scores shrinks, which is precisely what keeps softmax out of its flat region.</div>`;
 }
 else if(step==='softmax'){
 h+=`<p class="desc">Softmax row-wise → probabilities (each row sums to 1):</p>`;
@@ -716,20 +805,465 @@ h+=renderMtx(weights.map(r=>r.map(v=>+v.toFixed(3))),'Weights','hi3');
 h+='</div>';
 h+='<div class="sb s-green"><div class="sl">Reading attention weights</div>';
 weights.forEach((row,i)=>{const mx=row.indexOf(Math.max(...row));
-h+=`<strong>${labels[i]}</strong> → <strong>${labels[mx]}</strong> (${(row[mx]*100).toFixed(1)}%)<br>`;});
+h+=`<strong>${labels[i]}</strong> reads most from <strong>${labels[mx]}</strong> (${(row[mx]*100).toFixed(1)}%)<br>`;});
+h+=`<div style="margin-top:0.4rem;">Directional: A[1][2] = ${(weights[1][2]*100).toFixed(1)}% but A[2][1] = ${(weights[2][1]*100).toFixed(1)}%. Rows sum to 1; columns do not (column 2 sums to ${(weights[0][2]+weights[1][2]+weights[2][2]).toFixed(2)}).</div>`;
 h+='</div>';
+h+=`<p class="desc" style="margin-top:0.8rem;">Each token keeps its colour in every panel: ${TOKCOL.map((c,j)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin:0 0.2rem 0 0.5rem;"></span><span style="color:${c};font-weight:600;">tok${SUBS[j]}</span>`).join('')}</p>`;
+h+=`<div class="viz-wrap"><div class="viz-label">Every row of weights is a point inside a triangle — the three probabilities are its barycentric coordinates</div><canvas id="step2d-canvas" height="268"></canvas></div>`;
+h+=`<div class="sb s-amber"><div class="sl">Reading the triangle</div>Three numbers that are non-negative and sum to 1 have exactly <strong>two</strong> degrees of freedom, so an attention row is a point in a triangle. A corner means all attention on one token; the centre means perfectly uniform attention. Compare the panels: without the √d_k division the rows are pushed much closer to a corner — that is softmax saturating, and it is where the gradient disappears. Row 2 sits on the edge between the tok₀ and tok₂ corners, because those two scores tie and tok₁ gets the rest.</div>`;
 }
 else if(step==='output'){
 h+=`<p class="desc">Weights × V = context-aware output. Each token is now a weighted mixture of all values:</p>`;
 h+='<div style="overflow-x:auto;text-align:center;">';
-h+=renderMtx(weights.map(r=>r.map(v=>+v.toFixed(3))),'Weights','hi3');h+='<span class="eq">×</span>';
+h+=renderMtx(weights.map(r=>r.map(v=>+v.toFixed(3))),'Weights (A)','hi3');h+='<span class="eq">×</span>';
 h+=renderMtx(V,'V','hi2');h+='<span class="eq">=</span>';
-h+=renderMtx(output.map(r=>r.map(v=>+v.toFixed(3))),'Output','hi');
+h+=renderMtx(output.map(r=>r.map(v=>+v.toFixed(3))),'Output (Z)','hi');
 h+='</div>';
-h+=`<div class="sb s-green"><div class="sl">Result</div>Each token's output is a <strong>context-aware</strong> representation — a weighted mixture of all tokens' values, where weights came from query-key similarity. This is self-attention.</div>`;
+h+=`<p class="desc" style="margin-top:0.8rem;">Each token keeps its colour in every panel: ${TOKCOL.map((c,j)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin:0 0.2rem 0 0.5rem;"></span><span style="color:${c};font-weight:600;">tok${SUBS[j]}</span>`).join('')}</p>`;
+h+=`<div class="viz-wrap"><div class="viz-label">One panel per row — the weights shrink the value arrows, and the arrows add up to the output</div><canvas id="step2d-canvas" height="244"></canvas></div>`;
+h+=`<div class="sb s-amber"><div class="sl">Reading the panels</div>Take ${weights[1][0].toFixed(2)} of v₀, ${weights[1][1].toFixed(2)} of v₁ and ${weights[1][2].toFixed(2)} of v₂, put the pieces end to end, and you arrive at z₁. That is all "weights × V" means. The weights add up to 1, so the output is a blend of the values — never bigger than them, never outside them.</div>`;
+h+=`<div class="sb s-green"><div class="sl">Result</div>Each token's output is a <strong>context-aware</strong> representation — a weighted mixture of all tokens' values, where weights came from query-key similarity. Because the weights are non-negative and sum to 1, every output is a <strong>convex combination</strong> of the value vectors and can never leave the region they span: self-attention mixes, it does not extrapolate. This is self-attention.</div>`;
+
+}
+el.innerHTML=h;
+drawStep2D(step);
+}
+
+// ═══════ ENCODER LAYER, STEP BY STEP (continues the Section 04 toy) ═══════
+const E_WO=[[1,0,0,1],[0,1,1,0]];                      // d_v=2 → d_model=4
+const E_W1=[[1,-1,0,0,1,0,-1,0],[0,1,-1,0,0,1,0,-1],[0,0,1,-1,-1,0,1,0],[-1,0,0,1,0,-1,0,1]]; // 4×8
+const E_W2=[[0.5,0,0,0],[0,0.5,0,0],[0,0,0.5,0],[0,0,0,0.5],[0.5,0.5,0,0],[0,0,0.5,0.5],[-0.5,0,0.5,0],[0,-0.5,0,0.5]]; // 8×4
+function layerNormRow(r){const n=r.length,mu=r.reduce((a,b)=>a+b,0)/n,va=r.reduce((a,b)=>a+(b-mu)*(b-mu),0)/n;const sd=Math.sqrt(va+1e-6);return {mu,sd,out:r.map(v=>(v-mu)/sd)};}
+function encTensors(){
+const T=attnTensors();
+const proj=matMul(T.output,E_WO);
+const res1=A_X.map((r,i)=>r.map((v,j)=>v+proj[i][j]));
+const ln1=res1.map(layerNormRow);const x1=ln1.map(o=>o.out);
+const pre=matMul(x1,E_W1);const relu=pre.map(r=>r.map(v=>Math.max(0,v)));
+const ffn=matMul(relu,E_W2);
+const res2=x1.map((r,i)=>r.map((v,j)=>v+ffn[i][j]));
+const ln2=res2.map(layerNormRow);const x2=ln2.map(o=>o.out);
+return {T,proj,res1,ln1,x1,pre,relu,ffn,res2,ln2,x2};
+}
+const fmt=M=>M.map(r=>r.map(v=>+v.toFixed(2)));
+function initEnc(){
+const items=[{key:'wo',label:'1. Back to d_model'},{key:'res1',label:'2. Add x'},{key:'ln1',label:'3. LayerNorm'},{key:'ffn',label:'4. FFN + ReLU'},{key:'ln2',label:'5. Add & Norm → out'}];
+const cont=document.getElementById('enc-pills');if(!cont)return;cont.innerHTML='';
+items.forEach((it,i)=>{const p=document.createElement('span');p.className='pill'+(i===0?' on':'');p.textContent=it.label;
+p.onclick=()=>{cont.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));p.classList.add('on');showEncStep(it.key);};cont.appendChild(p);});
+showEncStep('wo');
+}
+function showEncStep(step){
+const E=encTensors(),el=document.getElementById('enc-content');let h='';
+const labels=['tok₀','tok₁','tok₂'];
+if(step==='wo'){
+h+=`<p class="desc">Z from Section 04 is 3 × 2, but the residual needs a 3 × 4 to add to X. The output projection W<sup>O</sup> does that (with h heads, the h outputs are concatenated first and W<sup>O</sup> mixes them):</p>`;
+h+='<div style="overflow-x:auto;text-align:center;">'+renderMtx(fmt(E.T.output),'Z (3×2)','hi3')+'<span class="eq">×</span>'+renderMtx(E_WO,'W<sup>O</sup> (2×4)','')+'<span class="eq">=</span>'+renderMtx(fmt(E.proj),'Attn(x) (3×4)','hi')+'</div>';
+h+=`<div class="sb s-blue"><div class="sl">Why a separate W<sup>O</sup></div>Attention chose <em>which</em> values to mix; W<sup>O</sup> decides <em>where in the token vector</em> the mixture lands. With 8 heads it is also the only place the heads talk to each other.</div>`;
+}else if(step==='res1'){
+h+=`<p class="desc">Residual: the attention result is <em>added</em> to the original input. Compare the two: each row of X is still visible inside the sum.</p>`;
+h+='<div style="overflow-x:auto;text-align:center;">'+renderMtx(A_X,'X','')+'<span class="eq">+</span>'+renderMtx(fmt(E.proj),'Attn(x)','hi')+'<span class="eq">=</span>'+renderMtx(fmt(E.res1),'x + Attn(x)','hi4')+'</div>';
+h+=`<div class="sb s-green"><div class="sl">Reading it</div>tok₀ started as [1, 0, 1, 0] and now holds ${JSON.stringify(fmt(E.res1)[0])}: its own pattern, plus what it read from the others. Nothing was overwritten. If W<sup>O</sup> had been all zeros, the layer would simply have passed X through.</div>`;
+}else if(step==='ln1'){
+h+=`<p class="desc">LayerNorm, one row at a time. For each token: subtract its mean, divide by its standard deviation (γ = 1, β = 0 here):</p>`;
+h+='<div style="overflow-x:auto;text-align:center;">'+renderMtx(fmt(E.res1),'x + Attn(x)','hi4')+'<span class="eq">→ LN →</span>'+renderMtx(fmt(E.x1),'LayerNorm( · )','hi')+'</div>';
+h+='<div style="overflow-x:auto;text-align:center;margin-top:0.4rem;"><table class="mtx" style="font-size:0.7rem;"><tr><td style="background:var(--txt);color:var(--bg);">row</td><td style="background:var(--txt);color:var(--bg);">μ</td><td style="background:var(--txt);color:var(--bg);">σ</td><td style="background:var(--txt);color:var(--bg);">mean after</td><td style="background:var(--txt);color:var(--bg);">var after</td></tr>';
+E.ln1.forEach((o,i)=>{const m=o.out.reduce((a,b)=>a+b,0)/4,v=o.out.reduce((a,b)=>a+(b-m)*(b-m),0)/4;h+=`<tr><td class="hi">${labels[i]}</td><td>${o.mu.toFixed(3)}</td><td>${o.sd.toFixed(3)}</td><td>${Math.abs(m)<1e-9?'0.000':m.toFixed(3)}</td><td>${v.toFixed(3)}</td></tr>`;});
+h+='</table></div>';
+h+=`<div class="sb s-amber"><div class="sl">Per token, not per batch</div>The statistics in the table are computed from the 4 numbers of one row only. tok₁ and tok₂ do not influence how tok₀ is normalised — which is why this works for any sequence length and any batch size, and at inference on a single sentence.</div>`;
+}else if(step==='ffn'){
+h+=`<p class="desc">The feed-forward network, applied to each row separately with the <em>same</em> W₁, W₂. Expand 4 → 8, ReLU, contract 8 → 4. Cells that ReLU set to zero are shown greyed:</p>`;
+h+='<div style="overflow-x:auto;text-align:center;">'+renderMtx(fmt(E.x1),'LN₁ out (3×4)','hi')+'<span class="eq">×</span>'+renderMtx(E_W1,'W₁ (4×8)','')+'<span class="eq">=</span>'+renderMtx(fmt(E.pre),'before ReLU (3×8)','')+'</div>';
+let rl='<div style="display:inline-block;vertical-align:middle;margin:0.3rem;"><div class="mtx-label">after ReLU (3×8)</div><table class="mtx">';
+E.relu.forEach((r,i)=>{rl+='<tr>';r.forEach((v,j)=>{const z=E.pre[i][j]<=0;rl+=`<td style="${z?'color:var(--txtf);background:repeating-linear-gradient(45deg,#f5f5f4,#f5f5f4 3px,#e7e5e4 3px,#e7e5e4 6px);':'color:var(--green);font-weight:600;'}">${v.toFixed(2)}</td>`;});rl+='</tr>';});
+rl+='</table></div>';
+h+='<div style="overflow-x:auto;text-align:center;margin-top:0.3rem;">'+rl+'<span class="eq">×</span>'+renderMtx(E_W2,'W₂ (8×4)','')+'<span class="eq">=</span>'+renderMtx(fmt(E.ffn),'FFN(x) (3×4)','hi3')+'</div>';
+const zeros=E.pre.flat().filter(v=>v<=0).length;
+h+=`<div class="sb s-green"><div class="sl">What ReLU did</div>${zeros} of the 24 inner activations were negative and became exactly 0 — those "features" are switched off for that token. A different token switches on a different subset. That selection is the non-linearity of the layer; everything else in it is matrix arithmetic.</div>`;
+}else if(step==='ln2'){
+h+=`<p class="desc">Second residual, second LayerNorm — and that is the output of the encoder layer, ready to be the X of the next one:</p>`;
+h+='<div style="overflow-x:auto;text-align:center;">'+renderMtx(fmt(E.x1),'LN₁ out','hi')+'<span class="eq">+</span>'+renderMtx(fmt(E.ffn),'FFN(x)','hi3')+'<span class="eq">→ LN →</span>'+renderMtx(fmt(E.x2),'encoder layer output','hi4')+'</div>';
+h+=`<div class="sb s-blue"><div class="sl">Same shape in, same shape out</div>X was 3 × 4; the output is 3 × 4. That is what lets the paper stack N = 6 identical layers, and it is why the residual stream is often described as a vector per token that the layers keep <em>editing</em>. After the sixth layer this matrix is what the decoder reads through cross-attention (Section 07).</div>`;
 }
 el.innerHTML=h;
 }
+
+// ═══════ MASKED SELF-ATTENTION ON THE TOY ═══════
+function drawMaskToy(){
+const el=document.getElementById('mask-toy');if(!el)return;
+const T=attnTensors(),n=3,labels=['tok₀','tok₁','tok₂'];
+const masked=T.scaled.map((r,i)=>r.map((v,j)=>j<=i?v:-Infinity));
+const wM=masked.map(r=>{const fin=r.map(v=>v===-Infinity?-1e9:v);return softmaxRow(fin);});
+const cell=(v,i,j,bad)=>`<td style="${bad?'background:repeating-linear-gradient(45deg,#fee2e2,#fee2e2 3px,#fecaca 3px,#fecaca 6px);color:#dc2626;':''}">${v}</td>`;
+let h='<div style="overflow-x:auto;text-align:center;">';
+h+=renderMtx(fmt(T.scaled),'scores / √d_k','hi');
+h+='<span class="eq">+ mask →</span>';
+h+='<div style="display:inline-block;vertical-align:middle;margin:0.3rem;"><div class="mtx-label">masked scores</div><table class="mtx">';
+masked.forEach((r,i)=>{h+='<tr>';r.forEach((v,j)=>h+=cell(v===-Infinity?'−∞':v.toFixed(2),i,j,j>i));h+='</tr>';});
+h+='</table></div></div>';
+h+='<div style="overflow-x:auto;text-align:center;margin-top:0.3rem;">';
+h+=renderMtx(fmt(T.weights),'softmax, no mask (encoder)','hi3');
+h+='<span class="eq">vs</span>';
+h+='<div style="display:inline-block;vertical-align:middle;margin:0.3rem;"><div class="mtx-label">softmax, masked (decoder)</div><table class="mtx">';
+wM.forEach((r,i)=>{h+='<tr>';r.forEach((v,j)=>h+=`<td class="${j<=i?'hi2':''}" style="${j>i?'color:var(--txtf);':''}">${v.toFixed(2)}</td>`);h+='</tr>';});
+h+='</table></div></div>';
+el.innerHTML=h;
+}
+
+// ═══════ CROSS-ATTENTION ON THE TOY ═══════
+const C_DEC=[[1,0,1,0],[0,1,0,1]];            // two decoder states (d_model=4)
+const C_WQ=[[1,0],[0,1],[1,0],[0,1]];const C_WK=[[1,0],[0,1],[0,1],[1,0]];const C_WV=[[1,0],[0,1],[1,1],[0,0]];
+function drawCrossToy(){
+const el=document.getElementById('cross-toy');if(!el)return;
+const enc=encTensors().x2;                     // encoder layer output from Section 06
+const Q=matMul(C_DEC,C_WQ),K=matMul(enc,C_WK),V=matMul(enc,C_WV);
+const S=matMul(Q,transpose(K)).map(r=>r.map(v=>v/Math.sqrt(2)));
+const A=S.map(softmaxRow),Z=matMul(A,V);
+let h='<p class="desc" style="margin-top:0.6rem;">Toy numbers: the encoder output is the 3 × 4 matrix that came out of Section 06; two decoder states stand in for "Ich" and "liebe".</p>';
+h+='<div style="overflow-x:auto;text-align:center;">'+renderMtx(fmt(Q),'Q (2×2) from decoder','hi')+'<span class="eq">×</span>'+renderMtx(fmt(transpose(K)),'K<sup>T</sup> (2×3) from encoder','hi2')+'<span class="eq">→ /√2, softmax →</span>'+renderMtx(fmt(A),'A (2×3)','hi3')+'</div>';
+h+='<div style="overflow-x:auto;text-align:center;margin-top:0.3rem;">'+renderMtx(fmt(A),'A (2×3)','hi3')+'<span class="eq">×</span>'+renderMtx(fmt(V),'V (3×2) from encoder','hi2')+'<span class="eq">=</span>'+renderMtx(fmt(Z),'output (2×2)','hi4')+'</div>';
+h+=`<div class="sb s-green"><div class="sl">Reading it</div>Two rows, three columns: target position 0 spreads its attention over the three source tokens as ${A[0].map(v=>(v*100).toFixed(0)+'%').join(' / ')}, target position 1 as ${A[1].map(v=>(v*100).toFixed(0)+'%').join(' / ')}. Every row still sums to 1, and no cell is masked — there is no "future" in the source sentence. The output has one row per <em>target</em> position, so it fits back into the decoder's residual stream.</div>`;
+el.innerHTML=h;
+}
+
+// ═══════ TEACHER-FORCING TABLE ═══════
+function drawTF(){
+const el=document.getElementById('tf-table');if(!el)return;
+const inp=['<bos>','Ich','liebe','ML'],tgt=['Ich','liebe','ML','<eos>'],p=[0.83,0.71,0.60,0.90];
+let h='<div style="overflow-x:auto;margin-top:0.5rem;"><table class="mtx" style="font-size:0.72rem;"><tr><td style="background:var(--txt);color:var(--bg);">position t</td><td style="background:var(--txt);color:var(--bg);">decoder reads (inputs 0…t)</td><td style="background:var(--txt);color:var(--bg);">must predict</td><td style="background:var(--txt);color:var(--bg);">p(target)</td><td style="background:var(--txt);color:var(--bg);">loss −log p</td></tr>';
+let tot=0;
+inp.forEach((w,t)=>{const l=-Math.log(p[t]);tot+=l;h+=`<tr><td class="hi">${t}</td><td style="text-align:left;">${inp.slice(0,t+1).map(x=>x.replace('<','&lt;').replace('>','&gt;')).join(' ')}</td><td class="hi3">${tgt[t].replace('<','&lt;').replace('>','&gt;')}</td><td>${p[t].toFixed(2)}</td><td style="background:rgba(225,29,72,${(l*0.5).toFixed(2)});">${l.toFixed(2)}</td></tr>`;});
+h+=`<tr><td colspan="4" style="text-align:right;color:var(--txtm);">mean over positions = training loss for this pair</td><td class="hi" style="font-weight:700;">${(tot/4).toFixed(2)}</td></tr></table></div>`;
+h+='<div class="ref">The probabilities are illustrative (no trained model behind them); the loss column is computed from them. The row at t = 2 is the expensive one — the model was only 60 % sure of "ML".</div>';
+el.innerHTML=h;
+}
+
+// ═══════ LR NOTE ═══════
+
+// ═══════ 2D PLOT TOOLKIT (shared by the geometry views) ═══════
+function niceStep(raw){
+const p=Math.pow(10,Math.floor(Math.log10(Math.abs(raw)||1)));const n=raw/p;
+return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p;
+}
+function makePlot(cv,H,pts){
+const W=Math.max(260,(cv.parentElement.clientWidth||520)-24);
+const ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
+const P={t:16,r:16,b:26,l:40},iw=W-P.l-P.r,ih=H-P.t-P.b;
+const xs=pts.map(p=>p[0]).concat([0]),ys=pts.map(p=>p[1]).concat([0]);
+let x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+let dx=(x1-x0)||1,dy=(y1-y0)||1;
+x0-=dx*0.18;x1+=dx*0.18;y0-=dy*0.18;y1+=dy*0.18;
+dx=x1-x0;dy=y1-y0;
+const s=Math.min(iw/dx,ih/dy),cx=(x0+x1)/2,cy=(y0+y1)/2;
+const px=P.l+iw/2,py=P.t+ih/2;
+const sx=x=>px+(x-cx)*s,sy=y=>py-(y-cy)*s;
+return {ctx,W,H,P,s,sx,sy,xr:[cx-iw/2/s,cx+iw/2/s],yr:[cy-ih/2/s,cy+ih/2/s]};
+}
+function plotAxes(p,xlab,ylab){
+const {ctx,P,W,H,sx,sy,xr,yr}=p;
+const stx=niceStep((xr[1]-xr[0])/5),sty=niceStep((yr[1]-yr[0])/5);
+ctx.lineWidth=1;ctx.font='500 8px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+ctx.strokeStyle='#ebe9e7';
+for(let g=Math.ceil(xr[0]/stx)*stx;g<=xr[1];g+=stx){const X=sx(g);ctx.beginPath();ctx.moveTo(X,P.t);ctx.lineTo(X,H-P.b);ctx.stroke();}
+for(let g=Math.ceil(yr[0]/sty)*sty;g<=yr[1];g+=sty){const Y=sy(g);ctx.beginPath();ctx.moveTo(P.l,Y);ctx.lineTo(W-P.r,Y);ctx.stroke();}
+ctx.strokeStyle='#c8c5c2';ctx.lineWidth=1.2;
+const Y0=Math.min(H-P.b,Math.max(P.t,sy(0))),X0=Math.min(W-P.r,Math.max(P.l,sx(0)));
+ctx.beginPath();ctx.moveTo(P.l,Y0);ctx.lineTo(W-P.r,Y0);ctx.stroke();
+ctx.beginPath();ctx.moveTo(X0,P.t);ctx.lineTo(X0,H-P.b);ctx.stroke();
+ctx.fillStyle='#a8a29e';
+for(let g=Math.ceil(xr[0]/stx)*stx;g<=xr[1];g+=stx){if(Math.abs(g)<1e-9)continue;ctx.fillText((+g.toFixed(2)).toString(),sx(g),Y0+9);}
+ctx.textAlign='right';
+for(let g=Math.ceil(yr[0]/sty)*sty;g<=yr[1];g+=sty){if(Math.abs(g)<1e-9)continue;ctx.fillText((+g.toFixed(2)).toString(),X0-4,sy(g));}
+ctx.fillStyle='#78716c';ctx.font='600 9px "IBM Plex Mono",monospace';
+ctx.textAlign='right';ctx.fillText(xlab,W-P.r,H-8);
+ctx.textAlign='left';ctx.fillText(ylab,P.l-34,P.t+2);
+}
+function arrow(p,x1,y1,x2,y2,color,lw,dash){
+const {ctx,sx,sy}=p;const X1=sx(x1),Y1=sy(y1),X2=sx(x2),Y2=sy(y2);
+const a=Math.atan2(Y2-Y1,X2-X1),L=Math.hypot(X2-X1,Y2-Y1);if(L<0.5)return;
+const hd=Math.min(9,L*0.45);
+ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=lw||2;ctx.setLineDash(dash||[]);
+ctx.beginPath();ctx.moveTo(X1,Y1);ctx.lineTo(X2-Math.cos(a)*hd*0.8,Y2-Math.sin(a)*hd*0.8);ctx.stroke();
+ctx.setLineDash([]);ctx.beginPath();
+ctx.moveTo(X2,Y2);ctx.lineTo(X2-hd*Math.cos(a-0.38),Y2-hd*Math.sin(a-0.38));ctx.lineTo(X2-hd*Math.cos(a+0.38),Y2-hd*Math.sin(a+0.38));
+ctx.closePath();ctx.fill();ctx.restore();
+}
+function dot(p,x,y,r,fill,stroke){
+const {ctx,sx,sy}=p;ctx.beginPath();ctx.arc(sx(x),sy(y),r,0,7);ctx.fillStyle=fill;ctx.fill();
+if(stroke){ctx.lineWidth=1.5;ctx.strokeStyle=stroke;ctx.stroke();}
+}
+function miniPlot(ctx,rect,pts,title,titleColor,opts){
+opts=opts||{};
+const ix=rect.x+30,iy=rect.y+24,iw=rect.w-40,ih=rect.h-44;
+ctx.save();
+ctx.fillStyle='#fff';ctx.strokeStyle='#e7e5e4';ctx.lineWidth=1;
+ctx.fillRect(rect.x+4,rect.y+4,rect.w-10,rect.h-10);ctx.strokeRect(rect.x+4,rect.y+4,rect.w-10,rect.h-10);
+ctx.font='700 10px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.textBaseline='top';
+ctx.fillStyle=titleColor;ctx.fillText(title,rect.x+10,rect.y+9);
+ctx.restore();
+const xs=pts.map(v=>v[0]).concat([0]),ys=pts.map(v=>v[1]).concat([0]);
+let x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+let dx=(x1-x0)||1,dy=(y1-y0)||1;
+x0-=dx*0.28;x1+=dx*0.28;y0-=dy*0.28;y1+=dy*0.28;dx=x1-x0;dy=y1-y0;
+const s=Math.min(iw/dx,ih/dy),cx=(x0+x1)/2,cy=(y0+y1)/2;
+const px=ix+iw/2,py=iy+ih/2;
+const sx=x=>px+(x-cx)*s,sy=y=>py-(y-cy)*s;
+if(!opts.noAxes){
+ctx.save();ctx.strokeStyle='#e0ddda';ctx.lineWidth=1;
+const X0=Math.max(ix,Math.min(ix+iw,sx(0))),Y0=Math.max(iy,Math.min(iy+ih,sy(0)));
+ctx.beginPath();ctx.moveTo(ix,Y0);ctx.lineTo(ix+iw,Y0);ctx.stroke();
+ctx.beginPath();ctx.moveTo(X0,iy);ctx.lineTo(X0,iy+ih);ctx.stroke();
+ctx.font='500 8px "IBM Plex Mono",monospace';ctx.fillStyle='#c4c0bc';ctx.textAlign='left';ctx.textBaseline='bottom';
+ctx.fillText('0',X0+3,Y0-2);ctx.restore();
+}
+const p={ctx,W:rect.x+rect.w-6,H:rect.y+rect.h-8,P:{t:rect.y+22,l:ix,r:8,b:16},s,sx,sy};
+reserve(p,rect.x+6,rect.y+6,rect.w-14,20);
+return p;
+}
+function reserve(p,x,y,w,h){(p._lb=p._lb||[]).push({x:x,y:y,w:w,h:h});}
+function tag(p,x,y,txt,color,dx,dy){
+const {ctx,sx,sy}=p;ctx.save();ctx.font='600 10px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.textBaseline='middle';
+const w=ctx.measureText(txt).width;
+let X=sx(x)+(dx===undefined?8:dx),Y=sy(y)+(dy===undefined?-9:dy);
+p._lb=p._lb||[];
+const hit=(X,Y)=>p._lb.some(b=>!(X+w+4<b.x||X-2>b.x+b.w||Y+7<b.y||Y-7>b.y+b.h));
+for(const o of [0,-13,13,-26,26,-39,39,-52,52]){if(!hit(X,Y+o)){Y+=o;break;}}
+X=Math.max(2,Math.min(X,p.W-w-4));Y=Math.max(p.P.t+7,Math.min(Y,p.H-8));
+reserve(p,X-2,Y-6,w+4,12);
+ctx.fillStyle='rgba(255,255,255,0.86)';ctx.fillRect(X-2,Y-6,w+4,12);
+ctx.fillStyle=color;ctx.fillText(txt,X,Y);ctx.restore();
+}
+
+// ═══════ 2D EMBEDDING VIEW (before vs. after positional encoding) ═══════
+let e2dMode='pca';
+function initE2D(){
+const cont=document.getElementById('e2d-pills');if(!cont||cont.dataset.built)return;
+const items=[{k:'pca',l:'PCA projection'},{k:'01',l:'dims d₀ × d₁'},{k:'23',l:'dims d₂ × d₃'}];
+items.forEach(it=>{const s=document.createElement('span');s.className='pill'+(it.k===e2dMode?' on':'');s.textContent=it.l;
+s.onclick=()=>{e2dMode=it.k;cont.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));s.classList.add('on');draw2DEmbed();};
+cont.appendChild(s);});
+cont.dataset.built='1';
+}
+function rerollEmbed(){Object.keys(pseudoEmbed).forEach(k=>delete pseudoEmbed[k]);computeEmbed();}
+function unitVec(d,i){const v=Array(d).fill(0);v[i]=1;return v;}
+function powerIter(C,d,orth){
+let v=Array.from({length:d},(_,i)=>Math.sin(i*1.7+1)+0.31);
+for(let it=0;it<160;it++){
+let w=Array(d).fill(0);
+for(let i=0;i<d;i++)for(let j=0;j<d;j++)w[i]+=C[i][j]*v[j];
+if(orth){const dp=w.reduce((a,b,i)=>a+b*orth[i],0);w=w.map((x,i)=>x-dp*orth[i]);}
+const n=Math.sqrt(w.reduce((a,b)=>a+b*b,0));
+if(n<1e-11){
+if(!orth)return unitVec(d,0);
+let best=unitVec(d,0),bs=Infinity;
+for(let i=0;i<d;i++){const c=Math.abs(orth[i]);if(c<bs){bs=c;best=unitVec(d,i);}}
+const dp=best.reduce((a,b,i)=>a+b*orth[i],0),r=best.map((x,i)=>x-dp*orth[i]);
+const rn=Math.sqrt(r.reduce((a,b)=>a+b*b,0));return rn<1e-11?unitVec(d,0):r.map(x=>x/rn);
+}
+v=w.map(x=>x/n);
+}
+let mi=0;for(let i=1;i<d;i++)if(Math.abs(v[i])>Math.abs(v[mi]))mi=i;
+return v[mi]<0?v.map(x=>-x):v;
+}
+function pcaBasis(rows){
+const n=rows.length,d=rows[0].length,mean=Array(d).fill(0);
+rows.forEach(r=>r.forEach((v,i)=>{mean[i]+=v/n;}));
+const X=rows.map(r=>r.map((v,i)=>v-mean[i]));
+const C=Array.from({length:d},()=>Array(d).fill(0));
+for(let i=0;i<d;i++)for(let j=0;j<d;j++){let s=0;for(let k=0;k<n;k++)s+=X[k][i]*X[k][j];C[i][j]=s/Math.max(1,n-1);}
+return {mean,a:powerIter(C,d,null),b:powerIter(C,d,powerIter(C,d,null))};
+}
+function draw2DEmbed(){
+const cv=document.getElementById('e2d-canvas');if(!cv)return;
+const inp=document.getElementById('embed-input');if(!inp)return;
+const s=inp.value.trim().toLowerCase();if(!s)return;
+const tokens=s.split(/\s+/).slice(0,12),dm=4,scale=Math.sqrt(dm);
+const before=[],after=[];
+tokens.forEach((tok,pos)=>{
+const e=getEmbed(tok).map(v=>+(v*scale).toFixed(3));
+const pe=[];
+for(let d=0;d<dm;d++){const i=Math.floor(d/2),f=1/Math.pow(10000,2*i/dm);pe.push(d%2===0?Math.sin(pos*f):Math.cos(pos*f));}
+before.push(e);after.push(e.map((v,d)=>v+pe[d]));
+});
+let proj,xlab,ylab;
+if(e2dMode==='pca'&&tokens.length>=2){
+const B=pcaBasis(before.concat(after));
+proj=v=>{const c=v.map((x,i)=>x-B.mean[i]);return [c.reduce((a,x,i)=>a+x*B.a[i],0),c.reduce((a,x,i)=>a+x*B.b[i],0)];};
+xlab='PC1 →';ylab='PC2';
+}else{
+const i0=e2dMode==='23'?2:0,i1=e2dMode==='23'?3:1;
+proj=v=>[v[i0],v[i1]];xlab='d'+i0+' →';ylab='d'+i1;
+}
+const pB=before.map(proj),pA=after.map(proj);
+const p=makePlot(cv,360,pB.concat(pA));
+plotAxes(p,xlab,ylab);
+const {ctx,W,P}=p;ctx.save();ctx.font='600 9px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.textBaseline='top';
+const leg=[['#2563eb','E  (token only)'],['#16a34a','E + PE  (model input)'],['#7c3aed','positional shift']];
+const lw=Math.max(...leg.map(L=>ctx.measureText(L[1]).width))+22,lx=W-P.r-lw,ly=P.t;
+ctx.fillStyle='rgba(255,255,255,0.93)';ctx.strokeStyle='#e7e5e4';ctx.lineWidth=1;
+ctx.fillRect(lx-6,ly-2,lw+8,leg.length*13+8);ctx.strokeRect(lx-6,ly-2,lw+8,leg.length*13+8);
+leg.forEach((L,i)=>{const y=ly+3+i*13;ctx.fillStyle=L[0];ctx.fillRect(lx,y+2,9,4);ctx.fillStyle='#57534e';ctx.fillText(L[1],lx+14,y);});
+ctx.restore();reserve(p,lx-6,ly-2,lw+8,leg.length*13+8);
+const fromOrigin=(document.getElementById('e2d-arrows')||{}).checked;
+if(fromOrigin){pB.forEach(q=>arrow(p,0,0,q[0],q[1],'rgba(37,99,235,0.30)',1.4));pA.forEach(q=>arrow(p,0,0,q[0],q[1],'rgba(22,163,74,0.30)',1.4));}
+tokens.forEach((tok,i)=>{
+arrow(p,pB[i][0],pB[i][1],pA[i][0],pA[i][1],'#7c3aed',1.8,[4,3]);
+dot(p,pB[i][0],pB[i][1],5,'#2563eb','#fff');
+dot(p,pA[i][0],pA[i][1],6,'#16a34a','#fff');
+tag(p,pA[i][0],pA[i][1],'"'+tok+'" @'+i,'#166534');
+});
+const dups={};tokens.forEach((t,i)=>{(dups[t]=dups[t]||[]).push(i);});
+const rep=Object.keys(dups).filter(t=>dups[t].length>1);
+const note=document.getElementById('e2d-note');
+if(note)note.innerHTML=rep.length
+?`<div class="sb s-green"><div class="sl">Repeated token detected</div><strong>"${rep[0]}"</strong> appears at positions ${dups[rep[0]].join(' and ')}. Both copies sit on the <strong>same blue point</strong> (identical embedding) but land on <strong>different green points</strong> — positional encoding is what separates them.</div>`
+:`<div class="sb s-amber"><div class="sl">Try this</div>Repeat a word in the sentence (e.g. <span class="ilc">the cat sat on the mat</span>). The two copies share one blue point but split into two green points — that split <em>is</em> word order.</div>`;
+}
+
+const TOKCOL=['#7c3aed','#0d9488','#d97706'];
+const SUBS=['\u2080','\u2081','\u2082'];
+// ═══════ 2D GEOMETRY FOR EVERY STEP OF THE WALKTHROUGH ═══════
+let attnStep='qkv';
+function attnTensors(){
+const Q=matMul(A_X,A_WQ),K=matMul(A_X,A_WK),V=matMul(A_X,A_WV);
+const scores=matMul(Q,transpose(K));
+const dk=Q[0].length,scaled=scores.map(r=>r.map(v=>v/Math.sqrt(dk)));
+const weights=scaled.map(r=>softmaxRow(r)),output=matMul(weights,V);
+const rawW=scores.map(r=>softmaxRow(r));
+return {Q,K,V,scores,scaled,weights,rawW,output,dk};
+}
+function stepGrid(cv,n,cellH,minColW){
+const W=Math.max(280,(cv.parentElement.clientWidth||640)-24);
+const cols=Math.max(1,Math.min(n,Math.floor(W/(minColW||240))));
+const rows=Math.ceil(n/cols),cellW=W/cols,H=rows*cellH;
+const ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
+return {ctx,W,H,cols,cellW,cellH,rect:i=>({x:(i%cols)*cellW,y:Math.floor(i/cols)*cellH,w:cellW,h:cellH})};
+}
+function caption(p,lines){
+const {ctx,P}=p;ctx.save();ctx.font='500 8.5px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.textBaseline='top';
+ctx.fillStyle='#a8a29e';lines.forEach((L,i)=>ctx.fillText(L,P.l-22,P.t+i*11));ctx.restore();
+reserve(p,P.l-24,P.t-2,200,lines.length*11+4);
+}
+
+// ── STEP 1 : X and its three linear projections ────────────────────────
+function drawXQKV2D(){
+const cv=document.getElementById('step2d-canvas');if(!cv)return;
+const T=attnTensors();
+const B=pcaBasis(A_X);
+const Xp=A_X.map(v=>{const c=v.map((x,i)=>x-B.mean[i]);
+return [c.reduce((a,x,i)=>a+x*B.a[i],0),c.reduce((a,x,i)=>a+x*B.b[i],0)];});
+const panels=[
+{pts:Xp,title:'X  \u2014 input embeddings (2-D PCA, exact)',col:'#57534e',lab:'x'},
+{pts:T.Q,title:'Q = X \u00b7 W^Q',col:'#e11d48',lab:'q'},
+{pts:T.K,title:'K = X \u00b7 W^K',col:'#2563eb',lab:'k'},
+{pts:T.V,title:'V = X \u00b7 W^V',col:'#16a34a',lab:'v'}];
+const g=stepGrid(cv,4,236,240);
+panels.forEach((pn,i)=>{
+const p=miniPlot(g.ctx,g.rect(i),pn.pts,pn.title,pn.col);
+pn.pts.forEach((v,j)=>{
+arrow(p,0,0,v[0],v[1],TOKCOL[j],2.4);dot(p,v[0],v[1],3.2,TOKCOL[j]);
+tag(p,v[0],v[1],pn.lab+SUBS[j]+' ['+v.map(z=>+z.toFixed(2)).join(',')+']',TOKCOL[j],7,-10);
+});
+});
+}
+
+// ── STEPS 2 & 3 : scores as projections, scaling as a shorter query ────
+function drawScorePanels(cv,T,doScale){
+const g=stepGrid(cv,3,244,250),sc=doScale?1/Math.sqrt(T.dk):1;
+for(let i=0;i<3;i++){
+const Q0=T.Q[i],q=[Q0[0]*sc,Q0[1]*sc],qq=Q0[0]*Q0[0]+Q0[1]*Q0[1];
+const proj=T.K.map(k=>{const f=(Q0[0]*k[0]+Q0[1]*k[1])/(qq||1);return [Q0[0]*f,Q0[1]*f];});
+const pts=T.K.concat(proj).concat([Q0]);
+const title=doScale?('row '+i+':  q'+SUBS[i]+'/\u221ad_k \u00b7 k\u2c7c'):('row '+i+':  q'+SUBS[i]+' \u00b7 k\u2c7c');
+const p=miniPlot(g.ctx,g.rect(i),pts,title,'#e11d48');
+caption(p,doScale?['faint = q , solid = q/\u221a2 \u2014 same direction, shorter','shadows stay; |q| shrinks; every score \u00f7 \u221a2']
+:['grey dashes = projection of k onto q','score = |q| \u00b7 (length of that projection)']);
+if(!doScale){
+arrow(p,0,0,Q0[0],Q0[1],'rgba(225,29,72,0.25)',7);arrow(p,0,0,Q0[0],Q0[1],'#e11d48',2.4);
+T.K.forEach((k,j)=>{
+g.ctx.save();g.ctx.strokeStyle='#b8b4b0';g.ctx.lineWidth=1;g.ctx.setLineDash([3,3]);
+g.ctx.beginPath();g.ctx.moveTo(p.sx(k[0]),p.sy(k[1]));g.ctx.lineTo(p.sx(proj[j][0]),p.sy(proj[j][1]));g.ctx.stroke();g.ctx.restore();
+dot(p,proj[j][0],proj[j][1],3,'#78716c');
+arrow(p,0,0,k[0],k[1],TOKCOL[j],2.2);
+tag(p,k[0],k[1],'k'+SUBS[j]+'  \u2192 '+String(T.scores[i][j]),TOKCOL[j]);
+});
+tag(p,Q0[0],Q0[1],'q'+SUBS[i],'#be123c',8,14);
+}else{
+// the shadows are unchanged, so they are drawn faintly; the only thing that moves is the tip of q
+T.K.forEach((k,j)=>{
+g.ctx.save();g.ctx.strokeStyle='#dcd8d4';g.ctx.lineWidth=1;g.ctx.setLineDash([3,3]);
+g.ctx.beginPath();g.ctx.moveTo(p.sx(k[0]),p.sy(k[1]));g.ctx.lineTo(p.sx(proj[j][0]),p.sy(proj[j][1]));g.ctx.stroke();g.ctx.restore();
+dot(p,proj[j][0],proj[j][1],2.5,'#c4c0bc');
+arrow(p,0,0,k[0],k[1],TOKCOL[j],2.2);
+tag(p,k[0],k[1],'k'+SUBS[j]+'  '+String(T.scores[i][j])+' \u2192 '+T.scaled[i][j].toFixed(2),TOKCOL[j]);
+});
+const vert=Math.abs(Q0[1])>Math.abs(Q0[0]);
+arrow(p,0,0,Q0[0],Q0[1],'rgba(225,29,72,0.3)',1.6,[5,4]);
+dot(p,Q0[0],Q0[1],3,'rgba(225,29,72,0.45)');
+tag(p,Q0[0],Q0[1],'q'+SUBS[i],'rgba(190,18,60,0.6)',vert?9:6,vert?2:-12);
+arrow(p,0,0,q[0],q[1],'#e11d48',2.8);dot(p,q[0],q[1],3.5,'#e11d48');
+tag(p,q[0],q[1],'q'+SUBS[i]+'/\u221a2','#be123c',vert?-46:-10,vert?2:14);
+}
+}
+}
+
+// ── STEP 4 : each row of weights is a point on the probability simplex ─
+function simplexPoint(w,Vtx){
+return [w[0]*Vtx[0][0]+w[1]*Vtx[1][0]+w[2]*Vtx[2][0],w[0]*Vtx[0][1]+w[1]*Vtx[1][1]+w[2]*Vtx[2][1]];
+}
+function drawSimplexPanels(cv,T){
+const Vtx=[[-1,-0.5774],[1,-0.5774],[0,1.1547]];
+const g=stepGrid(cv,2,268,260);
+const sets=[{W:T.rawW,title:'softmax(QK\u1D40)  \u2014 no scaling',col:'#78716c'},
+{W:T.weights,title:'softmax(QK\u1D40/\u221ad_k)  \u2014 what the model uses',col:'#16a34a'}];
+sets.forEach((S,si)=>{
+const pts=Vtx.concat(S.W.map(w=>simplexPoint(w,Vtx)));
+const p=miniPlot(g.ctx,g.rect(si),pts,S.title,S.col,{noAxes:true});
+const ctx=g.ctx;
+ctx.save();ctx.strokeStyle='#d6d3d1';ctx.lineWidth=1.4;ctx.beginPath();
+Vtx.forEach((v,j)=>{const X=p.sx(v[0]),Y=p.sy(v[1]);j?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});
+ctx.closePath();ctx.fillStyle='rgba(120,113,108,0.05)';ctx.fill();ctx.stroke();ctx.restore();
+const cen=simplexPoint([1/3,1/3,1/3],Vtx);
+dot(p,cen[0],cen[1],3,'#d6d3d1');
+Vtx.forEach((v,j)=>{dot(p,v[0],v[1],4,TOKCOL[j]);
+tag(p,v[0],v[1],'tok'+SUBS[j]+' 100%',TOKCOL[j],j===0?-74:8,j===2?-13:14);});
+S.W.forEach((w,i)=>{const q=simplexPoint(w,Vtx);
+dot(p,q[0],q[1],5.5,TOKCOL[i],'#fff');
+tag(p,q[0],q[1],'row '+i+' ['+w.map(v=>v.toFixed(2)).join(' ')+']',TOKCOL[i],8,-10);});
+caption(p,['corner = all attention on one token','centre = perfectly uniform attention']);
+});
+}
+
+// ── STEP 5 : output = convex combination of the value vectors ─────────
+function drawOutputPanels(cv,T){
+const g=stepGrid(cv,3,244,250),ctx=g.ctx,V=T.V,W=T.weights,Z=T.output;
+for(let i=0;i<3;i++){
+const w=W[i],z=Z[i];
+const chain=[[0,0]];w.forEach((a,j)=>{const l=chain[chain.length-1];chain.push([l[0]+a*V[j][0],l[1]+a*V[j][1]]);});
+const p=miniPlot(ctx,g.rect(i),V.concat(chain),'row '+i+':  z'+SUBS[i]+' = A['+i+'][j] \u00b7 v\u2c7c summed',TOKCOL[i]);
+V.forEach((v,j)=>{arrow(p,0,0,v[0],v[1],TOKCOL[j],1.2,[4,3]);tag(p,v[0],v[1],'v'+SUBS[j],TOKCOL[j],j===1?-20:8,-10);});
+w.forEach((a,j)=>{const s=chain[j],e=chain[j+1];arrow(p,s[0],s[1],e[0],e[1],TOKCOL[j],3.2);
+const mx=(s[0]+e[0])/2,my=(s[1]+e[1])/2;tag(p,mx,my,a.toFixed(2)+'\u00b7v'+SUBS[j],TOKCOL[j],8,0);});
+dot(p,z[0],z[1],6,TOKCOL[i],'#fff');tag(p,z[0],z[1],'z'+SUBS[i],TOKCOL[i],10,12);
+caption(p,['dashed = the values v\u2c7c','solid = weight \u00d7 value, laid head to tail']);
+}
+}
+function drawStep2D(step){
+attnStep=step;
+if(step==='qkv')return drawXQKV2D();
+const cv=document.getElementById('step2d-canvas');if(!cv)return;
+const T=attnTensors();
+if(step==='qkt')drawScorePanels(cv,T,false);
+else if(step==='scale')drawScorePanels(cv,T,true);
+else if(step==='softmax')drawSimplexPanels(cv,T);
+else if(step==='output')drawOutputPanels(cv,T);
+}
+
+let _v2dRT;
+window.addEventListener('resize',()=>{clearTimeout(_v2dRT);_v2dRT=setTimeout(()=>{
+if(document.getElementById('s-embed').classList.contains('on')){drawPE();draw2DEmbed();}
+if(document.getElementById('s-attention').classList.contains('on')){drawTemp();drawStep2D(attnStep);}
+},180);});
 
 // ═══════ TEMPERATURE / SCALING VIZ ═══════
 function drawTemp(){
@@ -756,22 +1290,107 @@ drawBar('temp-no',scaledScores);drawBar('temp-yes',rawScores);
 // ═══════ MULTI-HEAD VIZ ═══════
 function drawMH(){
 const dm=parseInt(document.getElementById('mh-dmodel').value),h=parseInt(document.getElementById('mh-heads').value),dk=Math.floor(dm/h);
-document.getElementById('mh-dims').innerHTML=`<div class="g4"><div class="stat-card"><div class="stat-val">${dm}</div><div class="stat-lbl">d_model</div></div><div class="stat-card"><div class="stat-val">${h}</div><div class="stat-lbl">heads</div></div><div class="stat-card"><div class="stat-val">${dk}</div><div class="stat-lbl">d_k=d_model/h</div></div><div class="stat-card"><div class="stat-val">${(dm*dm*4/1e6).toFixed(1)}M</div><div class="stat-lbl">attn params</div></div></div>`;
+document.getElementById('mh-dims').innerHTML=`<div class="g4"><div class="stat-card"><div class="stat-val">${dm}</div><div class="stat-lbl">d_model</div></div><div class="stat-card"><div class="stat-val">${h}</div><div class="stat-lbl">heads</div></div><div class="stat-card"><div class="stat-val">${dk}</div><div class="stat-lbl">d_k = d_v = d_model/h</div></div><div class="stat-card"><div class="stat-val">${(dm*dm*4/1e6).toFixed(2)}M</div><div class="stat-lbl">params = 4·d_model² (any h)</div></div></div>`;
 const cv=document.getElementById('mh-canvas');if(!cv)return;
-const W=cv.parentElement.clientWidth-16,H=100;
+const W=cv.parentElement.clientWidth-16,H=190;
 const ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
 const colors=['#e11d48','#2563eb','#16a34a','#7c3aed','#d97706','#0d9488','#db2777','#6366f1','#ea580c','#0891b2','#4f46e5','#be185d','#059669','#b45309','#7c2d12','#4338ca'];
-const pad={l:8,r:8,t:24,b:16},totalW=W-pad.l-pad.r,headW=totalW/h;
-ctx.font='600 10px IBM Plex Mono';ctx.textAlign='center';
-for(let i=0;i<h;i++){
-ctx.fillStyle=colors[i%16]+'30';ctx.fillRect(pad.l+i*headW,pad.t,headW-1,H-pad.t-pad.b);
-ctx.fillStyle=colors[i%16];ctx.fillRect(pad.l+i*headW,pad.t,headW-1,4);
-ctx.fillText(`H${i+1}`,pad.l+i*headW+headW/2,pad.t+28);
-ctx.font='500 8px IBM Plex Mono';ctx.fillStyle='#78716c';
-ctx.fillText(`d${i*dk}–${(i+1)*dk-1}`,pad.l+i*headW+headW/2,pad.t+42);
-ctx.font='600 10px IBM Plex Mono';}
-ctx.fillStyle='#78716c';ctx.font='500 9px IBM Plex Mono';ctx.textAlign='left';
-ctx.fillText(`${h} heads × ${dk} dims = ${h*dk} = d_model`,pad.l,H-2);
+const barH=110,top=32,colW=Math.min(46,W/9);
+const xIn=24,xHeads=W*0.36,xCat=W*0.64,xOut=W-24-colW;
+const rr=(x,y,w,hh,fill,stroke)=>{ctx.beginPath();ctx.roundRect(x,y,w,hh,4);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}};
+const lbl=(t,x,y,c,sz,al)=>{ctx.fillStyle=c;ctx.font=(sz||9)+'px IBM Plex Mono';ctx.textAlign=al||'center';ctx.fillText(t,x,y);};
+// input vector
+rr(xIn,top,colW,barH,'#f5f5f4','#a8a29e');lbl('x',xIn+colW/2,top-8,'#1c1917',11);lbl(dm+' dims',xIn+colW/2,top+barH+14,'#78716c',8);
+// heads: small bars stacked vertically
+const gap=4,hh=Math.max(6,(barH-gap*(h-1))/h);
+for(let i=0;i<h;i++){const y=top+i*(hh+gap);
+// fan lines from input to head
+ctx.strokeStyle=colors[i%16]+'66';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(xIn+colW,top+barH/2);ctx.bezierCurveTo(xIn+colW+40,top+barH/2,xHeads-40,y+hh/2,xHeads,y+hh/2);ctx.stroke();
+rr(xHeads,y,colW,hh,colors[i%16]+'33',colors[i%16]);
+if(hh>=9)lbl('h'+(i+1),xHeads+colW/2,y+hh/2+3,colors[i%16],8);
+// to concat slice
+const cy=top+i*(barH/h);
+ctx.strokeStyle=colors[i%16]+'99';ctx.beginPath();ctx.moveTo(xHeads+colW,y+hh/2);ctx.bezierCurveTo(xHeads+colW+30,y+hh/2,xCat-30,cy+barH/h/2,xCat,cy+barH/h/2);ctx.stroke();
+rr(xCat,cy,colW,barH/h-1,colors[i%16]+'55');}
+lbl('each Wᵢ: '+dm+'→'+dk,xHeads+colW/2,top-8,'#1c1917',9);lbl('attention, '+dk+' dims each',xHeads+colW/2,top+barH+14,'#78716c',8);
+lbl('concat',xCat+colW/2,top-8,'#1c1917',11);lbl(h+'×'+dk+' = '+(h*dk),xCat+colW/2,top+barH+14,'#78716c',8);
+// W^O
+ctx.strokeStyle='#78716c';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(xCat+colW,top+barH/2);ctx.lineTo(xOut-4,top+barH/2);ctx.stroke();
+ctx.beginPath();ctx.moveTo(xOut-4,top+barH/2);ctx.lineTo(xOut-11,top+barH/2-4);ctx.lineTo(xOut-11,top+barH/2+4);ctx.closePath();ctx.fillStyle='#78716c';ctx.fill();
+lbl('W^O',(xCat+colW+xOut)/2,top+barH/2-6,'#1c1917',9);lbl((h*dk)+'→'+dm,(xCat+colW+xOut)/2,top+barH/2+12,'#78716c',8);
+rr(xOut,top,colW,barH,'#f0fdf4','#16a34a');lbl('out',xOut+colW/2,top-8,'#16a34a',11);lbl(dm+' dims',xOut+colW/2,top+barH+14,'#78716c',8);
+lbl('every head sees the whole input vector; the slices exist only after the heads have answered',W/2,H-6,'#a8a29e',8);
+}
+
+// ═══════ MULTI-HEAD: second head on the Section-03 sentence (positional, "the word before me") ═══════
+// A rotation of the position dims by one token is linear, so "look one to the left" is a valid W_Q.
+function saWpos(shift,scale){const W=Array.from({length:SA_D},()=>new Array(SA_DK).fill(0));
+SA_PER.forEach((P,k)=>{const th=shift/P,c=Math.cos(th),s=Math.sin(th),r=SA_POS.length+1+2*k;
+// [sin(i/P+th), cos(i/P+th)] = [sin·c + cos·s, cos·c − sin·s]
+W[r][2+2*k]=scale*SA_LW[k]*c;   W[r][3+2*k]=-scale*SA_LW[k]*s;
+W[r+1][2+2*k]=scale*SA_LW[k]*s; W[r+1][3+2*k]=scale*SA_LW[k]*c;});return W;}
+const MH_WQ2=saWpos(-1,1.9);                 // query: my own position, moved one token left
+const MH_WK2=saWpos(0,1.9);                  // key: my position
+const MH_HEADS=[{name:'head 1',color:'var(--acc)',rgb:'225,29,72'},{name:'head 2',color:'var(--blue)',rgb:'37,99,235'}];
+let mhHead=2,mhPick=9,mhCache=null;
+function mhCompute(){
+const X=saEmbed();
+const run=(WQ,WK)=>{const Q=X.map(x=>saMatVec(x,WQ)),K=X.map(x=>saMatVec(x,WK));
+const S=Q.map(q=>K.map(k=>q.reduce((s,qi,d)=>s+qi*k[d],0)/Math.sqrt(SA_DK)));return S.map(softmaxRow);};
+mhCache=[run(SA_WQ,SA_WK),run(MH_WQ2,MH_WK2)];}
+function mhSetHead(h){mhHead=h;renderMH();}
+function mhSelect(i){mhPick=i;renderMH();}
+function initMH(){mhCompute();renderMH();}
+function renderMH(){
+if(!mhCache)mhCompute();
+const n=SA_TOKS.length,i=mhPick,shown=mhHead===2?[0,1]:[mhHead];
+document.querySelectorAll('#s-multihead .sa-btn').forEach(b=>b.classList.remove('on'));
+document.getElementById('mh-h'+mhHead).classList.add('on');
+const cw=66,W=cw*n+40,H=182,yT=30,yB=140,x=k=>20+cw*k+cw/2;
+let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="display:block;max-width:100%;font-family:'IBM Plex Mono',monospace;">`;
+shown.forEach((hi,k)=>{const A=mhCache[hi][i],off=shown.length===2?(k===0?-3:3):0;
+A.forEach((a,j)=>{if(a<0.015)return;
+s+=`<path d="M${x(i)+off},${yT+8} C${x(i)+off},${(yT+yB)/2} ${x(j)+off},${(yT+yB)/2} ${x(j)+off},${yB-12}" fill="none" stroke="rgb(${MH_HEADS[hi].rgb})" stroke-opacity="${Math.min(1,0.06+a*1.5).toFixed(3)}" stroke-width="${(1+a*6).toFixed(2)}" stroke-linecap="round"/>`;});});
+SA_TOKS.forEach(([w],k)=>{const sel=k===i;
+s+=`<text x="${x(k)}" y="${yT}" text-anchor="middle" font-size="11" font-weight="${sel?700:500}" fill="${sel?'var(--purple)':'var(--txt2)'}" style="cursor:pointer" onclick="mhSelect(${k})">${esc(w)}</text>`;
+if(sel)s+=`<rect x="${x(k)-cw/2+6}" y="${yT-14}" width="${cw-12}" height="20" rx="4" fill="none" stroke="var(--purple)" stroke-width="1.2"/>`;});
+SA_TOKS.forEach(([w],k)=>{s+=`<text x="${x(k)}" y="${yB+4}" text-anchor="middle" font-size="11" fill="var(--txt2)">${esc(w)}</text>`;
+shown.forEach((hi,q)=>{const a=mhCache[hi][i][k];s+=`<text x="${x(k)}" y="${yB+18+q*11}" text-anchor="middle" font-size="8.5" fill="rgba(${MH_HEADS[hi].rgb},${(0.3+a).toFixed(2)})">${(a*100).toFixed(0)}%</text>`;});});
+s+='</svg>';
+document.getElementById('mh-lines').innerHTML=s;
+let h='<div class="g2" style="gap:0.9rem;margin-top:0.6rem;">';
+[0,1].forEach(hi=>{const A=mhCache[hi][i],hd=MH_HEADS[hi],mx=Math.max(...A);
+h+=`<div class="viz-wrap" style="margin:0;${shown.includes(hi)?'':'opacity:0.45;'}"><div class="viz-label" style="color:${hd.color};">${hd.name} — where "${esc(SA_TOKS[i][0])}" reads from</div>`;
+A.map((a,k)=>({a,k})).sort((p,q)=>q.a-p.a).slice(0,5).forEach(({a,k})=>{
+h+=`<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;"><span style="min-width:64px;text-align:right;color:var(--txt2);">${esc(SA_TOKS[k][0])}</span><div style="flex:1;height:14px;background:var(--card);border-radius:4px;overflow:hidden;"><div style="width:${Math.round(a/mx*100)}%;height:100%;background:${hd.color};opacity:${(0.3+a*0.7).toFixed(2)};border-radius:4px;"></div></div><span style="min-width:34px;font-size:0.66rem;color:var(--txtm);">${(a*100).toFixed(0)}%</span></div>`;});
+h+='</div>';});
+h+='</div>';
+const w0=SA_TOKS[i][0],A1=mhCache[0][i],A2=mhCache[1][i],top2=A2.indexOf(Math.max(...A2));
+h+=`<div class="sb s-green" style="margin-top:0.6rem;"><div class="sl">Two questions, two answers</div>For "${esc(w0)}", head 1 answers with <em>${esc(SA_TOKS[A1.indexOf(Math.max(...A1))][0])}</em> (${(Math.max(...A1)*100).toFixed(0)} %) and head 2 with <em>${esc(SA_TOKS[top2][0])}</em> (${(Math.max(...A2)*100).toFixed(0)} %)${top2===i-1?' — the word just before it, as its query was built to do':''}. Same input vectors, different W<sup>Q</sup> and W<sup>K</sup>, different rows. Both answers end up side by side in the concatenated output; W<sup>O</sup> decides how much of each the token keeps.</div>`;
+document.getElementById('mh-detail').innerHTML=h;
+}
+
+// ═══════ MULTI-HEAD: the numbers on the 3-token toy ═══════
+const MH2_WQ=[[0,1],[1,0],[0,1],[1,0]],MH2_WK=[[1,0],[0,1],[1,0],[0,1]],MH2_WV=[[0,1],[1,0],[0,0],[1,1]];
+const MH_WO=[[1,0,0,1],[0,1,1,0],[1,1,0,0],[0,0,1,1]];
+function headRun(WQ,WK,WV){const Q=matMul(A_X,WQ),K=matMul(A_X,WK),V=matMul(A_X,WV);const S=matMul(Q,transpose(K)).map(r=>r.map(v=>v/Math.sqrt(2)));const A=S.map(softmaxRow);return {A,Z:matMul(A,V),V};}
+function heatMtx(A,label,rgb){let h=`<div style="display:inline-block;vertical-align:middle;margin:0.3rem;"><div class="mtx-label" style="color:rgb(${rgb});">${label}</div><table class="mtx">`;
+A.forEach(r=>{h+='<tr>';r.forEach(v=>h+=`<td style="background:rgba(${rgb},${(0.05+v*0.9).toFixed(2)});color:${v>0.45?'#fff':'var(--txt)'};font-weight:600;">${v.toFixed(2)}</td>`);h+='</tr>';});return h+'</table></div>';}
+function drawMHToy(){
+const el=document.getElementById('mh-toy');if(!el)return;
+const h1=headRun(A_WQ,A_WK,A_WV),h2=headRun(MH2_WQ,MH2_WK,MH2_WV);
+const cat=h1.Z.map((r,i)=>r.concat(h2.Z[i])),out=matMul(cat,MH_WO);
+let h='<div style="overflow-x:auto;text-align:center;">'+heatMtx(h1.A,'A₁ = softmax(Q₁K₁ᵀ/√2)','225,29,72')+heatMtx(h2.A,'A₂ = softmax(Q₂K₂ᵀ/√2)','37,99,235')+'</div>';
+h+=`<div class="sb s-purple"><div class="sl">Same tokens, different weights</div>Head 1 (row 1) reads tok₂ at ${(h1.A[1][2]*100).toFixed(0)} %; head 2 (row 1) reads tok₂ at ${(h2.A[1][2]*100).toFixed(0)} % and tok₀ at ${(h2.A[1][0]*100).toFixed(0)} %. Nothing about X changed — only which similarity each head measures.</div>`;
+h+='<div style="overflow-x:auto;text-align:center;">'+renderMtx(fmt(h1.Z),'Z₁ = A₁V₁ (3×2)','hi')+renderMtx(fmt(h2.Z),'Z₂ = A₂V₂ (3×2)','hi2')+'<span class="eq">→ concat →</span>';
+h+='<div style="display:inline-block;vertical-align:middle;margin:0.3rem;"><div class="mtx-label">[Z₁ | Z₂] (3×4)</div><table class="mtx">';
+cat.forEach(r=>{h+='<tr>';r.forEach((v,j)=>h+=`<td class="${j<2?'hi':'hi2'}">${v.toFixed(2)}</td>`);h+='</tr>';});h+='</table></div></div>';
+h+='<div style="overflow-x:auto;text-align:center;margin-top:0.3rem;">';
+h+='<div style="display:inline-block;vertical-align:middle;margin:0.3rem;"><div class="mtx-label">[Z₁ | Z₂]</div><table class="mtx">';
+cat.forEach(r=>{h+='<tr>';r.forEach((v,j)=>h+=`<td class="${j<2?'hi':'hi2'}">${v.toFixed(2)}</td>`);h+='</tr>';});h+='</table></div>';
+h+='<span class="eq">×</span>'+renderMtx(MH_WO,'W<sup>O</sup> (4×4)','')+'<span class="eq">=</span>'+renderMtx(fmt(out),'MultiHead(X) (3×4)','hi4')+'</div>';
+h+=`<div class="sb s-green"><div class="sl">Reading W<sup>O</sup></div>Each output dimension is a mix of head-1 numbers (rows 1–2 of W<sup>O</sup>) and head-2 numbers (rows 3–4). Column 1 of the output, for instance, takes head 1's first coordinate plus head 2's first coordinate. This is the only place the heads meet; Section 06 continues with head 1 alone, which is why its W<sup>O</sup> is 2 × 4.</div>`;
+el.innerHTML=h;
 }
 
 // ═══════ FFN VIZ ═══════
@@ -832,7 +1451,7 @@ for(let i=0;i<n;i++){sh+=`<tr><td style="background:var(--txt);color:var(--bg);f
 const w=+(1/(i+1)).toFixed(3);
 for(let j=0;j<n;j++){const v=j<=i?w:0;
 sh+=`<td style="background:rgba(22,163,74,${v*0.4});font-weight:${v>0?'600':'400'};color:${v>0?'#15803d':'#d6d3d1'};">${v.toFixed(3)}</td>`;}sh+='</tr>';}
-document.getElementById('mask-softmax').innerHTML=sh+'</table><div class="ref">Uniform weights shown — actual weights depend on QK<sup>T</sup> values.</div>';
+document.getElementById('mask-softmax').innerHTML=sh+'</table><div class="ref">Uniform weights shown to make the triangle visible — real weights depend on the scores, as in the example above.</div>';
 }
 
 // ═══════ CROSS-ATTENTION VIZ ═══════
@@ -874,7 +1493,7 @@ function drawGen(){
 const cv=document.getElementById('gen-canvas');if(!cv)return;
 const W=cv.parentElement.clientWidth-16,H=180;
 const ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
-const steps=[{inp:['<SOS>'],out:'Ich'},{inp:['<SOS>','Ich'],out:'liebe'},{inp:['<SOS>','Ich','liebe'],out:'ML'},{inp:['<SOS>','Ich','liebe','ML'],out:'<EOS>'}];
+const steps=[{inp:['<bos>'],out:'Ich'},{inp:['<bos>','Ich'],out:'liebe'},{inp:['<bos>','Ich','liebe'],out:'ML'},{inp:['<bos>','Ich','liebe','ML'],out:'<eos>'}];
 const stepW=(W-20)/steps.length;
 steps.forEach((s,si)=>{
 const x=10+si*stepW;
@@ -894,35 +1513,13 @@ ctx.strokeStyle='#d6d3d1';ctx.beginPath();ctx.moveTo(x+stepW/2,116);ctx.lineTo(x
 ctx.fillStyle='#16a34a25';ctx.strokeStyle='#16a34a';ctx.lineWidth=1.5;
 ctx.beginPath();ctx.roundRect(x+stepW/2-20,132,40,22,4);ctx.fill();ctx.stroke();
 ctx.fillStyle='#16a34a';ctx.font='600 9px IBM Plex Mono';ctx.textAlign='center';ctx.fillText(s.out,x+stepW/2,147);});
-document.getElementById('gen-steps').innerHTML=`<div class="sb s-green"><div class="sl">Auto-regressive</div>Each step feeds previous tokens back as decoder input. Encoder runs <strong>once</strong>, decoder generates one token at a time until &lt;EOS&gt;.</div>`;
+document.getElementById('gen-steps').innerHTML=`<div class="sb s-green"><div class="sl">Auto-regressive</div>Each step feeds previous tokens back as decoder input. Encoder runs <strong>once</strong>, decoder generates one token at a time until &lt;eos&gt;.</div>`;
 }
 
 // ═══════ LEARNING RATE ═══════
-function drawLR(){
-const warmup=parseInt(document.getElementById('lr-warmup').value);
-const cv=document.getElementById('lr-canvas');if(!cv)return;
-const W=cv.parentElement.clientWidth-16,H=180;
-const ctx=hiDPI(cv,W,H);ctx.clearRect(0,0,W,H);
-const pad={t:18,r:15,b:28,l:48},maxStep=30000,dm=512;
-const points=[];let maxLR=0;
-for(let s=1;s<=maxStep;s+=100){const lr=Math.pow(dm,-0.5)*Math.min(Math.pow(s,-0.5),s*Math.pow(warmup,-1.5));points.push({s,lr});if(lr>maxLR)maxLR=lr;}
-function tx(s){return pad.l+(s/maxStep)*(W-pad.l-pad.r);}
-function ty(lr){return pad.t+(1-lr/maxLR)*(H-pad.t-pad.b);}
-ctx.strokeStyle='#e7e5e4';ctx.lineWidth=0.5;
-for(let i=0;i<=4;i++){const y=pad.t+i*(H-pad.t-pad.b)/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();}
-ctx.strokeStyle='#e11d48';ctx.lineWidth=2;ctx.beginPath();
-points.forEach((p,i)=>{i===0?ctx.moveTo(tx(p.s),ty(p.lr)):ctx.lineTo(tx(p.s),ty(p.lr));});ctx.stroke();
-ctx.strokeStyle='#2563eb50';ctx.lineWidth=1;ctx.setLineDash([4,3]);
-ctx.beginPath();ctx.moveTo(tx(warmup),pad.t);ctx.lineTo(tx(warmup),H-pad.b);ctx.stroke();ctx.setLineDash([]);
-ctx.fillStyle='#2563eb';ctx.font='500 8px IBM Plex Mono';ctx.textAlign='center';ctx.fillText(`warmup=${warmup}`,tx(warmup),pad.t-4);
-ctx.fillStyle='#78716c';ctx.font='500 8px IBM Plex Mono';ctx.textAlign='center';
-for(let s=0;s<=maxStep;s+=5000)ctx.fillText(s/1000+'k',tx(s),H-pad.b+14);
-ctx.textAlign='right';
-for(let i=0;i<=4;i++){const lr=maxLR*(1-i/4);ctx.fillText(lr.toExponential(1),pad.l-4,pad.t+i*(H-pad.t-pad.b)/4+4);}
-ctx.fillStyle='#78716c';ctx.font='500 9px Outfit';ctx.textAlign='center';ctx.fillText('Training steps',W/2,H-2);
-}
 
 // ═══════ INIT ═══════
+initE2D();
 computeEmbed();
 </script>
 </body>
