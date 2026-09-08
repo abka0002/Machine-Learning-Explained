@@ -746,7 +746,7 @@ Für <code>d = 4096, r = 8</code>: das sind <strong>~16 M Operationen gegenüber
 
   h += L(`<div class="info iac"><div class="il">Compare to a vanilla layer</div>
 Without LoRA, the layer would just compute <code>h = Wx</code>. LoRA <em>adds</em> a small correction <code>(α/r)·BAx</code> that nudges the output toward the fine-tuned task — a "residual" applied to the frozen pre-trained behavior, conceptually similar to a residual connection but in weight space.</div>`,`<div class="info iac"><div class="il">Vergleich mit einer gewöhnlichen Schicht</div>
-Ohne LoRA würde die Schicht einfach <code>h = Wx</code> berechnen. LoRA <em>addiert</em> eine kleine Korrektur <code>(α/r)·BAx</code>, die die Ausgabe in Richtung der feinjustierten Aufgabe schubst — ein „Residuum" auf das eingefrorene vortrainierte Verhalten, konzeptionell ähnlich einer Residual-Verbindung, aber im Gewichtsraum.</div>`);
+Ohne LoRA würde die Schicht einfach <code>h = Wx</code> berechnen. LoRA <em>addiert</em> eine kleine Korrektur <code>(α/r)·BAx</code>, die die Ausgabe in Richtung der Fine-Tuning-Aufgabe schubst — ein „Residuum" auf das eingefrorene vortrainierte Verhalten, konzeptionell ähnlich einer Residual-Verbindung, aber im Gewichtsraum.</div>`);
 
   return h;
 }},
@@ -850,7 +850,7 @@ render() {
 • <strong>Fine-tune on a single consumer GPU.</strong> Because gradients and optimizer state only need to cover the LoRA params, not the frozen base, a 7 B parameter model can be fine-tuned on a 16 GB GPU (and a 65 B model on a 48 GB GPU with QLoRA [4]).<br><br>
 • <strong>Ship many adapters.</strong> Each LoRA adapter is a few MB. You can store hundreds or thousands of task-specific adapters next to a single base model and swap them in at inference time.<br><br>
 • <strong>Faster training iterations.</strong> Fewer parameters to update means each gradient step is cheaper — and the optimizer state fits in cache.</div>`,`<div class="info iib"><div class="il">Was das ermöglicht</div>
-• <strong>Fine-Tuning auf einer einzelnen Consumer-GPU.</strong> Weil Gradienten und Optimizer-Zustand nur die LoRA-Parameter abdecken müssen, nicht die eingefrorene Basis, lässt sich ein Modell mit 7 B Parametern auf einer 16-GB-GPU feinjustieren (und ein 65-B-Modell mit QLoRA [4] auf einer 48-GB-GPU).<br><br>
+• <strong>Fine-Tuning auf einer einzelnen Consumer-GPU.</strong> Weil Gradienten und Optimizer-Zustand nur die LoRA-Parameter abdecken müssen, nicht die eingefrorene Basis, lässt sich ein Modell mit 7 B Parametern auf einer 16-GB-GPU fine-tunen (und ein 65-B-Modell mit QLoRA [4] auf einer 48-GB-GPU).<br><br>
 • <strong>Viele Adapter ausliefern.</strong> Jeder LoRA-Adapter ist wenige MB groß. Man kann Hunderte oder Tausende aufgabenspezifischer Adapter neben einem einzigen Basismodell speichern und zur Inferenzzeit einwechseln.<br><br>
 • <strong>Schnellere Trainingsiterationen.</strong> Weniger zu aktualisierende Parameter bedeuten billigere Gradientenschritte — und der Optimizer-Zustand passt in den Cache.</div>`);
 
@@ -982,14 +982,14 @@ Das eingefrorene <code>W</code> taucht in diesen Gradienten nie auf — deshalb 
 render() {
   const S = computeState();
   let h = L(`<div class="stage-title">Inference: Merged vs Unmerged <span class="tag tac">INFERENCE</span></div>`,`<div class="stage-title">Inferenz: verschmolzen vs. getrennt <span class="tag tac">INFERENZ</span></div>`);
-  h += L(`<p class="stage-desc">After training, you have two options for serving the LoRA-fine-tuned model. The choice depends on whether you'll need to switch tasks at runtime.</p>`,`<p class="stage-desc">Nach dem Training gibt es zwei Möglichkeiten, das mit LoRA feinjustierte Modell auszuliefern. Die Wahl hängt davon ab, ob man zur Laufzeit zwischen Aufgaben wechseln muss.</p>`);
+  h += L(`<p class="stage-desc">After training, you have two options for serving the LoRA-fine-tuned model. The choice depends on whether you'll need to switch tasks at runtime.</p>`,`<p class="stage-desc">Nach dem Training gibt es zwei Möglichkeiten, das mit LoRA fine-tuned Modell auszuliefern. Die Wahl hängt davon ab, ob man zur Laufzeit zwischen Aufgaben wechseln muss.</p>`);
 
   h += L(`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Option A · Merge into the base weights</h3>`,`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Option A · In die Basisgewichte verschmelzen</h3>`);
   h += `<div class="formula"><span class="gry">W</span><sub>merged</sub> = <span class="gry">W</span> + (α/r) · <span class="grn">B</span><span class="red">A</span>&nbsp;&nbsp;&nbsp;<span class="cm">// ${L('done once, then discard A and B','einmal ausführen, dann A und B verwerfen')}</span></div>`;
   h += L(`<div class="info iib"><div class="il">Pros</div>
 • <strong>Zero inference overhead.</strong> The model is now indistinguishable from a fully fine-tuned one — same number of matmul ops per forward pass, same latency.<br>
 • <strong>Compatible with any inference engine.</strong> No special LoRA support needed.</div>`,`<div class="info iib"><div class="il">Vorteile</div>
-• <strong>Kein Inferenz-Overhead.</strong> Das Modell ist jetzt nicht von einem voll feinjustierten zu unterscheiden — gleiche Anzahl Matmul-Operationen pro Forward-Pass, gleiche Latenz.<br>
+• <strong>Kein Inferenz-Overhead.</strong> Das Modell ist jetzt nicht von einem voll fine-tuned Modell zu unterscheiden — gleiche Anzahl Matmul-Operationen pro Forward-Pass, gleiche Latenz.<br>
 • <strong>Kompatibel mit jeder Inferenz-Engine.</strong> Keine spezielle LoRA-Unterstützung nötig.</div>`);
   h += L(`<div class="info if"><div class="il">Cons</div>
 • <strong>Locked to one task.</strong> Once merged, you can't switch adapters without reloading the base model.<br>
@@ -1055,7 +1055,7 @@ Put another way: <strong>LoRA changes what the model says; temperature changes h
 LoRA lebt <strong>innerhalb</strong> des Forward-Pass: Es ändert, wie jede Gewichtsmatrix Aktivierungen transformiert, und erzeugt andere Logits, als das Basismodell erzeugen würde. Die Temperatur lebt <strong>nach</strong> dem Forward-Pass: Sie formt die Logits, die das Modell liefert, vor dem Sampling um. Diese Stufen sind völlig getrennt:
 <div class="formula" style="margin:0.6rem 0;">Wx + (α/r)·BAx &nbsp;→ ... Forward-Pass ... → &nbsp;Logits &nbsp;→ &nbsp;Logits/T &nbsp;→ &nbsp;Softmax &nbsp;→ &nbsp;Sampling<br>
 <span class="cm">└────── LoRA ändert die Verteilung ─────────┘    └── Temperatur formt, wie man sie liest ──┘</span></div>
-Anders gesagt: <strong>LoRA ändert, was das Modell sagt; die Temperatur ändert, wie kreativ es dabei klingt.</strong> Ein mit LoRA feinjustiertes Modell nutzt zur Generierungszeit weiterhin Temperatur, top-k und top-p — genau wie jeder andere Transformer. Die Mechanik der Temperatur am Softmax-Schritt zeigt der GPT-Decoder-Simulator.</div>`);
+Anders gesagt: <strong>LoRA ändert, was das Modell sagt; die Temperatur ändert, wie kreativ es dabei klingt.</strong> Ein mit LoRA fine-tuned Modell nutzt zur Generierungszeit weiterhin Temperatur, top-k und top-p — genau wie jeder andere Transformer. Die Mechanik der Temperatur am Softmax-Schritt zeigt der GPT-Decoder-Simulator.</div>`);
 
   h += L(`<div class="info iib"><div class="il">Training-time vs inference-time, in one sentence</div>
 <strong>Fine-tuning hyperparameters</strong> (<code>r</code>, <code>α</code>, learning rate) are decided <em>before</em> training and baked into the trained adapter. <strong>Sampling hyperparameters</strong> (<code>temperature</code>, <code>top-k</code>, <code>top-p</code>) are decided <em>per generation request</em> and can be changed on the fly without retraining anything.</div>`,`<div class="info iib"><div class="il">Trainingszeit vs. Inferenzzeit, in einem Satz</div>
@@ -1117,7 +1117,7 @@ Suppose you're a SaaS company offering "your own fine-tuned LLM" as a product, w
 <tr><td><strong>Reduction:</strong></td><td style="padding-left:1rem;"><strong>~580×</strong></td></tr>
 </table>
 <br>Even better, the base model fits in GPU memory <em>once</em>, and adapters can be loaded from RAM/SSD on demand.</div>`,`<div class="info iac"><div class="il">Das wirtschaftliche Argument</div>
-Angenommen, man ist ein SaaS-Unternehmen, das „dein eigenes feinjustiertes LLM" als Produkt anbietet, mit 1000 Kunden. Die Rechnung:<br><br>
+Angenommen, man ist ein SaaS-Unternehmen, das „dein eigenes fine-tuned LLM" als Produkt anbietet, mit 1000 Kunden. Die Rechnung:<br><br>
 <table style="font-family:var(--mono);font-size:0.78rem;">
 <tr><td><strong>Volles Fine-Tuning:</strong></td><td style="padding-left:1rem;">1000 × 14 GB = <strong>14 TB</strong> Gewichte</td></tr>
 <tr><td><strong>LoRA (r=8):</strong></td><td style="padding-left:1rem;">14 GB Basis + 1000 × 10 MB = <strong>~24 GB</strong></td></tr>
@@ -1127,7 +1127,7 @@ Angenommen, man ist ein SaaS-Unternehmen, das „dein eigenes feinjustiertes LLM
 
   h += L(`<div class="info iib"><div class="il">Hot-swapping in production</div>
 Frameworks like <strong>S-LoRA</strong>, <strong>Punica</strong>, and <strong>vLLM with multi-LoRA</strong> can serve thousands of distinct LoRA adapters from a single GPU. They batch incoming requests by base model (all sharing the same frozen W) and apply per-request LoRA branches in parallel. This is how Replicate, Together AI, and similar platforms host dozens of fine-tuned variants at low cost.</div>`,`<div class="info iib"><div class="il">Hot-Swapping in der Produktion</div>
-Frameworks wie <strong>S-LoRA</strong>, <strong>Punica</strong> und <strong>vLLM mit Multi-LoRA</strong> können Tausende verschiedener LoRA-Adapter von einer einzigen GPU ausliefern. Sie batchen eingehende Anfragen nach Basismodell (alle teilen dasselbe eingefrorene W) und wenden die LoRA-Zweige pro Anfrage parallel an. So hosten Replicate, Together AI und ähnliche Plattformen Dutzende feinjustierter Varianten zu geringen Kosten.</div>`);
+Frameworks wie <strong>S-LoRA</strong>, <strong>Punica</strong> und <strong>vLLM mit Multi-LoRA</strong> können Tausende verschiedener LoRA-Adapter von einer einzigen GPU ausliefern. Sie batchen eingehende Anfragen nach Basismodell (alle teilen dasselbe eingefrorene W) und wenden die LoRA-Zweige pro Anfrage parallel an. So hosten Replicate, Together AI und ähnliche Plattformen Dutzende fine-tuned Varianten zu geringen Kosten.</div>`);
 
   h += L(`<div class="info ip"><div class="il">Adapter composition</div>
 Because LoRA updates are <em>additive</em> in weight space, you can combine multiple adapters:

@@ -1585,7 +1585,7 @@ h011:'<span class="toc-num">08</span>Python-Implementierung',
 h012:'<span class="toc-num">09</span>Selbsttest (Quiz)',
 h013:'<span class="toc-num">10</span>Übungen',
 h014:'<span class="toc-num">11</span>Referenzen',
-h015:'Evaluation von Retrieval-Augmented-Generation-Systemen<br>und feinjustierten Large Language Models',
+h015:'Evaluation von Retrieval-Augmented-Generation-Systemen<br>und fine-tuned Large Language Models',
 h016:'Eine Einführung mit Beispielen, mathematischer Herleitung und Diskussion gängiger Evaluationsmetriken.',
 h017:'<strong>Ausgabe</strong>Version 1.0',
 h018:'<strong>Zuletzt aktualisiert</strong>April 2026',
@@ -1947,7 +1947,7 @@ h377:'BERTScore',
 h378:'$F_1$ der Embedding-Kosinusse',
 h379:'Semantische Evaluation',
 h380:'📚 Literatur',
-h394:'Ein Leitfaden zur quantitativen Evaluation von RAG-Systemen und feinjustierten Large Language Models',
+h394:'Ein Leitfaden zur quantitativen Evaluation von RAG-Systemen und fine-tuned Large Language Models',
 h395:'\n  Erstellt von \n  <strong>\n    <a href="https://www.linkedin.com/feed/" target="_blank" rel="noopener">\n      Dr. Kawther Aboalam\n    </a>\n  </strong> \n  und KI-Agenten — \n  <a href="https://github.com/abka0002/Machine-Learning-Explained" target="_blank" rel="noopener">\n    Auf GitHub ansehen\n  </a>\n'
 };
 
@@ -1964,7 +1964,7 @@ function setLang(lang) {
         if (window.renderMathInElement && /\$/.test(tx)) { try { window.renderMathInElement(el, KATEX_OPTS); } catch(e){} }
     });
     document.documentElement.lang = lang;
-    document.title = L('Guide: Evaluating RAG Systems and Fine-Tuned LLMs', 'Leitfaden: Evaluation von RAG-Systemen und feinjustierten LLMs');
+    document.title = L('Guide: Evaluating RAG Systems and Fine-Tuned LLMs', 'Leitfaden: Evaluation von RAG-Systemen und fine-tuned LLMs');
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
     if (typeof applyTheme === 'function') applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
     if (typeof renderPrecisionGrid === 'function') renderPrecisionGrid();

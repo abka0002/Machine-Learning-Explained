@@ -405,7 +405,7 @@ render(){
 <strong>Transformer</strong> &nbsp;— the underlying architecture is the <em>decoder half</em> of the Transformer from <em>Attention Is All You Need</em> [1] — exactly the architecture this simulator walks through, step by step.`,`<div class="il">Wofür steht „GPT"?</div>
 <strong>GPT</strong> = <strong>Generative Pre-trained Transformer</strong>. Jedes Wort steht für eine bewusste Designentscheidung:<br><br>
 <strong>Generative</strong> &nbsp;— das Modell erzeugt neue Token. Es wird darauf trainiert, den nächsten Token einer Sequenz vorherzusagen, sodass man bei der Inferenz autoregressiv daraus samplen und Text erzeugen kann.<br>
-<strong>Pre-trained</strong> &nbsp;— es wird zuerst selbstüberwacht auf einem riesigen Korpus unbeschrifteten Texts trainiert (nur <em>den nächsten Token vorhersagen</em>) und erst danach für konkrete Aufgaben feinjustiert, geprompted oder ausgerichtet. Diese Trennung von Vortraining und späterer Nutzung war die Kernidee des ursprünglichen GPT-1-Papers [2].<br>
+<strong>Pre-trained</strong> &nbsp;— es wird zuerst selbstüberwacht auf einem riesigen Korpus unbeschrifteten Texts trainiert (nur <em>den nächsten Token vorhersagen</em>) und erst danach für konkrete Aufgaben fine-tuned, geprompted oder ausgerichtet. Diese Trennung von Vortraining und späterer Nutzung war die Kernidee des ursprünglichen GPT-1-Papers [2].<br>
 <strong>Transformer</strong> &nbsp;— die zugrunde liegende Architektur ist die <em>Decoder-Hälfte</em> des Transformers aus <em>Attention Is All You Need</em> [1] — genau die Architektur, die dieser Simulator Schritt für Schritt durchläuft.`)}</div>`;
 
   // ── Models built on the GPT architecture ──
@@ -423,7 +423,7 @@ ${L(`• <strong>GPT-1</strong> (2018) — 117 M parameters, 12 layers; the orig
 • <strong>GPT-5 and the o-series</strong> (o1, o3) — current generation with chain-of-thought reasoning training`,`• <strong>GPT-1</strong> (2018) — 117 M Parameter, 12 Schichten; das Original [2]<br>
 • <strong>GPT-2</strong> (2019) — bis zu 1,5 B Parameter, 48 Schichten; führte Pre-LayerNorm ein [3]<br>
 • <strong>GPT-3</strong> (2020) — 175 B Parameter, 96 Schichten, d_model = 12 288; In-Context Learning [4]<br>
-• <strong>Codex</strong> (2021) — auf Code feinjustiertes GPT-3; ursprüngliche Engine hinter GitHub Copilot<br>
+• <strong>Codex</strong> (2021) — auf Code fine-tuned GPT-3; ursprüngliche Engine hinter GitHub Copilot<br>
 • <strong>InstructGPT</strong> (2022) — GPT-3, mit menschlichem Feedback ausgerichtet (RLHF)<br>
 • <strong>ChatGPT</strong> (2022) — konversationelles Fine-Tuning der GPT-3.5-Linie<br>
 • <strong>GPT-4 / GPT-4o / GPT-4 Turbo</strong> (2023–2024) — multimodale Nachfolger<br>
