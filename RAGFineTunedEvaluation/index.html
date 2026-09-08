@@ -692,7 +692,10 @@
             .layout { grid-template-columns: 1fr; }
             section.chapter { box-shadow: none; page-break-inside: avoid; }
         }
-    </style>
+    .lang-toggle{display:inline-flex;gap:2px;margin-left:8px;vertical-align:middle;}
+.lang-toggle .lang-btn{padding:4px 10px;font-size:0.78em;font-weight:600;letter-spacing:0.04em;}
+.lang-toggle .lang-btn.on{background:var(--primary);color:#fff;border-color:var(--primary);}
+</style>
 </head>
 <body>
 
@@ -703,11 +706,12 @@
     <div class="topbar-inner">
         <div class="brand">
             <span class="brand-mark"></span>
-            <span>RAG &amp; Fine-Tuned LLM Evaluation Guide</span>
+            <span data-i18n="h000">RAG &amp; Fine-Tuned LLM Evaluation Guide</span>
         </div>
         <div class="topbar-actions">
             <button id="theme-toggle" title="Toggle light/dark" aria-label="Toggle theme">🌙 Dark</button>
-            <button onclick="window.print()" title="Print / save as PDF">🖨️ Print</button>
+            <button onclick="window.print()" title="Print / save as PDF" data-i18n="h002">🖨️ Print</button>
+            <span class="lang-toggle" title="Language / Sprache"><button class="lang-btn on" data-lang="en" onclick="setLang('en')">EN</button><button class="lang-btn" data-lang="de" onclick="setLang('de')">DE</button></span>
         </div>
     </div>
 </div>
@@ -716,19 +720,19 @@
 
     <!-- ============== SIDEBAR TOC ============== -->
     <aside class="sidebar">
-        <div class="toc-label">Contents</div>
+        <div class="toc-label" data-i18n="h003">Contents</div>
         <ul class="toc-list">
-            <li><a href="#part1"><span class="toc-num">01</span>Introduction &amp; Foundations</a></li>
-            <li><a href="#part2"><span class="toc-num">02</span>Retrieval Metrics</a></li>
-            <li><a href="#part3"><span class="toc-num">03</span>RAGAS Framework</a></li>
-            <li><a href="#part4"><span class="toc-num">04</span>Fine-Tuning Metrics</a></li>
-            <li><a href="#part5"><span class="toc-num">05</span>Statistical Evaluation</a></li>
-            <li><a href="#part6"><span class="toc-num">06</span>Interactive Comparison</a></li>
-            <li><a href="#part7"><span class="toc-num">07</span>Decision Guide</a></li>
-            <li><a href="#part8"><span class="toc-num">08</span>Python Implementation</a></li>
-            <li><a href="#part9"><span class="toc-num">09</span>Self-Test (Quiz)</a></li>
-            <li><a href="#part10"><span class="toc-num">10</span>Exercises</a></li>
-            <li><a href="#part11"><span class="toc-num">11</span>References</a></li>
+            <li><a href="#part1" data-i18n="h004"><span class="toc-num">01</span>Introduction &amp; Foundations</a></li>
+            <li><a href="#part2" data-i18n="h005"><span class="toc-num">02</span>Retrieval Metrics</a></li>
+            <li><a href="#part3" data-i18n="h006"><span class="toc-num">03</span>RAGAS Framework</a></li>
+            <li><a href="#part4" data-i18n="h007"><span class="toc-num">04</span>Fine-Tuning Metrics</a></li>
+            <li><a href="#part5" data-i18n="h008"><span class="toc-num">05</span>Statistical Evaluation</a></li>
+            <li><a href="#part6" data-i18n="h009"><span class="toc-num">06</span>Interactive Comparison</a></li>
+            <li><a href="#part7" data-i18n="h010"><span class="toc-num">07</span>Decision Guide</a></li>
+            <li><a href="#part8" data-i18n="h011"><span class="toc-num">08</span>Python Implementation</a></li>
+            <li><a href="#part9" data-i18n="h012"><span class="toc-num">09</span>Self-Test (Quiz)</a></li>
+            <li><a href="#part10" data-i18n="h013"><span class="toc-num">10</span>Exercises</a></li>
+            <li><a href="#part11" data-i18n="h014"><span class="toc-num">11</span>References</a></li>
         </ul>
     </aside>
 
@@ -736,13 +740,13 @@
         <!-- ============== HERO ============== -->
         <header class="hero animate-in">
             
-            <h1>Evaluating Retrieval-Augmented Generation Systems<br>and Fine-Tuned Large Language Models</h1>
-            <p class="subtitle">An introduction with examples, mathematical derivation, and discussion of common evaluation metrics.</p>
+            <h1 data-i18n="h015">Evaluating Retrieval-Augmented Generation Systems<br>and Fine-Tuned Large Language Models</h1>
+            <p class="subtitle" data-i18n="h016">An introduction with examples, mathematical derivation, and discussion of common evaluation metrics.</p>
             <div class="hero-meta">
                 
-                <div><strong>Edition</strong>Version 1.0</div>
+                <div data-i18n="h017"><strong>Edition</strong>Version 1.0</div>
                 
-                <div><strong>Last updated</strong>April 2026</div>
+                <div data-i18n="h018"><strong>Last updated</strong>April 2026</div>
             </div>
         </header>
 
@@ -750,64 +754,64 @@
         <section id="part1" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">01</span>
-                <h2 class="chapter-title">Introduction &amp; Foundations</h2>
+                <h2 class="chapter-title" data-i18n="h019">Introduction &amp; Foundations</h2>
             </div>
 
-            <h3><span class="h3-num">1.1</span>What is Retrieval-Augmented Generation?</h3>
-            <p>Retrieval-Augmented Generation (RAG) denotes an architectural pattern that extends the static knowledge base of a Large Language Model (LLM) with dynamic access to external document collections. Formally, the process is described as a three-stage pipeline:</p>
+            <h3 data-i18n="h020"><span class="h3-num">1.1</span>What is Retrieval-Augmented Generation?</h3>
+            <p data-i18n="h021">Retrieval-Augmented Generation (RAG) denotes an architectural pattern that extends the static knowledge base of a Large Language Model (LLM) with dynamic access to external document collections. Formally, the process is described as a three-stage pipeline:</p>
 
             <div class="formula-box">
-                <div class="formula-name">RAG Pipeline (formal definition)</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h022">RAG Pipeline (formal definition)</div>
+                <div class="formula-content" data-i18n="h023">
                     $$\hat{y} = \mathcal{G}\bigl(q,\; \mathcal{R}(q;\, \mathcal{D})\bigr) \quad\text{with}\quad \mathcal{R}(q;\mathcal{D}) = \operatorname*{argtop\text{-}k}_{d \in \mathcal{D}} \;\operatorname{sim}(q, d)$$
                 </div>
             </div>
 
-            <p>Here $q$ denotes the query, $\mathcal{D}$ the document collection, $\mathcal{R}$ the retriever (e.g., a dense bi-encoder with cosine similarity), and $\mathcal{G}$ the generator (the LLM). The composition $\mathcal{G} \circ \mathcal{R}$ unifies parametric knowledge (in the model weights) with non-parametric knowledge (in the index) — a concept discussed in the literature as <em>hybrid memory</em> (Lewis et al., 2020).</p>
+            <p data-i18n="h024">Here $q$ denotes the query, $\mathcal{D}$ the document collection, $\mathcal{R}$ the retriever (e.g., a dense bi-encoder with cosine similarity), and $\mathcal{G}$ the generator (the LLM). The composition $\mathcal{G} \circ \mathcal{R}$ unifies parametric knowledge (in the model weights) with non-parametric knowledge (in the index) — a concept discussed in the literature as <em>hybrid memory</em> (Lewis et al., 2020).</p>
 
-            <div class="reference">
+            <div class="reference" data-i18n="h025">
                 📖 <strong>Scientific basis:</strong> Lewis et al. (2020) introduced RAG as an architecture. Es et al. (2024) provided <em>RAGAS</em>, today's most-cited method for reference-free evaluation. <a href="https://aclanthology.org/2024.eacl-demo.16/">[EACL 2024]</a>
             </div>
 
             <div class="example-box">
-                <h4>🔧 Application example: RAG in manufacturing engineering</h4>
-                <p><strong>Query:</strong> "How do I optimize cutting speed for CNC milling of aluminum?"</p>
-                <p><strong>Retrieved documents (top-2):</strong></p>
+                <h4 data-i18n="h026">🔧 Application example: RAG in manufacturing engineering</h4>
+                <p data-i18n="h027"><strong>Query:</strong> "How do I optimize cutting speed for CNC milling of aluminum?"</p>
+                <p><strong data-i18n="h028">Retrieved documents (top-2):</strong></p>
                 <ul>
-                    <li>$d_1$: "For AlMg3 we recommend cutting speeds of 200–300 m/min..."</li>
-                    <li>$d_2$: "The feed rate for aluminum should be 0.1–0.3 mm/tooth..."</li>
+                    <li data-i18n="h029">$d_1$: "For AlMg3 we recommend cutting speeds of 200–300 m/min..."</li>
+                    <li data-i18n="h030">$d_2$: "The feed rate for aluminum should be 0.1–0.3 mm/tooth..."</li>
                 </ul>
-                <p><strong>Generated answer:</strong> "For CNC milling of aluminum I recommend 200–300 m/min with HSS cutters and a feed rate of 0.1–0.3 mm/tooth."</p>
-                <p style="font-size:0.92em;color:var(--text-muted);margin-top:10px;">Note: answer quality depends both on retrieval quality and on generator faithfulness. Both components require <em>separate</em> metrics.</p>
+                <p data-i18n="h031"><strong>Generated answer:</strong> "For CNC milling of aluminum I recommend 200–300 m/min with HSS cutters and a feed rate of 0.1–0.3 mm/tooth."</p>
+                <p style="font-size:0.92em;color:var(--text-muted);margin-top:10px;" data-i18n="h032">Note: answer quality depends both on retrieval quality and on generator faithfulness. Both components require <em>separate</em> metrics.</p>
             </div>
 
-            <h3><span class="h3-num">1.2</span>RAG vs. Fine-Tuning: A conceptual comparison</h3>
+            <h3 data-i18n="h033"><span class="h3-num">1.2</span>RAG vs. Fine-Tuning: A conceptual comparison</h3>
             <div class="comparison-grid">
                 <div class="comparison-card">
-                    <h4>🔄 RAG approach</h4>
+                    <h4 data-i18n="h034">🔄 RAG approach</h4>
                     <ul>
-                        <li>Knowledge externally indexed (non-parametric)</li>
-                        <li>Updates possible without retraining</li>
-                        <li>Source citation and traceability</li>
-                        <li>Higher inference latency (retrieval step)</li>
-                        <li>Suited to fact-intensive domains</li>
+                        <li data-i18n="h035">Knowledge externally indexed (non-parametric)</li>
+                        <li data-i18n="h036">Updates possible without retraining</li>
+                        <li data-i18n="h037">Source citation and traceability</li>
+                        <li data-i18n="h038">Higher inference latency (retrieval step)</li>
+                        <li data-i18n="h039">Suited to fact-intensive domains</li>
                     </ul>
                 </div>
                 <div class="comparison-card">
-                    <h4>🎯 Fine-tuning approach</h4>
+                    <h4 data-i18n="h040">🎯 Fine-tuning approach</h4>
                     <ul>
-                        <li>Knowledge in model weights (parametric)</li>
-                        <li>Updates require retraining</li>
-                        <li>No intrinsic source attribution</li>
-                        <li>Lower inference latency</li>
-                        <li>Suited to style, format, and domain adaptation</li>
+                        <li data-i18n="h041">Knowledge in model weights (parametric)</li>
+                        <li data-i18n="h042">Updates require retraining</li>
+                        <li data-i18n="h043">No intrinsic source attribution</li>
+                        <li data-i18n="h044">Lower inference latency</li>
+                        <li data-i18n="h045">Suited to style, format, and domain adaptation</li>
                     </ul>
                 </div>
             </div>
 
             <div class="insight">
-                <h4>💡 Design decision in practice</h4>
-                <p>The two approaches are complementary, not competing. Empirical studies (Ovadia et al., 2024) show that RAG is superior for fact-based tasks, while fine-tuning is preferable for stylistic adaptation and latency-critical applications. The hybrid approach — fine-tuning on domain style <em>plus</em> RAG for current facts — is state-of-the-art in production systems.</p>
+                <h4 data-i18n="h046">💡 Design decision in practice</h4>
+                <p data-i18n="h047">The two approaches are complementary, not competing. Empirical studies (Ovadia et al., 2024) show that RAG is superior for fact-based tasks, while fine-tuning is preferable for stylistic adaptation and latency-critical applications. The hybrid approach — fine-tuning on domain style <em>plus</em> RAG for current facts — is state-of-the-art in production systems.</p>
             </div>
         </section>
 
@@ -815,158 +819,158 @@
         <section id="part2" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">02</span>
-                <h2 class="chapter-title">Retrieval Metrics</h2>
+                <h2 class="chapter-title" data-i18n="h048">Retrieval Metrics</h2>
             </div>
 
-            <p>Retrieval metrics evaluate the quality of the component $\mathcal{R}$. They differ in whether they (a) consider pure <em>set relations</em> (precision, recall), (b) account for <em>position</em> (MRR), or (c) incorporate <em>graded relevance</em> (NDCG).</p>
+            <p data-i18n="h049">Retrieval metrics evaluate the quality of the component $\mathcal{R}$. They differ in whether they (a) consider pure <em>set relations</em> (precision, recall), (b) account for <em>position</em> (MRR), or (c) incorporate <em>graded relevance</em> (NDCG).</p>
 
-            <h3><span class="h3-num">2.1</span>Precision@K and Recall@K</h3>
+            <h3 data-i18n="h050"><span class="h3-num">2.1</span>Precision@K and Recall@K</h3>
 
             <div class="formula-box">
-                <div class="formula-name">Precision &amp; Recall at cutoff K</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h051">Precision &amp; Recall at cutoff K</div>
+                <div class="formula-content" data-i18n="h052">
                     $$\text{Precision@}K = \frac{|\mathcal{R}_K \cap \mathcal{V}|}{K}, \qquad \text{Recall@}K = \frac{|\mathcal{R}_K \cap \mathcal{V}|}{|\mathcal{V}|}$$
                 </div>
             </div>
 
-            <p>Here $\mathcal{R}_K$ is the set of top-$K$ retrieved documents and $\mathcal{V}$ is the set of all relevant documents in the corpus (ground truth).</p>
+            <p data-i18n="h053">Here $\mathcal{R}_K$ is the set of top-$K$ retrieved documents and $\mathcal{V}$ is the set of all relevant documents in the corpus (ground truth).</p>
 
             <details>
-                <summary>📐 Statistical interpretation (click to expand)</summary>
+                <summary data-i18n="h054">📐 Statistical interpretation (click to expand)</summary>
                 <div>
-                    <p>Precision@K is the empirical estimator of the conditional probability $P(\text{relevant} \mid \text{retrieved in top-}K)$. Recall@K estimates $P(\text{retrieved in top-}K \mid \text{relevant})$. Both are asymmetric: a system with high precision but low recall is "precise but incomplete"; conversely, it returns many hits but with a high noise fraction.</p>
-                    <p>The F1 score $F_1 = 2 \cdot \frac{P \cdot R}{P+R}$ forms the harmonic mean and is more pessimistic than the arithmetic mean (it penalizes imbalance more strongly).</p>
+                    <p data-i18n="h055">Precision@K is the empirical estimator of the conditional probability $P(\text{relevant} \mid \text{retrieved in top-}K)$. Recall@K estimates $P(\text{retrieved in top-}K \mid \text{relevant})$. Both are asymmetric: a system with high precision but low recall is "precise but incomplete"; conversely, it returns many hits but with a high noise fraction.</p>
+                    <p data-i18n="h056">The F1 score $F_1 = 2 \cdot \frac{P \cdot R}{P+R}$ forms the harmonic mean and is more pessimistic than the arithmetic mean (it penalizes imbalance more strongly).</p>
                 </div>
             </details>
 
             <div class="example-box worked">
-                <h4>✏️ Worked example: Precision@5 — Thiele-Small parameters</h4>
-                <p><strong>Query:</strong> "How do I determine the Thiele-Small parameters of a loudspeaker?"</p>
+                <h4 data-i18n="h057">✏️ Worked example: Precision@5 — Thiele-Small parameters</h4>
+                <p data-i18n="h058"><strong>Query:</strong> "How do I determine the Thiele-Small parameters of a loudspeaker?"</p>
                 <table class="data-table">
-                    <thead><tr><th>Rank</th><th>Document</th><th>Relevant?</th></tr></thead>
+                    <thead><tr><th data-i18n="h059">Rank</th><th data-i18n="h060">Document</th><th data-i18n="h061">Relevant?</th></tr></thead>
                     <tbody>
-                        <tr><td>1</td><td>"Thiele-Small measurement via impedance analysis"</td><td class="relevant">✓</td></tr>
-                        <tr><td>2</td><td>"Enclosure design for bass loudspeakers"</td><td class="not-relevant">✗</td></tr>
-                        <tr><td>3</td><td>"Electromechanical modeling"</td><td class="relevant">✓</td></tr>
-                        <tr><td>4</td><td>"Crossover design"</td><td class="not-relevant">✗</td></tr>
-                        <tr><td>5</td><td>"Determining $Q_{ts}$, $V_{as}$ and $f_s$"</td><td class="relevant">✓</td></tr>
+                        <tr><td>1</td><td data-i18n="h062">"Thiele-Small measurement via impedance analysis"</td><td class="relevant">✓</td></tr>
+                        <tr><td>2</td><td data-i18n="h063">"Enclosure design for bass loudspeakers"</td><td class="not-relevant">✗</td></tr>
+                        <tr><td>3</td><td data-i18n="h064">"Electromechanical modeling"</td><td class="relevant">✓</td></tr>
+                        <tr><td>4</td><td data-i18n="h065">"Crossover design"</td><td class="not-relevant">✗</td></tr>
+                        <tr><td>5</td><td data-i18n="h066">"Determining $Q_{ts}$, $V_{as}$ and $f_s$"</td><td class="relevant">✓</td></tr>
                     </tbody>
                 </table>
                 <div class="calc-steps">
-                    <div class="calc-step"><span class="step-number">1</span><div class="step-content">Relevant in top-5: <code>3</code> (ranks 1, 3, 5)</div></div>
-                    <div class="calc-step"><span class="step-number">2</span><div class="step-content">$\text{Precision@}5 = \dfrac{3}{5} = 0.60$</div></div>
+                    <div class="calc-step"><span class="step-number">1</span><div class="step-content" data-i18n="h067">Relevant in top-5: <code>3</code> (ranks 1, 3, 5)</div></div>
+                    <div class="calc-step"><span class="step-number">2</span><div class="step-content" data-i18n="h068">$\text{Precision@}5 = \dfrac{3}{5} = 0.60$</div></div>
                 </div>
-                <div class="result"><span class="label">Precision@5 =</span><span class="value">0.60</span></div>
+                <div class="result"><span class="label" data-i18n="h069">Precision@5 =</span><span class="value">0.60</span></div>
             </div>
 
             <!-- INTERACTIVE: Precision/Recall Calculator -->
             <div class="interactive-panel">
-                <h4>🎮 Interactive calculator: Precision &amp; Recall</h4>
-                <p class="hint">Click on the ranks to mark them as "relevant". Metrics are computed live.</p>
+                <h4 data-i18n="h070">🎮 Interactive calculator: Precision &amp; Recall</h4>
+                <p class="hint" data-i18n="h071">Click on the ranks to mark them as "relevant". Metrics are computed live.</p>
                 <div id="precision-grid" class="relevance-grid"></div>
                 <div class="slider-row">
-                    <label for="totalRelevant">Total relevant in corpus $|\mathcal{V}|$:</label>
+                    <label for="totalRelevant" data-i18n="h072">Total relevant in corpus $|\mathcal{V}|$:</label>
                     <input type="range" id="totalRelevant" min="3" max="20" value="8" step="1">
                     <span class="slider-value" id="totalRelevantVal">8</span>
                 </div>
                 <div class="live-output">
-                    <div class="live-metric"><div class="lm-name">Precision@10</div><div class="lm-value" id="liveP">—</div></div>
-                    <div class="live-metric"><div class="lm-name">Recall@10</div><div class="lm-value" id="liveR">—</div></div>
-                    <div class="live-metric"><div class="lm-name">F1@10</div><div class="lm-value" id="liveF1">—</div></div>
+                    <div class="live-metric"><div class="lm-name" data-i18n="h073">Precision@10</div><div class="lm-value" id="liveP">—</div></div>
+                    <div class="live-metric"><div class="lm-name" data-i18n="h074">Recall@10</div><div class="lm-value" id="liveR">—</div></div>
+                    <div class="live-metric"><div class="lm-name" data-i18n="h075">F1@10</div><div class="lm-value" id="liveF1">—</div></div>
                 </div>
             </div>
 
-            <h3><span class="h3-num">2.2</span>Mean Reciprocal Rank (MRR)</h3>
+            <h3 data-i18n="h076"><span class="h3-num">2.2</span>Mean Reciprocal Rank (MRR)</h3>
 
             <div class="formula-box">
-                <div class="formula-name">Mean Reciprocal Rank</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h077">Mean Reciprocal Rank</div>
+                <div class="formula-content" data-i18n="h078">
                     $$\text{MRR} = \frac{1}{|Q|}\sum_{i=1}^{|Q|} \frac{1}{\operatorname{rank}_i}$$
                 </div>
             </div>
 
-            <p>$\operatorname{rank}_i$ denotes the position of the <em>first</em> relevant document for query $q_i$. MRR is especially meaningful when the user typically reads only the first result (search UIs, FAQ bots).</p>
+            <p data-i18n="h079">$\operatorname{rank}_i$ denotes the position of the <em>first</em> relevant document for query $q_i$. MRR is especially meaningful when the user typically reads only the first result (search UIs, FAQ bots).</p>
 
             <div class="example-box worked">
-                <h4>✏️ Worked example: MRR over 4 queries</h4>
+                <h4 data-i18n="h080">✏️ Worked example: MRR over 4 queries</h4>
                 <table class="data-table">
-                    <thead><tr><th>Query</th><th>First relevant rank</th><th>Reciprocal</th></tr></thead>
+                    <thead><tr><th data-i18n="h081">Query</th><th data-i18n="h082">First relevant rank</th><th data-i18n="h083">Reciprocal</th></tr></thead>
                     <tbody>
-                        <tr><td>$q_1$: "Thiele-Small parameters"</td><td>1</td><td>$1/1 = 1.000$</td></tr>
-                        <tr><td>$q_2$: "FEM simulation"</td><td>3</td><td>$1/3 = 0.333$</td></tr>
-                        <tr><td>$q_3$: "ISO tolerance calculation"</td><td>2</td><td>$1/2 = 0.500$</td></tr>
-                        <tr><td>$q_4$: "Heat treatment of steel"</td><td>1</td><td>$1/1 = 1.000$</td></tr>
+                        <tr><td data-i18n="h084">$q_1$: "Thiele-Small parameters"</td><td>1</td><td>$1/1 = 1.000$</td></tr>
+                        <tr><td data-i18n="h085">$q_2$: "FEM simulation"</td><td>3</td><td>$1/3 = 0.333$</td></tr>
+                        <tr><td data-i18n="h086">$q_3$: "ISO tolerance calculation"</td><td>2</td><td>$1/2 = 0.500$</td></tr>
+                        <tr><td data-i18n="h087">$q_4$: "Heat treatment of steel"</td><td>1</td><td>$1/1 = 1.000$</td></tr>
                     </tbody>
                 </table>
                 <div class="calc-steps">
-                    <div class="calc-step"><span class="step-number">1</span><div class="step-content">$\text{MRR} = \frac{1}{4}(1.000 + 0.333 + 0.500 + 1.000) = 0.708$</div></div>
+                    <div class="calc-step"><span class="step-number">1</span><div class="step-content" data-i18n="h088">$\text{MRR} = \frac{1}{4}(1.000 + 0.333 + 0.500 + 1.000) = 0.708$</div></div>
                 </div>
-                <div class="result"><span class="label">MRR =</span><span class="value">0.708</span></div>
+                <div class="result"><span class="label" data-i18n="h089">MRR =</span><span class="value">0.708</span></div>
             </div>
 
-            <h3><span class="h3-num">2.3</span>Normalized Discounted Cumulative Gain (NDCG)</h3>
+            <h3 data-i18n="h090"><span class="h3-num">2.3</span>Normalized Discounted Cumulative Gain (NDCG)</h3>
 
-            <div class="reference">
+            <div class="reference" data-i18n="h091">
                 📖 <strong>Scientific basis:</strong> Järvelin &amp; Kekäläinen (2002). "Cumulated Gain-Based Evaluation of IR Techniques." <em>ACM TOIS</em>, 20(4), pp. 422–446. DOI: <a href="https://doi.org/10.1145/582415.582418">10.1145/582415.582418</a>
             </div>
 
             <div class="formula-box">
-                <div class="formula-name">DCG · IDCG · NDCG</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h092">DCG · IDCG · NDCG</div>
+                <div class="formula-content" data-i18n="h093">
                     $$\text{DCG@}K = \sum_{i=1}^{K} \frac{2^{\operatorname{rel}_i} - 1}{\log_{2}(i+1)}, \qquad \text{NDCG@}K = \frac{\text{DCG@}K}{\text{IDCG@}K}$$
                 </div>
             </div>
 
-            <p>NDCG is the only one of the metrics presented here that admits <em>graded relevance</em> (e.g., $\operatorname{rel}_i \in \{0,1,2,3\}$): "not relevant", "marginal", "relevant", "highly relevant". The logarithm in the denominator implements <em>position discounting</em>: later hits contribute less to the overall score.</p>
+            <p data-i18n="h094">NDCG is the only one of the metrics presented here that admits <em>graded relevance</em> (e.g., $\operatorname{rel}_i \in \{0,1,2,3\}$): "not relevant", "marginal", "relevant", "highly relevant". The logarithm in the denominator implements <em>position discounting</em>: later hits contribute less to the overall score.</p>
 
             <div class="example-box worked">
-                <h4>✏️ Worked example: NDCG@5 — AOI defect detection</h4>
+                <h4 data-i18n="h095">✏️ Worked example: NDCG@5 — AOI defect detection</h4>
                 <table class="data-table">
-                    <thead><tr><th>Rank $i$</th><th>Document</th><th>$\operatorname{rel}_i$</th><th>$2^{\operatorname{rel}_i}-1$</th><th>$\log_2(i+1)$</th><th>Gain</th></tr></thead>
+                    <thead><tr><th data-i18n="h096">Rank $i$</th><th data-i18n="h097">Document</th><th data-i18n="h098">$\operatorname{rel}_i$</th><th data-i18n="h099">$2^{\operatorname{rel}_i}-1$</th><th data-i18n="h100">$\log_2(i+1)$</th><th data-i18n="h101">Gain</th></tr></thead>
                     <tbody>
-                        <tr><td>1</td><td>"Deep learning for AOI"</td><td>3</td><td>7</td><td>1.000</td><td>7.000</td></tr>
-                        <tr><td>2</td><td>"Introduction to QA"</td><td>0</td><td>0</td><td>1.585</td><td>0.000</td></tr>
-                        <tr><td>3</td><td>"AOI illumination"</td><td>2</td><td>3</td><td>2.000</td><td>1.500</td></tr>
-                        <tr><td>4</td><td>"Statistics"</td><td>1</td><td>1</td><td>2.322</td><td>0.431</td></tr>
-                        <tr><td>5</td><td>"CNN defect classification"</td><td>3</td><td>7</td><td>2.585</td><td>2.708</td></tr>
+                        <tr><td>1</td><td data-i18n="h102">"Deep learning for AOI"</td><td>3</td><td>7</td><td>1.000</td><td>7.000</td></tr>
+                        <tr><td>2</td><td data-i18n="h103">"Introduction to QA"</td><td>0</td><td>0</td><td>1.585</td><td>0.000</td></tr>
+                        <tr><td>3</td><td data-i18n="h104">"AOI illumination"</td><td>2</td><td>3</td><td>2.000</td><td>1.500</td></tr>
+                        <tr><td>4</td><td data-i18n="h105">"Statistics"</td><td>1</td><td>1</td><td>2.322</td><td>0.431</td></tr>
+                        <tr><td>5</td><td data-i18n="h106">"CNN defect classification"</td><td>3</td><td>7</td><td>2.585</td><td>2.708</td></tr>
                     </tbody>
                 </table>
                 <div class="calc-steps">
-                    <div class="calc-step"><span class="step-number">1</span><div class="step-content">$\text{DCG@}5 = 7.00 + 0 + 1.50 + 0.43 + 2.71 = 11.64$</div></div>
-                    <div class="calc-step"><span class="step-number">2</span><div class="step-content">Ideal ordering: $(3,3,2,1,0)$ → $\text{IDCG@}5 = 13.36$</div></div>
-                    <div class="calc-step"><span class="step-number">3</span><div class="step-content">$\text{NDCG@}5 = \dfrac{11.64}{13.36} = 0.871$</div></div>
+                    <div class="calc-step"><span class="step-number">1</span><div class="step-content" data-i18n="h107">$\text{DCG@}5 = 7.00 + 0 + 1.50 + 0.43 + 2.71 = 11.64$</div></div>
+                    <div class="calc-step"><span class="step-number">2</span><div class="step-content" data-i18n="h108">Ideal ordering: $(3,3,2,1,0)$ → $\text{IDCG@}5 = 13.36$</div></div>
+                    <div class="calc-step"><span class="step-number">3</span><div class="step-content" data-i18n="h109">$\text{NDCG@}5 = \dfrac{11.64}{13.36} = 0.871$</div></div>
                 </div>
-                <div class="result"><span class="label">NDCG@5 =</span><span class="value">0.871</span></div>
+                <div class="result"><span class="label" data-i18n="h110">NDCG@5 =</span><span class="value">0.871</span></div>
             </div>
 
             <div class="figure">
                 <div class="figure-container">
                     <canvas id="retrievalMetricsChart" height="280"></canvas>
                 </div>
-                <figcaption><strong>Fig. 1.</strong> Comparison of the four retrieval metrics for the shared application scenario.</figcaption>
+                <figcaption data-i18n="h111"><strong>Fig. 1.</strong> Comparison of the four retrieval metrics for the shared application scenario.</figcaption>
             </div>
 
-            <h3><span class="h3-num">2.4</span>Confusion matrix &amp; precision-recall curve</h3>
+            <h3 data-i18n="h112"><span class="h3-num">2.4</span>Confusion matrix &amp; precision-recall curve</h3>
 
-            <p>A complete diagnosis of retrieval behavior requires examining the <em>full</em> trade-off curve, not just a single point:</p>
+            <p data-i18n="h113">A complete diagnosis of retrieval behavior requires examining the <em>full</em> trade-off curve, not just a single point:</p>
 
             <div class="figure">
                 <div class="figure-container">
                     <canvas id="prCurveChart" height="300"></canvas>
                 </div>
-                <figcaption><strong>Fig. 2.</strong> Precision-recall curves of three hypothetical retrievers. The <em>average precision</em> (AP) corresponds to the area under the curve and is the position-aware generalization of precision.</figcaption>
+                <figcaption data-i18n="h114"><strong>Fig. 2.</strong> Precision-recall curves of three hypothetical retrievers. The <em>average precision</em> (AP) corresponds to the area under the curve and is the position-aware generalization of precision.</figcaption>
             </div>
 
             <div class="figure">
                 <div class="figure-container">
                     <canvas id="confusionChart" height="280"></canvas>
                 </div>
-                <figcaption><strong>Fig. 3.</strong> Confusion matrix for retrieval classification. TP = relevant + retrieved, FP = irrelevant + retrieved, FN = relevant + not retrieved, TN = irrelevant + not retrieved.</figcaption>
+                <figcaption data-i18n="h115"><strong>Fig. 3.</strong> Confusion matrix for retrieval classification. TP = relevant + retrieved, FP = irrelevant + retrieved, FN = relevant + not retrieved, TN = irrelevant + not retrieved.</figcaption>
             </div>
 
             <div class="warning">
-                <h4>⚠️ Critical limitation</h4>
-                <p>All four metrics presuppose that ground-truth relevance is known — in practice an <em>annotation-expensive</em> process. In large corpora, therefore, only a sample is typically annotated, leading to wide confidence intervals. Furthermore, semantically similar but lexically different documents are often incorrectly marked as irrelevant (annotator bias).</p>
+                <h4 data-i18n="h116">⚠️ Critical limitation</h4>
+                <p data-i18n="h117">All four metrics presuppose that ground-truth relevance is known — in practice an <em>annotation-expensive</em> process. In large corpora, therefore, only a sample is typically annotated, leading to wide confidence intervals. Furthermore, semantically similar but lexically different documents are often incorrectly marked as irrelevant (annotator bias).</p>
             </div>
         </section>
 
@@ -974,122 +978,122 @@
         <section id="part3" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">03</span>
-                <h2 class="chapter-title">RAGAS Framework: Generation Metrics</h2>
+                <h2 class="chapter-title" data-i18n="h118">RAGAS Framework: Generation Metrics</h2>
             </div>
 
-            <div class="reference">
+            <div class="reference" data-i18n="h119">
                 📖 <strong>Es, S., James, J., Espinosa-Anke, L., &amp; Schockaert, S.</strong> (2024). "RAGAS: Automated Evaluation of Retrieval Augmented Generation." <em>EACL 2024 Demonstrations</em>, pp. 150–158. <a href="https://aclanthology.org/2024.eacl-demo.16/">[PDF]</a>
             </div>
 
-            <p>The RAGAS framework is <em>reference-free</em>: it requires no human-annotated gold answers, instead using a "judge LLM" to operationalize the evaluation criteria. The four main metrics systematically cover both pipeline components:</p>
+            <p data-i18n="h120">The RAGAS framework is <em>reference-free</em>: it requires no human-annotated gold answers, instead using a "judge LLM" to operationalize the evaluation criteria. The four main metrics systematically cover both pipeline components:</p>
 
             <table class="summary-table">
-                <thead><tr><th>Metric</th><th>Compares</th><th>Quantifies</th><th>Component</th></tr></thead>
+                <thead><tr><th data-i18n="h121">Metric</th><th data-i18n="h122">Compares</th><th data-i18n="h123">Quantifies</th><th data-i18n="h124">Component</th></tr></thead>
                 <tbody>
-                    <tr><td><strong>Faithfulness</strong></td><td>Answer vs. context</td><td>Faithfulness / hallucination</td><td>Generator $\mathcal{G}$</td></tr>
-                    <tr><td><strong>Answer relevance</strong></td><td>Answer vs. query</td><td>Topic alignment</td><td>Generator $\mathcal{G}$</td></tr>
-                    <tr><td><strong>Context precision</strong></td><td>Context vs. query</td><td>Signal/noise in context</td><td>Retriever $\mathcal{R}$</td></tr>
-                    <tr><td><strong>Context recall</strong></td><td>Context vs. gold answer</td><td>Completeness</td><td>Retriever $\mathcal{R}$</td></tr>
+                    <tr><td><strong data-i18n="h125">Faithfulness</strong></td><td data-i18n="h126">Answer vs. context</td><td data-i18n="h127">Faithfulness / hallucination</td><td data-i18n="h128">Generator $\mathcal{G}$</td></tr>
+                    <tr><td><strong data-i18n="h129">Answer relevance</strong></td><td data-i18n="h130">Answer vs. query</td><td data-i18n="h131">Topic alignment</td><td data-i18n="h132">Generator $\mathcal{G}$</td></tr>
+                    <tr><td><strong data-i18n="h133">Context precision</strong></td><td data-i18n="h134">Context vs. query</td><td data-i18n="h135">Signal/noise in context</td><td data-i18n="h136">Retriever $\mathcal{R}$</td></tr>
+                    <tr><td><strong data-i18n="h137">Context recall</strong></td><td data-i18n="h138">Context vs. gold answer</td><td data-i18n="h139">Completeness</td><td data-i18n="h140">Retriever $\mathcal{R}$</td></tr>
                 </tbody>
             </table>
 
-            <h3><span class="h3-num">3.1</span>Faithfulness</h3>
+            <h3 data-i18n="h141"><span class="h3-num">3.1</span>Faithfulness</h3>
             <div class="formula-box">
-                <div class="formula-name">Faithfulness</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h142">Faithfulness</div>
+                <div class="formula-content" data-i18n="h143">
                     $$F = \frac{|\{\,s \in S(\hat y) \;:\; s \;\text{is supported by}\; c\}|}{|S(\hat y)|}$$
                 </div>
             </div>
-            <p>Here $S(\hat y)$ decomposes the generated answer into atomic claims, each individually checked against the context $c$. A claim is considered "supported" if it is <em>logically derivable</em> from $c$.</p>
+            <p data-i18n="h144">Here $S(\hat y)$ decomposes the generated answer into atomic claims, each individually checked against the context $c$. A claim is considered "supported" if it is <em>logically derivable</em> from $c$.</p>
 
             <div class="example-box worked">
-                <h4>✏️ Worked example: Faithfulness — materials engineering</h4>
-                <p><strong>Context $c$:</strong> "42CrMo4 is a tempered steel with a tensile strength of 900–1100 MPa. Hardness 28–34 HRC. Weldable with preheating."</p>
-                <p><strong>Answer $\hat y$:</strong> "42CrMo4 has a tensile strength of 900–1100 MPa, a hardness of 28–34 HRC, is weldable with preheating, and is highly corrosion-resistant."</p>
+                <h4 data-i18n="h145">✏️ Worked example: Faithfulness — materials engineering</h4>
+                <p data-i18n="h146"><strong>Context $c$:</strong> "42CrMo4 is a tempered steel with a tensile strength of 900–1100 MPa. Hardness 28–34 HRC. Weldable with preheating."</p>
+                <p data-i18n="h147"><strong>Answer $\hat y$:</strong> "42CrMo4 has a tensile strength of 900–1100 MPa, a hardness of 28–34 HRC, is weldable with preheating, and is highly corrosion-resistant."</p>
                 <table class="data-table">
-                    <thead><tr><th>#</th><th>Atomic claim</th><th>Supported by $c$?</th></tr></thead>
+                    <thead><tr><th>#</th><th data-i18n="h148">Atomic claim</th><th data-i18n="h149">Supported by $c$?</th></tr></thead>
                     <tbody>
-                        <tr><td>1</td><td>Tensile strength 900–1100 MPa</td><td class="relevant">✓</td></tr>
-                        <tr><td>2</td><td>Hardness 28–34 HRC</td><td class="relevant">✓</td></tr>
-                        <tr><td>3</td><td>Weldable with preheating</td><td class="relevant">✓</td></tr>
-                        <tr><td>4</td><td>Corrosion-resistant</td><td class="not-relevant">✗ Hallucination!</td></tr>
+                        <tr><td>1</td><td data-i18n="h150">Tensile strength 900–1100 MPa</td><td class="relevant">✓</td></tr>
+                        <tr><td>2</td><td data-i18n="h151">Hardness 28–34 HRC</td><td class="relevant">✓</td></tr>
+                        <tr><td>3</td><td data-i18n="h152">Weldable with preheating</td><td class="relevant">✓</td></tr>
+                        <tr><td>4</td><td data-i18n="h153">Corrosion-resistant</td><td class="not-relevant" data-i18n="h154">✗ Hallucination!</td></tr>
                     </tbody>
                 </table>
-                <div class="result"><span class="label">Faithfulness =</span><span class="value">0.75 (3/4)</span></div>
+                <div class="result"><span class="label" data-i18n="h155">Faithfulness =</span><span class="value">0.75 (3/4)</span></div>
             </div>
 
             <!-- INTERACTIVE: Faithfulness Counter -->
             <div class="interactive-panel">
-                <h4>🎮 Interactive calculator: Faithfulness</h4>
-                <p class="hint">Set the number of supported and total claims — the metric updates live.</p>
+                <h4 data-i18n="h156">🎮 Interactive calculator: Faithfulness</h4>
+                <p class="hint" data-i18n="h157">Set the number of supported and total claims — the metric updates live.</p>
                 <div class="slider-row">
-                    <label for="supportedClaims">Supported claims:</label>
+                    <label for="supportedClaims" data-i18n="h158">Supported claims:</label>
                     <input type="range" id="supportedClaims" min="0" max="20" value="6" step="1">
                     <span class="slider-value" id="supportedVal">6</span>
                 </div>
                 <div class="slider-row">
-                    <label for="totalClaims">Total claims:</label>
+                    <label for="totalClaims" data-i18n="h159">Total claims:</label>
                     <input type="range" id="totalClaims" min="1" max="20" value="8" step="1">
                     <span class="slider-value" id="totalVal">8</span>
                 </div>
                 <div class="live-output">
-                    <div class="live-metric"><div class="lm-name">Faithfulness</div><div class="lm-value" id="faithVal">—</div></div>
-                    <div class="live-metric"><div class="lm-name">Hallucination rate</div><div class="lm-value" id="hallucinationVal">—</div></div>
+                    <div class="live-metric"><div class="lm-name" data-i18n="h160">Faithfulness</div><div class="lm-value" id="faithVal">—</div></div>
+                    <div class="live-metric"><div class="lm-name" data-i18n="h161">Hallucination rate</div><div class="lm-value" id="hallucinationVal">—</div></div>
                 </div>
             </div>
 
-            <h3><span class="h3-num">3.2</span>Answer Relevance</h3>
+            <h3 data-i18n="h162"><span class="h3-num">3.2</span>Answer Relevance</h3>
             <div class="formula-box">
-                <div class="formula-name">Answer Relevance</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h163">Answer Relevance</div>
+                <div class="formula-content" data-i18n="h164">
                     $$\text{AR}(q, \hat y) = \frac{1}{n}\sum_{j=1}^{n} \cos\bigl(\mathbf{e}(q),\; \mathbf{e}(\tilde q_j)\bigr) \quad\text{with}\quad \tilde q_j \sim \text{LLM}(\hat y)$$
                 </div>
             </div>
-            <p>From the generated answer $\hat y$, $n$ <em>synthetic questions</em> $\tilde q_j$ are back-generated. The cosine similarity of their embeddings to the original query $q$ measures whether the answer addresses the right question.</p>
+            <p data-i18n="h165">From the generated answer $\hat y$, $n$ <em>synthetic questions</em> $\tilde q_j$ are back-generated. The cosine similarity of their embeddings to the original query $q$ measures whether the answer addresses the right question.</p>
 
             <div class="example-box worked">
-                <h4>✏️ Worked example: Answer Relevance — PID controller</h4>
-                <p><strong>Query $q$:</strong> "How do I tune a PID controller?"</p>
+                <h4 data-i18n="h166">✏️ Worked example: Answer Relevance — PID controller</h4>
+                <p data-i18n="h167"><strong>Query $q$:</strong> "How do I tune a PID controller?"</p>
                 <table class="data-table">
-                    <thead><tr><th>Synthetic question $\tilde q_j$</th><th>Cosine similarity</th></tr></thead>
+                    <thead><tr><th data-i18n="h168">Synthetic question $\tilde q_j$</th><th data-i18n="h169">Cosine similarity</th></tr></thead>
                     <tbody>
-                        <tr><td>"How do I tune PID with Ziegler-Nichols?"</td><td class="relevant">0.92</td></tr>
-                        <tr><td>"What are $K_p$, $T_i$, $T_d$?"</td><td>0.68</td></tr>
-                        <tr><td>"Who invented the PID controller?"</td><td class="not-relevant">0.25</td></tr>
+                        <tr><td data-i18n="h170">"How do I tune PID with Ziegler-Nichols?"</td><td class="relevant">0.92</td></tr>
+                        <tr><td data-i18n="h171">"What are $K_p$, $T_i$, $T_d$?"</td><td>0.68</td></tr>
+                        <tr><td data-i18n="h172">"Who invented the PID controller?"</td><td class="not-relevant">0.25</td></tr>
                     </tbody>
                 </table>
                 <div class="calc-steps">
-                    <div class="calc-step"><span class="step-number">1</span><div class="step-content">$\text{AR} = \frac{1}{3}(0.92 + 0.68 + 0.25) \approx 0.62$</div></div>
+                    <div class="calc-step"><span class="step-number">1</span><div class="step-content" data-i18n="h173">$\text{AR} = \frac{1}{3}(0.92 + 0.68 + 0.25) \approx 0.62$</div></div>
                 </div>
-                <div class="result"><span class="label">Answer Relevance =</span><span class="value">0.62</span></div>
+                <div class="result"><span class="label" data-i18n="h174">Answer Relevance =</span><span class="value">0.62</span></div>
             </div>
 
-            <h3><span class="h3-num">3.3</span>Context Recall</h3>
+            <h3 data-i18n="h175"><span class="h3-num">3.3</span>Context Recall</h3>
             <div class="formula-box">
-                <div class="formula-name">Context Recall</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h176">Context Recall</div>
+                <div class="formula-content" data-i18n="h177">
                     $$\text{CR} = \frac{|\{\,s \in S(y^*) \;:\; s \in c\}|}{|S(y^*)|}$$
                 </div>
             </div>
-            <p>The fraction of atomic claims from the gold answer $y^*$ that is covered by the retrieved context $c$. Low CR &rarr; retriever delivers incomplete context &rarr; the generator <em>cannot</em> deliver a complete answer even with perfect faithfulness.</p>
+            <p data-i18n="h178">The fraction of atomic claims from the gold answer $y^*$ that is covered by the retrieved context $c$. Low CR &rarr; retriever delivers incomplete context &rarr; the generator <em>cannot</em> deliver a complete answer even with perfect faithfulness.</p>
 
             <div class="example-box worked">
-                <h4>✏️ Worked example: Context Recall — welding defects</h4>
-                <p><strong>Gold answer $y^*$ covers 6 claims:</strong> porosity, undercut, lack of fusion, cracks, spatter, root defects</p>
-                <p><strong>Retrieved context $c$ contains:</strong> porosity, undercut, lack of fusion, spatter (4 of 6)</p>
-                <div class="result"><span class="label">Context Recall =</span><span class="value">0.667 (4/6)</span></div>
+                <h4 data-i18n="h179">✏️ Worked example: Context Recall — welding defects</h4>
+                <p data-i18n="h180"><strong>Gold answer $y^*$ covers 6 claims:</strong> porosity, undercut, lack of fusion, cracks, spatter, root defects</p>
+                <p data-i18n="h181"><strong>Retrieved context $c$ contains:</strong> porosity, undercut, lack of fusion, spatter (4 of 6)</p>
+                <div class="result"><span class="label" data-i18n="h182">Context Recall =</span><span class="value">0.667 (4/6)</span></div>
             </div>
 
             <div class="figure">
                 <div class="figure-container">
                     <canvas id="ragasRadarChart" height="320"></canvas>
                 </div>
-                <figcaption><strong>Fig. 4.</strong> RAGAS profile of two hypothetical systems compared. The plot visualizes strengths and weaknesses per dimension.</figcaption>
+                <figcaption data-i18n="h183"><strong>Fig. 4.</strong> RAGAS profile of two hypothetical systems compared. The plot visualizes strengths and weaknesses per dimension.</figcaption>
             </div>
 
             <div class="insight">
-                <h4>💡 Diagnostic use of the RAGAS metrics</h4>
-                <p>The four metrics enable causal diagnosis: <strong>low context recall</strong> → retriever problem. <strong>Low faithfulness with good context recall</strong> → generator hallucinates. <strong>Low answer relevance</strong> → generator answers a different question. This modularity is the central advance over monolithic end-to-end metrics.</p>
+                <h4 data-i18n="h184">💡 Diagnostic use of the RAGAS metrics</h4>
+                <p data-i18n="h185">The four metrics enable causal diagnosis: <strong>low context recall</strong> → retriever problem. <strong>Low faithfulness with good context recall</strong> → generator hallucinates. <strong>Low answer relevance</strong> → generator answers a different question. This modularity is the central advance over monolithic end-to-end metrics.</p>
             </div>
         </section>
 
@@ -1097,81 +1101,81 @@
         <section id="part4" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">04</span>
-                <h2 class="chapter-title">Fine-Tuning Metrics</h2>
+                <h2 class="chapter-title" data-i18n="h186">Fine-Tuning Metrics</h2>
             </div>
 
-            <p>Classical text-generation metrics evaluate how well a generated hypothesis $\hat y$ matches one (or more) reference answer(s) $y^*$. They differ primarily in <em>granularity</em> (n-grams vs. tokens) and in <em>representation</em> (lexical vs. semantic).</p>
+            <p data-i18n="h187">Classical text-generation metrics evaluate how well a generated hypothesis $\hat y$ matches one (or more) reference answer(s) $y^*$. They differ primarily in <em>granularity</em> (n-grams vs. tokens) and in <em>representation</em> (lexical vs. semantic).</p>
 
-            <h3><span class="h3-num">4.1</span>BLEU (Bilingual Evaluation Understudy)</h3>
-            <div class="reference">
+            <h3 data-i18n="h188"><span class="h3-num">4.1</span>BLEU (Bilingual Evaluation Understudy)</h3>
+            <div class="reference" data-i18n="h189">
                 📖 <strong>Papineni et al.</strong> (2002). "BLEU: a Method for Automatic Evaluation of Machine Translation." <em>ACL 2002</em>, pp. 311–318. DOI: <a href="https://doi.org/10.3115/1073083.1073135">10.3115/1073083.1073135</a>
             </div>
             <div class="formula-box">
-                <div class="formula-name">BLEU-N</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h190">BLEU-N</div>
+                <div class="formula-content" data-i18n="h191">
                     $$\text{BLEU} = \text{BP} \cdot \exp\!\left(\sum_{n=1}^{N} w_n \log p_n\right), \quad \text{BP} = \begin{cases} 1 & \text{if } |\hat y| > |y^*| \\ e^{1 - |y^*|/|\hat y|} & \text{otherwise}\end{cases}$$
                 </div>
             </div>
-            <p>BLEU geometrically averages n-gram precisions $p_n$ and multiplies by a <em>brevity penalty</em> (BP) that penalizes overly short hypotheses. Standard weights: $w_n = 1/N$ with $N=4$.</p>
+            <p data-i18n="h192">BLEU geometrically averages n-gram precisions $p_n$ and multiplies by a <em>brevity penalty</em> (BP) that penalizes overly short hypotheses. Standard weights: $w_n = 1/N$ with $N=4$.</p>
 
             <div class="example-box worked">
-                <h4>✏️ Worked example: BLEU-1 and BLEU-2</h4>
-                <p><strong>Reference:</strong> "The motor reaches a speed of 3000 revolutions per minute"</p>
-                <p><strong>Generated:</strong> "The motor has a speed of 3000 revolutions per minute"</p>
+                <h4 data-i18n="h193">✏️ Worked example: BLEU-1 and BLEU-2</h4>
+                <p data-i18n="h194"><strong>Reference:</strong> "The motor reaches a speed of 3000 revolutions per minute"</p>
+                <p data-i18n="h195"><strong>Generated:</strong> "The motor has a speed of 3000 revolutions per minute"</p>
                 <div class="calc-steps">
-                    <div class="calc-step"><span class="step-number">1</span><div class="step-content">Unigram precision $p_1 = 8/9 \approx 0.889$ (most words match)</div></div>
-                    <div class="calc-step"><span class="step-number">2</span><div class="step-content">Bigram precision $p_2 = 6/8 = 0.750$</div></div>
-                    <div class="calc-step"><span class="step-number">3</span><div class="step-content">Equal length → $\text{BP} = 1$</div></div>
+                    <div class="calc-step"><span class="step-number">1</span><div class="step-content" data-i18n="h196">Unigram precision $p_1 = 8/9 \approx 0.889$ (most words match)</div></div>
+                    <div class="calc-step"><span class="step-number">2</span><div class="step-content" data-i18n="h197">Bigram precision $p_2 = 6/8 = 0.750$</div></div>
+                    <div class="calc-step"><span class="step-number">3</span><div class="step-content" data-i18n="h198">Equal length → $\text{BP} = 1$</div></div>
                 </div>
-                <div class="result"><span class="label">BLEU-1 ≈</span><span class="value">0.889</span></div>
-                <div class="result"><span class="label">BLEU-2 ≈</span><span class="value">0.816</span></div>
+                <div class="result"><span class="label" data-i18n="h199">BLEU-1 ≈</span><span class="value">0.889</span></div>
+                <div class="result"><span class="label" data-i18n="h200">BLEU-2 ≈</span><span class="value">0.816</span></div>
             </div>
 
-            <h3><span class="h3-num">4.2</span>ROUGE (Recall-Oriented Understudy for Gisting Evaluation)</h3>
-            <div class="reference">
+            <h3 data-i18n="h201"><span class="h3-num">4.2</span>ROUGE (Recall-Oriented Understudy for Gisting Evaluation)</h3>
+            <div class="reference" data-i18n="h202">
                 📖 <strong>Lin, C.-Y.</strong> (2004). "ROUGE: A Package for Automatic Evaluation of Summaries." <em>ACL Workshop</em>, pp. 74–81.
             </div>
             <div class="formula-box">
-                <div class="formula-name">ROUGE-N</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h203">ROUGE-N</div>
+                <div class="formula-content" data-i18n="h204">
                     $$\text{ROUGE-}N = \frac{\sum_{g \in y^*} \min(\#g_{\hat y}, \#g_{y^*})}{\sum_{g \in y^*} \#g_{y^*}}$$
                 </div>
             </div>
-            <p>ROUGE-N is recall-oriented (the denominator is based on the reference, not the hypothesis). ROUGE-L uses the longest common subsequence (LCS) and is robust to word-order changes.</p>
+            <p data-i18n="h205">ROUGE-N is recall-oriented (the denominator is based on the reference, not the hypothesis). ROUGE-L uses the longest common subsequence (LCS) and is robust to word-order changes.</p>
 
-            <h3><span class="h3-num">4.3</span>BERTScore</h3>
-            <div class="reference">
+            <h3 data-i18n="h206"><span class="h3-num">4.3</span>BERTScore</h3>
+            <div class="reference" data-i18n="h207">
                 📖 <strong>Zhang, T., Kishore, V., Wu, F., Weinberger, K. Q., &amp; Artzi, Y.</strong> (2020). "BERTScore: Evaluating Text Generation with BERT." <em>ICLR 2020</em>. <a href="https://arxiv.org/abs/1904.09675">[arXiv:1904.09675]</a>
             </div>
             <div class="formula-box">
-                <div class="formula-name">BERTScore F1</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h208">BERTScore F1</div>
+                <div class="formula-content" data-i18n="h209">
                     $$P_{\text{BERT}} = \frac{1}{|\hat y|}\sum_{\hat x \in \hat y} \max_{x \in y^*} \mathbf{e}(\hat x)^{\!\top}\mathbf{e}(x), \quad F_1 = \frac{2 P R}{P+R}$$
                 </div>
             </div>
-            <p>Instead of counting exact token matches, BERTScore computes the maximum cosine similarity of contextualized embeddings (e.g., from BERT or RoBERTa). This solves the fundamental problem of lexical metrics: <em>semantic equivalence under lexical variation</em>.</p>
+            <p data-i18n="h210">Instead of counting exact token matches, BERTScore computes the maximum cosine similarity of contextualized embeddings (e.g., from BERT or RoBERTa). This solves the fundamental problem of lexical metrics: <em>semantic equivalence under lexical variation</em>.</p>
 
             <div class="example-box worked">
-                <h4>✏️ BERTScore detects synonyms</h4>
-                <p><strong>Reference:</strong> "The transmission transmits a torque"</p>
-                <p><strong>Generated:</strong> "The gearbox forwards a torque"</p>
-                <p>Lexical metrics: BLEU is low (different words). <strong>BERTScore: high</strong>, because "transmits" and "forwards" are semantically equivalent in this context.</p>
-                <div class="result"><span class="label">BERTScore F1 ≈</span><span class="value">0.94</span></div>
+                <h4 data-i18n="h211">✏️ BERTScore detects synonyms</h4>
+                <p data-i18n="h212"><strong>Reference:</strong> "The transmission transmits a torque"</p>
+                <p data-i18n="h213"><strong>Generated:</strong> "The gearbox forwards a torque"</p>
+                <p data-i18n="h214">Lexical metrics: BLEU is low (different words). <strong>BERTScore: high</strong>, because "transmits" and "forwards" are semantically equivalent in this context.</p>
+                <div class="result"><span class="label" data-i18n="h215">BERTScore F1 ≈</span><span class="value">0.94</span></div>
             </div>
 
             <div class="figure">
                 <div class="figure-container">
                     <canvas id="metricComparisonChart" height="300"></canvas>
                 </div>
-                <figcaption><strong>Fig. 5.</strong> Metric behavior as lexical variation increases. BERTScore degrades substantially more slowly than BLEU/ROUGE on semantically equivalent rephrasings.</figcaption>
+                <figcaption data-i18n="h216"><strong>Fig. 5.</strong> Metric behavior as lexical variation increases. BERTScore degrades substantially more slowly than BLEU/ROUGE on semantically equivalent rephrasings.</figcaption>
             </div>
 
             <div class="warning">
-                <h4>⚠️ Known weaknesses of classical metrics</h4>
+                <h4 data-i18n="h217">⚠️ Known weaknesses of classical metrics</h4>
                 <ul>
-                    <li><strong>BLEU/ROUGE</strong>: correlate <em>weakly</em> with human judgment in open-domain generation (Reiter, 2018; Sai et al., 2022). With single reference answers the variance is extremely high.</li>
-                    <li><strong>BERTScore</strong>: depends on the encoder model used. Cross-lingual transfer and domain drift can distort values.</li>
-                    <li><strong>All three</strong>: can be subject to <em>Goodhart's Law</em> — "When a measure becomes a target, it ceases to be a good measure."</li>
+                    <li data-i18n="h218"><strong>BLEU/ROUGE</strong>: correlate <em>weakly</em> with human judgment in open-domain generation (Reiter, 2018; Sai et al., 2022). With single reference answers the variance is extremely high.</li>
+                    <li data-i18n="h219"><strong>BERTScore</strong>: depends on the encoder model used. Cross-lingual transfer and domain drift can distort values.</li>
+                    <li data-i18n="h220"><strong>All three</strong>: can be subject to <em>Goodhart's Law</em> — "When a measure becomes a target, it ceases to be a good measure."</li>
                 </ul>
             </div>
         </section>
@@ -1180,65 +1184,65 @@
         <section id="part5" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">05</span>
-                <h2 class="chapter-title">Statistical Evaluation &amp; Significance</h2>
+                <h2 class="chapter-title" data-i18n="h221">Statistical Evaluation &amp; Significance</h2>
             </div>
 
-            <p>A single metric value on a test set is a <em>point estimate</em> with sampling variance. Without quantifying this uncertainty, statements like "system A is better than system B" are scientifically unfounded. This chapter introduces three canonical tools: confidence intervals, the bootstrap, and inter-annotator agreement.</p>
+            <p data-i18n="h222">A single metric value on a test set is a <em>point estimate</em> with sampling variance. Without quantifying this uncertainty, statements like "system A is better than system B" are scientifically unfounded. This chapter introduces three canonical tools: confidence intervals, the bootstrap, and inter-annotator agreement.</p>
 
-            <h3><span class="h3-num">5.1</span>Confidence intervals for metrics</h3>
-            <p>For a mean $\bar X$ over $n$ queries with sample standard deviation $s$, the central limit theorem gives approximately:</p>
+            <h3 data-i18n="h223"><span class="h3-num">5.1</span>Confidence intervals for metrics</h3>
+            <p data-i18n="h224">For a mean $\bar X$ over $n$ queries with sample standard deviation $s$, the central limit theorem gives approximately:</p>
             <div class="formula-box">
-                <div class="formula-name">95% confidence interval (normal-approximated)</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h225">95% confidence interval (normal-approximated)</div>
+                <div class="formula-content" data-i18n="h226">
                     $$\text{CI}_{95\%} = \bar X \pm 1.96 \cdot \frac{s}{\sqrt{n}}$$
                 </div>
             </div>
 
             <div class="example-box worked">
-                <h4>✏️ Worked example: CI for MRR</h4>
-                <p>Over 100 test queries, $\overline{\text{MRR}} = 0.708$ with $s = 0.28$. The 95% CI is:</p>
+                <h4 data-i18n="h227">✏️ Worked example: CI for MRR</h4>
+                <p data-i18n="h228">Over 100 test queries, $\overline{\text{MRR}} = 0.708$ with $s = 0.28$. The 95% CI is:</p>
                 <div class="calc-steps">
-                    <div class="calc-step"><span class="step-number">1</span><div class="step-content">Standard error: $\text{SE} = 0.28/\sqrt{100} = 0.028$</div></div>
-                    <div class="calc-step"><span class="step-number">2</span><div class="step-content">Half-width: $1.96 \cdot 0.028 = 0.055$</div></div>
-                    <div class="calc-step"><span class="step-number">3</span><div class="step-content">$\text{CI}_{95\%} = [0.653,\; 0.763]$</div></div>
+                    <div class="calc-step"><span class="step-number">1</span><div class="step-content" data-i18n="h229">Standard error: $\text{SE} = 0.28/\sqrt{100} = 0.028$</div></div>
+                    <div class="calc-step"><span class="step-number">2</span><div class="step-content" data-i18n="h230">Half-width: $1.96 \cdot 0.028 = 0.055$</div></div>
+                    <div class="calc-step"><span class="step-number">3</span><div class="step-content" data-i18n="h231">$\text{CI}_{95\%} = [0.653,\; 0.763]$</div></div>
                 </div>
-                <div class="result"><span class="label">95% CI =</span><span class="value">[0.653 ; 0.763]</span></div>
+                <div class="result"><span class="label" data-i18n="h232">95% CI =</span><span class="value">[0.653 ; 0.763]</span></div>
             </div>
 
-            <h3><span class="h3-num">5.2</span>Bootstrap resampling</h3>
-            <p>For non-normal metrics (e.g., NDCG, BLEU), the non-parametric <em>bootstrap</em> procedure (Efron, 1979) is preferable. From the test set, $B$ (typically 1000) random samples are drawn with replacement; quantiles are then read directly from the distribution of the $B$ metric values.</p>
+            <h3 data-i18n="h233"><span class="h3-num">5.2</span>Bootstrap resampling</h3>
+            <p data-i18n="h234">For non-normal metrics (e.g., NDCG, BLEU), the non-parametric <em>bootstrap</em> procedure (Efron, 1979) is preferable. From the test set, $B$ (typically 1000) random samples are drawn with replacement; quantiles are then read directly from the distribution of the $B$ metric values.</p>
 
             <div class="figure">
                 <div class="figure-container">
                     <canvas id="bootstrapChart" height="280"></canvas>
                 </div>
-                <figcaption><strong>Fig. 6.</strong> Bootstrap distribution of NDCG@10 over 1000 resamples. The 95% CI is read off as the 2.5% and 97.5% quantiles (dashed lines).</figcaption>
+                <figcaption data-i18n="h235"><strong>Fig. 6.</strong> Bootstrap distribution of NDCG@10 over 1000 resamples. The 95% CI is read off as the 2.5% and 97.5% quantiles (dashed lines).</figcaption>
             </div>
 
-            <h3><span class="h3-num">5.3</span>Inter-annotator agreement (Cohen's $\kappa$)</h3>
-            <p>When relevance is annotated by humans, the reliability of the annotation itself must be checked. Cohen's kappa corrects observed agreement by the agreement expected by chance:</p>
+            <h3 data-i18n="h236"><span class="h3-num">5.3</span>Inter-annotator agreement (Cohen's $\kappa$)</h3>
+            <p data-i18n="h237">When relevance is annotated by humans, the reliability of the annotation itself must be checked. Cohen's kappa corrects observed agreement by the agreement expected by chance:</p>
             <div class="formula-box">
-                <div class="formula-name">Cohen's Kappa</div>
-                <div class="formula-content">
+                <div class="formula-name" data-i18n="h238">Cohen's Kappa</div>
+                <div class="formula-content" data-i18n="h239">
                     $$\kappa = \frac{p_o - p_e}{1 - p_e}$$
                 </div>
             </div>
 
             <table class="summary-table">
-                <thead><tr><th>$\kappa$ value</th><th>Interpretation (Landis &amp; Koch, 1977)</th></tr></thead>
+                <thead><tr><th data-i18n="h240">$\kappa$ value</th><th data-i18n="h241">Interpretation (Landis &amp; Koch, 1977)</th></tr></thead>
                 <tbody>
-                    <tr><td>&lt; 0.00</td><td>Worse than chance</td></tr>
-                    <tr><td>0.01 – 0.20</td><td>Slight agreement</td></tr>
-                    <tr><td>0.21 – 0.40</td><td>Fair agreement</td></tr>
-                    <tr><td>0.41 – 0.60</td><td>Moderate agreement</td></tr>
-                    <tr><td>0.61 – 0.80</td><td>Substantial agreement</td></tr>
-                    <tr><td>0.81 – 1.00</td><td>Almost perfect</td></tr>
+                    <tr><td>&lt; 0.00</td><td data-i18n="h242">Worse than chance</td></tr>
+                    <tr><td>0.01 – 0.20</td><td data-i18n="h243">Slight agreement</td></tr>
+                    <tr><td>0.21 – 0.40</td><td data-i18n="h244">Fair agreement</td></tr>
+                    <tr><td>0.41 – 0.60</td><td data-i18n="h245">Moderate agreement</td></tr>
+                    <tr><td>0.61 – 0.80</td><td data-i18n="h246">Substantial agreement</td></tr>
+                    <tr><td>0.81 – 1.00</td><td data-i18n="h247">Almost perfect</td></tr>
                 </tbody>
             </table>
 
             <div class="insight">
-                <h4>💡 Scientific reporting practice</h4>
-                <p>It is now standard practice in conference papers (ACL, EMNLP, NeurIPS) to report <em>every</em> primary metric with a confidence interval <strong>plus</strong> a significance test against the baseline (e.g., paired bootstrap test). An improvement of 0.3 BLEU points without a significance statement is generally not considered publishable.</p>
+                <h4 data-i18n="h248">💡 Scientific reporting practice</h4>
+                <p data-i18n="h249">It is now standard practice in conference papers (ACL, EMNLP, NeurIPS) to report <em>every</em> primary metric with a confidence interval <strong>plus</strong> a significance test against the baseline (e.g., paired bootstrap test). An improvement of 0.3 BLEU points without a significance statement is generally not considered publishable.</p>
             </div>
         </section>
 
@@ -1246,35 +1250,35 @@
         <section id="part6" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">06</span>
-                <h2 class="chapter-title">Interactive Metric Comparison</h2>
+                <h2 class="chapter-title" data-i18n="h250">Interactive Metric Comparison</h2>
             </div>
 
-            <p>The following live demo shows the fundamental behavior of BLEU, ROUGE, and BERTScore on five classes of text variation. Choose a variation to see how the three metrics react in qualitatively different ways.</p>
+            <p data-i18n="h251">The following live demo shows the fundamental behavior of BLEU, ROUGE, and BERTScore on five classes of text variation. Choose a variation to see how the three metrics react in qualitatively different ways.</p>
 
             <div class="interactive-panel">
-                <h4>🎮 Metric playground</h4>
-                <p class="hint">Pick a variation. The values are based on typical empirical magnitudes from Sai et al. (2022).</p>
+                <h4 data-i18n="h252">🎮 Metric playground</h4>
+                <p class="hint" data-i18n="h253">Pick a variation. The values are based on typical empirical magnitudes from Sai et al. (2022).</p>
 
                 <div id="variant-buttons" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 18px;">
-                    <button class="variant-btn active" data-variant="exact">Exact match</button>
-                    <button class="variant-btn" data-variant="oneword">One word changed</button>
-                    <button class="variant-btn" data-variant="synonym">Synonym</button>
-                    <button class="variant-btn" data-variant="paraphrase">Full paraphrase</button>
-                    <button class="variant-btn" data-variant="contradict">Contradiction (same words)</button>
+                    <button class="variant-btn active" data-variant="exact" data-i18n="h254">Exact match</button>
+                    <button class="variant-btn" data-variant="oneword" data-i18n="h255">One word changed</button>
+                    <button class="variant-btn" data-variant="synonym" data-i18n="h256">Synonym</button>
+                    <button class="variant-btn" data-variant="paraphrase" data-i18n="h257">Full paraphrase</button>
+                    <button class="variant-btn" data-variant="contradict" data-i18n="h258">Contradiction (same words)</button>
                 </div>
 
                 <div id="variant-display" style="font-family: var(--font-serif); font-size: 1.05em; padding: 18px 22px; background: var(--bg-alt); border-radius: var(--radius-sm); margin-bottom: 18px; line-height: 1.8;">
-                    <div><strong>Reference:</strong> <span id="ref-text">The motor reaches 3000 revolutions per minute.</span></div>
-                    <div style="margin-top:8px;"><strong>Hypothesis:</strong> <span id="hyp-text">The motor reaches 3000 revolutions per minute.</span></div>
+                    <div><strong data-i18n="h259">Reference:</strong> <span id="ref-text" data-i18n="h260">The motor reaches 3000 revolutions per minute.</span></div>
+                    <div style="margin-top:8px;"><strong data-i18n="h261">Hypothesis:</strong> <span id="hyp-text" data-i18n="h262">The motor reaches 3000 revolutions per minute.</span></div>
                 </div>
 
                 <div class="live-output">
-                    <div class="live-metric"><div class="lm-name">BLEU-2</div><div class="lm-value" id="bleuVal">1.00</div></div>
-                    <div class="live-metric"><div class="lm-name">ROUGE-L</div><div class="lm-value" id="rougeVal">1.00</div></div>
-                    <div class="live-metric"><div class="lm-name">BERTScore</div><div class="lm-value" id="bertVal">1.00</div></div>
+                    <div class="live-metric"><div class="lm-name" data-i18n="h263">BLEU-2</div><div class="lm-value" id="bleuVal">1.00</div></div>
+                    <div class="live-metric"><div class="lm-name" data-i18n="h264">ROUGE-L</div><div class="lm-value" id="rougeVal">1.00</div></div>
+                    <div class="live-metric"><div class="lm-name" data-i18n="h265">BERTScore</div><div class="lm-value" id="bertVal">1.00</div></div>
                 </div>
 
-                <p id="variant-explanation" style="margin-top: 16px; font-family: var(--font-sans); font-size: 0.92em; color: var(--text-soft); padding: 12px 16px; background: var(--surface); border-radius: var(--radius-sm); border-left: 3px solid var(--info);">
+                <p id="variant-explanation" style="margin-top: 16px; font-family: var(--font-sans); font-size: 0.92em; color: var(--text-soft); padding: 12px 16px; background: var(--surface); border-radius: var(--radius-sm); border-left: 3px solid var(--info);" data-i18n="h266">
                     Identical hypothesis and reference → all three metrics return their maximum value.
                 </p>
             </div>
@@ -1294,8 +1298,8 @@
             </style>
 
             <div class="warning">
-                <h4>⚠️ The contradiction case</h4>
-                <p>Pay particular attention to the last variant: when the hypothesis nearly fully repeats the reference lexically but states the <em>opposite</em> semantically (e.g., "does NOT reach 3000…"), BLEU stays artificially high. This is a well-known failure mode of all n-gram metrics (Freitag et al., 2022) and one of the central motivations for developing <em>NLI-based</em> metrics such as BLEURT.</p>
+                <h4 data-i18n="h268">⚠️ The contradiction case</h4>
+                <p data-i18n="h269">Pay particular attention to the last variant: when the hypothesis nearly fully repeats the reference lexically but states the <em>opposite</em> semantically (e.g., "does NOT reach 3000…"), BLEU stays artificially high. This is a well-known failure mode of all n-gram metrics (Freitag et al., 2022) and one of the central motivations for developing <em>NLI-based</em> metrics such as BLEURT.</p>
             </div>
         </section>
 
@@ -1303,34 +1307,34 @@
         <section id="part7" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">07</span>
-                <h2 class="chapter-title">Decision Guide</h2>
+                <h2 class="chapter-title" data-i18n="h270">Decision Guide</h2>
             </div>
 
-            <p>The choice of the "right" metric depends on application context. The table below offers pragmatic recommendations for typical engineering scenarios:</p>
+            <p data-i18n="h271">The choice of the "right" metric depends on application context. The table below offers pragmatic recommendations for typical engineering scenarios:</p>
 
             <table class="summary-table">
-                <thead><tr><th>Use case</th><th>Primary metric</th><th>Secondary metric</th><th>Reasoning</th></tr></thead>
+                <thead><tr><th data-i18n="h272">Use case</th><th data-i18n="h273">Primary metric</th><th data-i18n="h274">Secondary metric</th><th data-i18n="h275">Reasoning</th></tr></thead>
                 <tbody>
-                    <tr><td>Safety data sheets (RAG)</td><td>Faithfulness</td><td>Context recall</td><td>Hallucinations are safety-critical</td></tr>
-                    <tr><td>Standards / regulation search</td><td>Context recall</td><td>NDCG@10</td><td>Completeness over precision</td></tr>
-                    <tr><td>FAQ bot / search UI</td><td>MRR</td><td>Precision@1</td><td>First result dominates UX</td></tr>
-                    <tr><td>Machine translation</td><td>BLEU + chrF</td><td>BERTScore</td><td>Established standard metrics</td></tr>
-                    <tr><td>Summarization</td><td>ROUGE-L</td><td>BERTScore</td><td>Recall orientation essential</td></tr>
-                    <tr><td>Code generation</td><td>Pass@K (functional test)</td><td>BLEU</td><td>Correctness is binary</td></tr>
-                    <tr><td>Open-domain QA</td><td>RAGAS profile (all 4)</td><td>Human eval</td><td>Multidimensional quality</td></tr>
+                    <tr><td data-i18n="h276">Safety data sheets (RAG)</td><td data-i18n="h277">Faithfulness</td><td data-i18n="h278">Context recall</td><td data-i18n="h279">Hallucinations are safety-critical</td></tr>
+                    <tr><td data-i18n="h280">Standards / regulation search</td><td data-i18n="h281">Context recall</td><td data-i18n="h282">NDCG@10</td><td data-i18n="h283">Completeness over precision</td></tr>
+                    <tr><td data-i18n="h284">FAQ bot / search UI</td><td data-i18n="h285">MRR</td><td data-i18n="h286">Precision@1</td><td data-i18n="h287">First result dominates UX</td></tr>
+                    <tr><td data-i18n="h288">Machine translation</td><td data-i18n="h289">BLEU + chrF</td><td data-i18n="h290">BERTScore</td><td data-i18n="h291">Established standard metrics</td></tr>
+                    <tr><td data-i18n="h292">Summarization</td><td data-i18n="h293">ROUGE-L</td><td data-i18n="h294">BERTScore</td><td data-i18n="h295">Recall orientation essential</td></tr>
+                    <tr><td data-i18n="h296">Code generation</td><td data-i18n="h297">Pass@K (functional test)</td><td data-i18n="h298">BLEU</td><td data-i18n="h299">Correctness is binary</td></tr>
+                    <tr><td data-i18n="h300">Open-domain QA</td><td data-i18n="h301">RAGAS profile (all 4)</td><td data-i18n="h302">Human eval</td><td data-i18n="h303">Multidimensional quality</td></tr>
                 </tbody>
             </table>
 
-            <h3><span class="h3-num">7.1</span>Anti-patterns: common evaluation mistakes</h3>
+            <h3 data-i18n="h304"><span class="h3-num">7.1</span>Anti-patterns: common evaluation mistakes</h3>
             <div class="warning">
-                <h4>⚠️ What <em>not</em> to do</h4>
+                <h4 data-i18n="h305">⚠️ What <em>not</em> to do</h4>
                 <ul>
-                    <li><strong>One-dimensional optimization</strong>: looking at only one metric ignores the multidimensional nature of quality.</li>
-                    <li><strong>Metric hacking (Goodhart's Law)</strong>: directly optimizing on a metric often leads to quality loss on other axes.</li>
-                    <li><strong>Neglecting human evaluation</strong>: automatic metrics are <em>proxies</em>; final validation requires sample-based human evaluation.</li>
-                    <li><strong>Forgetting the retrieval component</strong>: in RAG, poor end-to-end quality is often wrongly attributed to the generator when in fact retrieval is failing.</li>
-                    <li><strong>Missing statistical significance</strong>: point estimates without confidence intervals are not informative (see Ch. 5).</li>
-                    <li><strong>Test set contamination</strong>: when training and test data overlap, all metrics become unreliable.</li>
+                    <li data-i18n="h306"><strong>One-dimensional optimization</strong>: looking at only one metric ignores the multidimensional nature of quality.</li>
+                    <li data-i18n="h307"><strong>Metric hacking (Goodhart's Law)</strong>: directly optimizing on a metric often leads to quality loss on other axes.</li>
+                    <li data-i18n="h308"><strong>Neglecting human evaluation</strong>: automatic metrics are <em>proxies</em>; final validation requires sample-based human evaluation.</li>
+                    <li data-i18n="h309"><strong>Forgetting the retrieval component</strong>: in RAG, poor end-to-end quality is often wrongly attributed to the generator when in fact retrieval is failing.</li>
+                    <li data-i18n="h310"><strong>Missing statistical significance</strong>: point estimates without confidence intervals are not informative (see Ch. 5).</li>
+                    <li data-i18n="h311"><strong>Test set contamination</strong>: when training and test data overlap, all metrics become unreliable.</li>
                 </ul>
             </div>
         </section>
@@ -1339,12 +1343,12 @@
         <section id="part8" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">08</span>
-                <h2 class="chapter-title">Python Implementation</h2>
+                <h2 class="chapter-title" data-i18n="h312">Python Implementation</h2>
             </div>
 
-            <p>The reference implementations below show the core logic. For production systems, use of established libraries is recommended (RAGAS, evaluate, bert_score, scikit-learn).</p>
+            <p data-i18n="h313">The reference implementations below show the core logic. For production systems, use of established libraries is recommended (RAGAS, evaluate, bert_score, scikit-learn).</p>
 
-            <h3><span class="h3-num">8.1</span>Custom implementation of retrieval metrics</h3>
+            <h3 data-i18n="h314"><span class="h3-num">8.1</span>Custom implementation of retrieval metrics</h3>
 <pre><code>import numpy as np
 from typing import List, Sequence
 
@@ -1378,7 +1382,7 @@ def ndcg_at_k(relevance_grades: Sequence[float], k: int) -> float:
     ideal  = dcg(sorted(relevance_grades, reverse=True))
     return actual / ideal if ideal &gt; 0 else 0.0</code></pre>
 
-            <h3><span class="h3-num">8.2</span>Bootstrap confidence interval</h3>
+            <h3 data-i18n="h316"><span class="h3-num">8.2</span>Bootstrap confidence interval</h3>
 <pre><code>def bootstrap_ci(scores: np.ndarray, n_boot: int = 1000,
                  alpha: float = 0.05, seed: int = 42) -> tuple:
     """Non-parametric 95% CI via bootstrap resampling."""
@@ -1392,7 +1396,7 @@ def ndcg_at_k(relevance_grades: Sequence[float], k: int) -> float:
     hi = np.quantile(boot_means, 1 - alpha / 2)
     return float(scores.mean()), float(lo), float(hi)</code></pre>
 
-            <h3><span class="h3-num">8.3</span>RAGAS, BLEU, ROUGE, BERTScore (libraries)</h3>
+            <h3 data-i18n="h318"><span class="h3-num">8.3</span>RAGAS, BLEU, ROUGE, BERTScore (libraries)</h3>
 <pre><code># RAGAS
 from ragas import evaluate
 from ragas.metrics import faithfulness, answer_relevancy, context_recall, context_precision
@@ -1418,17 +1422,17 @@ P, R, F1 = score(hyps, refs, lang="en", model_type="roberta-large")</code></pre>
         <section id="part9" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">09</span>
-                <h2 class="chapter-title">Self-Test</h2>
+                <h2 class="chapter-title" data-i18n="h320">Self-Test</h2>
             </div>
 
-            <p>Six multiple-choice questions for self-assessment. Click an answer to receive immediate feedback.</p>
+            <p data-i18n="h321">Six multiple-choice questions for self-assessment. Click an answer to receive immediate feedback.</p>
 
             <div id="quiz-container">
                 <!-- Quiz items rendered via JS -->
             </div>
 
             <div id="quiz-summary" style="display:none; margin-top: 24px; padding: 22px 28px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-soft) 100%); color:white; border-radius: var(--radius); font-family: var(--font-sans);">
-                <div style="font-size: 0.85em; letter-spacing: 0.1em; text-transform: uppercase; opacity:0.8; margin-bottom: 6px;">Your result</div>
+                <div style="font-size: 0.85em; letter-spacing: 0.1em; text-transform: uppercase; opacity:0.8; margin-bottom: 6px;" data-i18n="h322">Your result</div>
                 <div style="font-size: 2em; font-weight: 700; font-family: var(--font-serif);" id="quiz-score">—</div>
                 <div id="quiz-message" style="margin-top: 8px; opacity:0.9;"></div>
             </div>
@@ -1438,61 +1442,61 @@ P, R, F1 = score(hyps, refs, lang="en", model_type="roberta-large")</code></pre>
         <section id="part10" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">10</span>
-                <h2 class="chapter-title">Exercises</h2>
+                <h2 class="chapter-title" data-i18n="h323">Exercises</h2>
             </div>
 
             <div class="example-box">
-                <h4>📝 Exercise 1: Precision &amp; Recall</h4>
-                <p>10 documents are retrieved; those at ranks 1, 3, 5, 8, 10 are relevant. The corpus contains 15 relevant documents in total.</p>
-                <details><summary>Show solution</summary>
+                <h4 data-i18n="h324">📝 Exercise 1: Precision &amp; Recall</h4>
+                <p data-i18n="h325">10 documents are retrieved; those at ranks 1, 3, 5, 8, 10 are relevant. The corpus contains 15 relevant documents in total.</p>
+                <details><summary data-i18n="h326">Show solution</summary>
                     <div>
-                        <p>Precision@5 = $3/5 = 0.60$ &nbsp;|&nbsp; Precision@10 = $5/10 = 0.50$</p>
-                        <p>Recall@5 = $3/15 = 0.20$ &nbsp;|&nbsp; Recall@10 = $5/15 \approx 0.333$</p>
-                        <p>F1@10 = $\frac{2 \cdot 0.5 \cdot 0.333}{0.5 + 0.333} \approx 0.40$</p>
+                        <p data-i18n="h327">Precision@5 = $3/5 = 0.60$ &nbsp;|&nbsp; Precision@10 = $5/10 = 0.50$</p>
+                        <p data-i18n="h328">Recall@5 = $3/15 = 0.20$ &nbsp;|&nbsp; Recall@10 = $5/15 \approx 0.333$</p>
+                        <p data-i18n="h329">F1@10 = $\frac{2 \cdot 0.5 \cdot 0.333}{0.5 + 0.333} \approx 0.40$</p>
                     </div>
                 </details>
             </div>
 
             <div class="example-box">
-                <h4>📝 Exercise 2: MRR over 5 queries</h4>
-                <p>First relevant ranks: $q_1 \to 1$, $q_2 \to 4$, $q_3 \to 2$, $q_4 \to 1$, $q_5 \to 3$</p>
-                <details><summary>Show solution</summary>
+                <h4 data-i18n="h330">📝 Exercise 2: MRR over 5 queries</h4>
+                <p data-i18n="h331">First relevant ranks: $q_1 \to 1$, $q_2 \to 4$, $q_3 \to 2$, $q_4 \to 1$, $q_5 \to 3$</p>
+                <details><summary data-i18n="h332">Show solution</summary>
                     <div>
-                        <p>$\text{MRR} = \dfrac{1 + 0.25 + 0.5 + 1 + 0.333}{5} = \dfrac{3.083}{5} \approx 0.617$</p>
+                        <p data-i18n="h333">$\text{MRR} = \dfrac{1 + 0.25 + 0.5 + 1 + 0.333}{5} = \dfrac{3.083}{5} \approx 0.617$</p>
                     </div>
                 </details>
             </div>
 
             <div class="example-box">
-                <h4>📝 Exercise 3: Faithfulness</h4>
-                <p>Context: "Transformer: 230&nbsp;V → 24&nbsp;V, ratio 9.6&nbsp;:&nbsp;1, power 500&nbsp;W". The answer additionally mentions "95% efficiency" (not present in the context).</p>
-                <details><summary>Show solution</summary>
+                <h4 data-i18n="h334">📝 Exercise 3: Faithfulness</h4>
+                <p data-i18n="h335">Context: "Transformer: 230&nbsp;V → 24&nbsp;V, ratio 9.6&nbsp;:&nbsp;1, power 500&nbsp;W". The answer additionally mentions "95% efficiency" (not present in the context).</p>
+                <details><summary data-i18n="h336">Show solution</summary>
                     <div>
-                        <p>3 supported claims + 1 hallucination → $F = 3/4 = 0.75$</p>
+                        <p data-i18n="h337">3 supported claims + 1 hallucination → $F = 3/4 = 0.75$</p>
                     </div>
                 </details>
             </div>
 
             <div class="example-box">
-                <h4>📝 Exercise 4: NDCG with graded relevance</h4>
-                <p>Top-5 relevance grades: $(2, 3, 0, 1, 2)$. Compute NDCG@5.</p>
-                <details><summary>Show solution</summary>
+                <h4 data-i18n="h338">📝 Exercise 4: NDCG with graded relevance</h4>
+                <p data-i18n="h339">Top-5 relevance grades: $(2, 3, 0, 1, 2)$. Compute NDCG@5.</p>
+                <details><summary data-i18n="h340">Show solution</summary>
                     <div>
-                        <p>DCG = $3 + \frac{7}{1.585} + 0 + \frac{1}{2.322} + \frac{3}{2.585} = 3 + 4.416 + 0.431 + 1.160 = 9.007$</p>
-                        <p>Ideal ordering $(3,2,2,1,0)$: IDCG = $7 + \frac{3}{1.585} + \frac{3}{2.000} + \frac{1}{2.322} + 0 = 7 + 1.893 + 1.500 + 0.431 = 10.824$</p>
-                        <p>$\text{NDCG@}5 = 9.007 / 10.824 \approx 0.832$</p>
+                        <p data-i18n="h341">DCG = $3 + \frac{7}{1.585} + 0 + \frac{1}{2.322} + \frac{3}{2.585} = 3 + 4.416 + 0.431 + 1.160 = 9.007$</p>
+                        <p data-i18n="h342">Ideal ordering $(3,2,2,1,0)$: IDCG = $7 + \frac{3}{1.585} + \frac{3}{2.000} + \frac{1}{2.322} + 0 = 7 + 1.893 + 1.500 + 0.431 = 10.824$</p>
+                        <p data-i18n="h343">$\text{NDCG@}5 = 9.007 / 10.824 \approx 0.832$</p>
                     </div>
                 </details>
             </div>
 
             <div class="example-box">
-                <h4>📝 Exercise 5: Confidence interval</h4>
-                <p>On a test set of $n=50$ queries the mean BERTScore is $\bar X = 0.82$ with $s = 0.11$. Compute the 95% CI.</p>
-                <details><summary>Show solution</summary>
+                <h4 data-i18n="h344">📝 Exercise 5: Confidence interval</h4>
+                <p data-i18n="h345">On a test set of $n=50$ queries the mean BERTScore is $\bar X = 0.82$ with $s = 0.11$. Compute the 95% CI.</p>
+                <details><summary data-i18n="h346">Show solution</summary>
                     <div>
-                        <p>$\text{SE} = 0.11/\sqrt{50} \approx 0.0156$</p>
-                        <p>Half-width: $1.96 \cdot 0.0156 \approx 0.0305$</p>
-                        <p>$\text{CI}_{95\%} = [0.789,\; 0.851]$</p>
+                        <p data-i18n="h347">$\text{SE} = 0.11/\sqrt{50} \approx 0.0156$</p>
+                        <p data-i18n="h348">Half-width: $1.96 \cdot 0.0156 \approx 0.0305$</p>
+                        <p data-i18n="h349">$\text{CI}_{95\%} = [0.789,\; 0.851]$</p>
                     </div>
                 </details>
             </div>
@@ -1502,26 +1506,26 @@ P, R, F1 = score(hyps, refs, lang="en", model_type="roberta-large")</code></pre>
         <section id="part11" class="chapter">
             <div class="chapter-header">
                 <span class="chapter-num">11</span>
-                <h2 class="chapter-title">Quick Reference &amp; Bibliography</h2>
+                <h2 class="chapter-title" data-i18n="h350">Quick Reference &amp; Bibliography</h2>
             </div>
 
-            <h3><span class="h3-num">11.1</span>Metric overview</h3>
+            <h3 data-i18n="h351"><span class="h3-num">11.1</span>Metric overview</h3>
             <table class="summary-table">
-                <thead><tr><th>Metric</th><th>Formula (short)</th><th>Range</th><th>Main use</th></tr></thead>
+                <thead><tr><th data-i18n="h352">Metric</th><th data-i18n="h353">Formula (short)</th><th data-i18n="h354">Range</th><th data-i18n="h355">Main use</th></tr></thead>
                 <tbody>
-                    <tr><td>Precision@K</td><td>$|\mathcal{R}_K \cap \mathcal{V}| / K$</td><td>$[0,1]$</td><td>Search</td></tr>
-                    <tr><td>Recall@K</td><td>$|\mathcal{R}_K \cap \mathcal{V}| / |\mathcal{V}|$</td><td>$[0,1]$</td><td>Completeness</td></tr>
-                    <tr><td>MRR</td><td>$\frac{1}{|Q|}\sum 1/\text{rank}_i$</td><td>$[0,1]$</td><td>First relevant hit</td></tr>
-                    <tr><td>NDCG@K</td><td>DCG / IDCG</td><td>$[0,1]$</td><td>Graded relevance</td></tr>
-                    <tr><td>Faithfulness</td><td>$|\text{supported}|/|\text{total}|$</td><td>$[0,1]$</td><td>Hallucination detection</td></tr>
-                    <tr><td>BLEU</td><td>$\text{BP}\cdot\exp(\sum w_n \log p_n)$</td><td>$[0,1]$</td><td>Translation</td></tr>
-                    <tr><td>ROUGE-N/L</td><td>n-gram / LCS recall</td><td>$[0,1]$</td><td>Summarization</td></tr>
-                    <tr><td>BERTScore</td><td>$F_1$ of embedding cosines</td><td>$[0,1]$</td><td>Semantic evaluation</td></tr>
+                    <tr><td data-i18n="h356">Precision@K</td><td data-i18n="h357">$|\mathcal{R}_K \cap \mathcal{V}| / K$</td><td>$[0,1]$</td><td data-i18n="h358">Search</td></tr>
+                    <tr><td data-i18n="h359">Recall@K</td><td data-i18n="h360">$|\mathcal{R}_K \cap \mathcal{V}| / |\mathcal{V}|$</td><td>$[0,1]$</td><td data-i18n="h361">Completeness</td></tr>
+                    <tr><td data-i18n="h362">MRR</td><td data-i18n="h363">$\frac{1}{|Q|}\sum 1/\text{rank}_i$</td><td>$[0,1]$</td><td data-i18n="h364">First relevant hit</td></tr>
+                    <tr><td data-i18n="h365">NDCG@K</td><td data-i18n="h366">DCG / IDCG</td><td>$[0,1]$</td><td data-i18n="h367">Graded relevance</td></tr>
+                    <tr><td data-i18n="h368">Faithfulness</td><td data-i18n="h369">$|\text{supported}|/|\text{total}|$</td><td>$[0,1]$</td><td data-i18n="h370">Hallucination detection</td></tr>
+                    <tr><td data-i18n="h371">BLEU</td><td data-i18n="h372">$\text{BP}\cdot\exp(\sum w_n \log p_n)$</td><td>$[0,1]$</td><td data-i18n="h373">Translation</td></tr>
+                    <tr><td data-i18n="h374">ROUGE-N/L</td><td data-i18n="h375">n-gram / LCS recall</td><td>$[0,1]$</td><td data-i18n="h376">Summarization</td></tr>
+                    <tr><td data-i18n="h377">BERTScore</td><td data-i18n="h378">$F_1$ of embedding cosines</td><td>$[0,1]$</td><td data-i18n="h379">Semantic evaluation</td></tr>
                 </tbody>
             </table>
 
             <div class="references-section">
-                <h3>📚 Bibliography</h3>
+                <h3 data-i18n="h380">📚 Bibliography</h3>
                 <ol>
                     <li><strong>Es, S., James, J., Espinosa-Anke, L., &amp; Schockaert, S.</strong> (2024). RAGAS: Automated Evaluation of Retrieval Augmented Generation. <em>EACL 2024 Demonstrations</em>, pp. 150–158.</li>
                     <li><strong>Lewis, P., et al.</strong> (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. <em>NeurIPS 2020</em>.</li>
@@ -1541,8 +1545,8 @@ P, R, F1 = score(hyps, refs, lang="en", model_type="roberta-large")</code></pre>
         </section>
 
         <footer class="page-footer">
-            <p>A guide to the quantitative evaluation of RAG systems and fine-tuned Large Language Models</p>
-            <p>
+            <p data-i18n="h394">A guide to the quantitative evaluation of RAG systems and fine-tuned Large Language Models</p>
+            <p data-i18n="h395">
   Built by 
   <strong>
     <a href="https://www.linkedin.com/feed/" target="_blank" rel="noopener">
@@ -1561,12 +1565,429 @@ P, R, F1 = score(hyps, refs, lang="en", model_type="roberta-large")</code></pre>
 
 <script>
 // =================================================================
+//   LANGUAGE (EN / DE)
+// =================================================================
+let LANG = 'en';
+function L(en, de) { return LANG === 'de' ? de : en; }
+const HDE={
+h000:'RAG- &amp; Fine-Tuned-LLM-Evaluationsleitfaden',
+h001:'🌙 Dunkel',
+h002:'🖨️ Drucken',
+h003:'Inhalt',
+h004:'<span class="toc-num">01</span>Einführung &amp; Grundlagen',
+h005:'<span class="toc-num">02</span>Retrieval-Metriken',
+h006:'<span class="toc-num">03</span>RAGAS-Framework',
+h007:'<span class="toc-num">04</span>Fine-Tuning-Metriken',
+h008:'<span class="toc-num">05</span>Statistische Evaluation',
+h009:'<span class="toc-num">06</span>Interaktiver Vergleich',
+h010:'<span class="toc-num">07</span>Entscheidungsleitfaden',
+h011:'<span class="toc-num">08</span>Python-Implementierung',
+h012:'<span class="toc-num">09</span>Selbsttest (Quiz)',
+h013:'<span class="toc-num">10</span>Übungen',
+h014:'<span class="toc-num">11</span>Referenzen',
+h015:'Evaluation von Retrieval-Augmented-Generation-Systemen<br>und feinjustierten Large Language Models',
+h016:'Eine Einführung mit Beispielen, mathematischer Herleitung und Diskussion gängiger Evaluationsmetriken.',
+h017:'<strong>Ausgabe</strong>Version 1.0',
+h018:'<strong>Zuletzt aktualisiert</strong>April 2026',
+h019:'Einführung &amp; Grundlagen',
+h020:'<span class="h3-num">1.1</span>Was ist Retrieval-Augmented Generation?',
+h021:'Retrieval-Augmented Generation (RAG) bezeichnet ein Architekturmuster, das die statische Wissensbasis eines Large Language Model (LLM) um dynamischen Zugriff auf externe Dokumentsammlungen erweitert. Formal wird der Prozess als dreistufige Pipeline beschrieben:',
+h022:'RAG-Pipeline (formale Definition)',
+h023:'\n                    $$\\hat{y} = \\mathcal{G}\\bigl(q,\\; \\mathcal{R}(q;\\, \\mathcal{D})\\bigr) \\quad\\text{mit}\\quad \\mathcal{R}(q;\\mathcal{D}) = \\operatorname*{argtop\\text{-}k}_{d \\in \\mathcal{D}} \\;\\operatorname{sim}(q, d)$$\n                ',
+h024:'Dabei bezeichnet $q$ die Anfrage, $\\mathcal{D}$ die Dokumentsammlung, $\\mathcal{R}$ den Retriever (z. B. einen dichten Bi-Encoder mit Kosinus-Ähnlichkeit) und $\\mathcal{G}$ den Generator (das LLM). Die Komposition $\\mathcal{G} \\circ \\mathcal{R}$ vereint parametrisches Wissen (in den Modellgewichten) mit nicht-parametrischem Wissen (im Index) — ein Konzept, das in der Literatur als <em>hybrides Gedächtnis</em> diskutiert wird (Lewis et al., 2020).',
+h025:'\n                📖 <strong>Wissenschaftliche Grundlage:</strong> Lewis et al. (2020) führten RAG als Architektur ein. Es et al. (2024) lieferten mit <em>RAGAS</em> die heute meistzitierte Methode zur referenzfreien Evaluation. <a href="https://aclanthology.org/2024.eacl-demo.16/">[EACL 2024]</a>\n            ',
+h026:'🔧 Anwendungsbeispiel: RAG in der Fertigungstechnik',
+h027:'<strong>Anfrage:</strong> „Wie optimiere ich die Schnittgeschwindigkeit beim CNC-Fräsen von Aluminium?"',
+h028:'Abgerufene Dokumente (Top-2):',
+h029:'$d_1$: „Für AlMg3 empfehlen wir Schnittgeschwindigkeiten von 200–300 m/min …"',
+h030:'$d_2$: „Der Vorschub für Aluminium sollte 0,1–0,3 mm/Zahn betragen …"',
+h031:'<strong>Generierte Antwort:</strong> „Für das CNC-Fräsen von Aluminium empfehle ich 200–300 m/min mit HSS-Fräsern und einen Vorschub von 0,1–0,3 mm/Zahn."',
+h032:'Hinweis: Die Antwortqualität hängt sowohl von der Retrieval-Qualität als auch von der Treue des Generators ab. Beide Komponenten benötigen <em>getrennte</em> Metriken.',
+h033:'<span class="h3-num">1.2</span>RAG vs. Fine-Tuning: ein konzeptioneller Vergleich',
+h034:'🔄 RAG-Ansatz',
+h035:'Wissen extern indexiert (nicht-parametrisch)',
+h036:'Aktualisierungen ohne Neutraining möglich',
+h037:'Quellenangabe und Nachvollziehbarkeit',
+h038:'Höhere Inferenz-Latenz (Retrieval-Schritt)',
+h039:'Geeignet für faktenintensive Domänen',
+h040:'🎯 Fine-Tuning-Ansatz',
+h041:'Wissen in den Modellgewichten (parametrisch)',
+h042:'Aktualisierungen erfordern Neutraining',
+h043:'Keine intrinsische Quellenzuordnung',
+h044:'Geringere Inferenz-Latenz',
+h045:'Geeignet für Stil-, Format- und Domänenanpassung',
+h046:'💡 Designentscheidung in der Praxis',
+h047:'Die beiden Ansätze ergänzen sich, statt zu konkurrieren. Empirische Studien (Ovadia et al., 2024) zeigen, dass RAG bei faktenbasierten Aufgaben überlegen ist, während Fine-Tuning für stilistische Anpassung und latenzkritische Anwendungen vorzuziehen ist. Der hybride Ansatz — Fine-Tuning auf den Domänenstil <em>plus</em> RAG für aktuelle Fakten — ist Stand der Technik in Produktionssystemen.',
+h048:'Retrieval-Metriken',
+h049:'Retrieval-Metriken bewerten die Qualität der Komponente $\\mathcal{R}$. Sie unterscheiden sich darin, ob sie (a) reine <em>Mengenrelationen</em> betrachten (Precision, Recall), (b) die <em>Position</em> berücksichtigen (MRR) oder (c) <em>abgestufte Relevanz</em> einbeziehen (NDCG).',
+h050:'<span class="h3-num">2.1</span>Precision@K und Recall@K',
+h051:'Precision &amp; Recall bei Cutoff K',
+h052:'\n                    $$\\text{Precision@}K = \\frac{|\\mathcal{R}_K \\cap \\mathcal{V}|}{K}, \\qquad \\text{Recall@}K = \\frac{|\\mathcal{R}_K \\cap \\mathcal{V}|}{|\\mathcal{V}|}$$\n                ',
+h053:'Dabei ist $\\mathcal{R}_K$ die Menge der Top-$K$ abgerufenen Dokumente und $\\mathcal{V}$ die Menge aller relevanten Dokumente im Korpus (Ground Truth).',
+h054:'📐 Statistische Interpretation (zum Aufklappen klicken)',
+h055:'Precision@K ist der empirische Schätzer der bedingten Wahrscheinlichkeit $P(\\text{relevant} \\mid \\text{in Top-}K\\text{ abgerufen})$. Recall@K schätzt $P(\\text{in Top-}K\\text{ abgerufen} \\mid \\text{relevant})$. Beide sind asymmetrisch: Ein System mit hoher Precision, aber niedrigem Recall ist „präzise, aber unvollständig"; umgekehrt liefert es viele Treffer, aber mit hohem Rauschanteil.',
+h056:'Der F1-Score $F_1 = 2 \\cdot \\frac{P \\cdot R}{P+R}$ bildet das harmonische Mittel und ist pessimistischer als das arithmetische Mittel (er bestraft Ungleichgewicht stärker).',
+h057:'✏️ Rechenbeispiel: Precision@5 — Thiele-Small-Parameter',
+h058:'<strong>Anfrage:</strong> „Wie bestimme ich die Thiele-Small-Parameter eines Lautsprechers?"',
+h059:'Rang',
+h060:'Dokument',
+h061:'Relevant?',
+h062:'„Thiele-Small-Messung per Impedanzanalyse"',
+h063:'„Gehäusedesign für Basslautsprecher"',
+h064:'„Elektromechanische Modellierung"',
+h065:'„Frequenzweichen-Design"',
+h066:'„Bestimmung von $Q_{ts}$, $V_{as}$ und $f_s$"',
+h067:'Relevant in den Top-5: <code>3</code> (Ränge 1, 3, 5)',
+h068:'$\\text{Precision@}5 = \\dfrac{3}{5} = 0.60$',
+h069:'Precision@5 =',
+h070:'🎮 Interaktiver Rechner: Precision &amp; Recall',
+h071:'Klicke auf die Ränge, um sie als „relevant" zu markieren. Die Metriken werden live berechnet.',
+h072:'Relevante insgesamt im Korpus $|\\mathcal{V}|$:',
+h073:'Precision@10',
+h074:'Recall@10',
+h075:'F1@10',
+h076:'<span class="h3-num">2.2</span>Mean Reciprocal Rank (MRR)',
+h077:'Mean Reciprocal Rank',
+h078:'\n                    $$\\text{MRR} = \\frac{1}{|Q|}\\sum_{i=1}^{|Q|} \\frac{1}{\\operatorname{rank}_i}$$\n                ',
+h079:'$\\operatorname{rank}_i$ bezeichnet die Position des <em>ersten</em> relevanten Dokuments für Anfrage $q_i$. MRR ist besonders aussagekräftig, wenn der Nutzer typischerweise nur das erste Ergebnis liest (Such-UIs, FAQ-Bots).',
+h080:'✏️ Rechenbeispiel: MRR über 4 Anfragen',
+h081:'Anfrage',
+h082:'Erster relevanter Rang',
+h083:'Kehrwert',
+h084:'$q_1$: „Thiele-Small-Parameter"',
+h085:'$q_2$: „FEM-Simulation"',
+h086:'$q_3$: „ISO-Toleranzberechnung"',
+h087:'$q_4$: „Wärmebehandlung von Stahl"',
+h088:'$\\text{MRR} = \\frac{1}{4}(1.000 + 0.333 + 0.500 + 1.000) = 0.708$',
+h089:'MRR =',
+h090:'<span class="h3-num">2.3</span>Normalized Discounted Cumulative Gain (NDCG)',
+h091:'\n                📖 <strong>Wissenschaftliche Grundlage:</strong> Järvelin &amp; Kekäläinen (2002). "Cumulated Gain-Based Evaluation of IR Techniques." <em>ACM TOIS</em>, 20(4), S. 422–446. DOI: <a href="https://doi.org/10.1145/582415.582418">10.1145/582415.582418</a>\n            ',
+h092:'DCG · IDCG · NDCG',
+h093:'\n                    $$\\text{DCG@}K = \\sum_{i=1}^{K} \\frac{2^{\\operatorname{rel}_i} - 1}{\\log_{2}(i+1)}, \\qquad \\text{NDCG@}K = \\frac{\\text{DCG@}K}{\\text{IDCG@}K}$$\n                ',
+h094:'NDCG ist die einzige der hier vorgestellten Metriken, die <em>abgestufte Relevanz</em> zulässt (z. B. $\\operatorname{rel}_i \\in \\{0,1,2,3\\}$): „nicht relevant", „marginal", „relevant", „hochrelevant". Der Logarithmus im Nenner implementiert eine <em>Positionsdiskontierung</em>: Spätere Treffer tragen weniger zum Gesamtwert bei.',
+h095:'✏️ Rechenbeispiel: NDCG@5 — AOI-Fehlererkennung',
+h096:'Rang $i$',
+h097:'Dokument',
+h098:'$\\operatorname{rel}_i$',
+h099:'$2^{\\operatorname{rel}_i}-1$',
+h100:'$\\log_2(i+1)$',
+h101:'Gewinn',
+h102:'„Deep Learning für AOI"',
+h103:'„Einführung in die QS"',
+h104:'„AOI-Beleuchtung"',
+h105:'„Statistik"',
+h106:'„CNN-Fehlerklassifikation"',
+h107:'$\\text{DCG@}5 = 7.00 + 0 + 1.50 + 0.43 + 2.71 = 11.64$',
+h108:'Ideale Reihenfolge: $(3,3,2,1,0)$ → $\\text{IDCG@}5 = 13.36$',
+h109:'$\\text{NDCG@}5 = \\dfrac{11.64}{13.36} = 0.871$',
+h110:'NDCG@5 =',
+h111:'<strong>Abb. 1.</strong> Vergleich der vier Retrieval-Metriken für das gemeinsame Anwendungsszenario.',
+h112:'<span class="h3-num">2.4</span>Konfusionsmatrix &amp; Precision-Recall-Kurve',
+h113:'Eine vollständige Diagnose des Retrieval-Verhaltens erfordert die Betrachtung der <em>gesamten</em> Trade-off-Kurve, nicht nur eines einzelnen Punkts:',
+h114:'<strong>Abb. 2.</strong> Precision-Recall-Kurven dreier hypothetischer Retriever. Die <em>Average Precision</em> (AP) entspricht der Fläche unter der Kurve und ist die positionsbewusste Verallgemeinerung der Precision.',
+h115:'<strong>Abb. 3.</strong> Konfusionsmatrix der Retrieval-Klassifikation. TP = relevant + abgerufen, FP = irrelevant + abgerufen, FN = relevant + nicht abgerufen, TN = irrelevant + nicht abgerufen.',
+h116:'⚠️ Kritische Einschränkung',
+h117:'Alle vier Metriken setzen voraus, dass die Ground-Truth-Relevanz bekannt ist — in der Praxis ein <em>annotationsaufwendiger</em> Prozess. In großen Korpora wird daher typischerweise nur eine Stichprobe annotiert, was zu breiten Konfidenzintervallen führt. Zudem werden semantisch ähnliche, aber lexikalisch abweichende Dokumente oft fälschlich als irrelevant markiert (Annotator-Bias).',
+h118:'RAGAS-Framework: Generierungsmetriken',
+h119:'\n                📖 <strong>Es, S., James, J., Espinosa-Anke, L., &amp; Schockaert, S.</strong> (2024). "RAGAS: Automated Evaluation of Retrieval Augmented Generation." <em>EACL 2024 Demonstrations</em>, S. 150–158. <a href="https://aclanthology.org/2024.eacl-demo.16/">[PDF]</a>\n            ',
+h120:'Das RAGAS-Framework ist <em>referenzfrei</em>: Es benötigt keine menschlich annotierten Gold-Antworten, sondern nutzt ein „Judge-LLM", um die Evaluationskriterien zu operationalisieren. Die vier Hauptmetriken decken systematisch beide Pipeline-Komponenten ab:',
+h121:'Metrik',
+h122:'Vergleicht',
+h123:'Quantifiziert',
+h124:'Komponente',
+h125:'Faithfulness',
+h126:'Antwort vs. Kontext',
+h127:'Treue / Halluzination',
+h128:'Generator $\\mathcal{G}$',
+h129:'Answer Relevance',
+h130:'Antwort vs. Anfrage',
+h131:'Thematische Passung',
+h132:'Generator $\\mathcal{G}$',
+h133:'Context Precision',
+h134:'Kontext vs. Anfrage',
+h135:'Signal/Rauschen im Kontext',
+h136:'Retriever $\\mathcal{R}$',
+h137:'Context Recall',
+h138:'Kontext vs. Gold-Antwort',
+h139:'Vollständigkeit',
+h140:'Retriever $\\mathcal{R}$',
+h141:'<span class="h3-num">3.1</span>Faithfulness',
+h142:'Faithfulness',
+h143:'\n                    $$F = \\frac{|\\{\\,s \\in S(\\hat y) \\;:\\; s \\;\\text{wird gestützt durch}\\; c\\}|}{|S(\\hat y)|}$$\n                ',
+h144:'Dabei zerlegt $S(\\hat y)$ die generierte Antwort in atomare Aussagen, die jeweils einzeln gegen den Kontext $c$ geprüft werden. Eine Aussage gilt als „gestützt", wenn sie aus $c$ <em>logisch ableitbar</em> ist.',
+h145:'✏️ Rechenbeispiel: Faithfulness — Werkstofftechnik',
+h146:'<strong>Kontext $c$:</strong> „42CrMo4 ist ein Vergütungsstahl mit einer Zugfestigkeit von 900–1100 MPa. Härte 28–34 HRC. Schweißbar mit Vorwärmung."',
+h147:'<strong>Antwort $\\hat y$:</strong> „42CrMo4 hat eine Zugfestigkeit von 900–1100 MPa, eine Härte von 28–34 HRC, ist mit Vorwärmung schweißbar und hochgradig korrosionsbeständig."',
+h148:'Atomare Aussage',
+h149:'Gestützt durch $c$?',
+h150:'Zugfestigkeit 900–1100 MPa',
+h151:'Härte 28–34 HRC',
+h152:'Schweißbar mit Vorwärmung',
+h153:'Korrosionsbeständig',
+h154:'✗ Halluzination!',
+h155:'Faithfulness =',
+h156:'🎮 Interaktiver Rechner: Faithfulness',
+h157:'Stelle die Anzahl gestützter und gesamter Aussagen ein — die Metrik aktualisiert sich live.',
+h158:'Gestützte Aussagen:',
+h159:'Aussagen insgesamt:',
+h160:'Faithfulness',
+h161:'Halluzinationsrate',
+h162:'<span class="h3-num">3.2</span>Answer Relevance',
+h163:'Answer Relevance',
+h164:'\n                    $$\\text{AR}(q, \\hat y) = \\frac{1}{n}\\sum_{j=1}^{n} \\cos\\bigl(\\mathbf{e}(q),\\; \\mathbf{e}(\\tilde q_j)\\bigr) \\quad\\text{mit}\\quad \\tilde q_j \\sim \\text{LLM}(\\hat y)$$\n                ',
+h165:'Aus der generierten Antwort $\\hat y$ werden $n$ <em>synthetische Fragen</em> $\\tilde q_j$ rückgeneriert. Die Kosinus-Ähnlichkeit ihrer Embeddings zur ursprünglichen Anfrage $q$ misst, ob die Antwort die richtige Frage adressiert.',
+h166:'✏️ Rechenbeispiel: Answer Relevance — PID-Regler',
+h167:'<strong>Anfrage $q$:</strong> „Wie stelle ich einen PID-Regler ein?"',
+h168:'Synthetische Frage $\\tilde q_j$',
+h169:'Kosinus-Ähnlichkeit',
+h170:'„Wie stelle ich PID nach Ziegler-Nichols ein?"',
+h171:'„Was sind $K_p$, $T_i$, $T_d$?"',
+h172:'„Wer hat den PID-Regler erfunden?"',
+h173:'$\\text{AR} = \\frac{1}{3}(0.92 + 0.68 + 0.25) \\approx 0.62$',
+h174:'Answer Relevance =',
+h175:'<span class="h3-num">3.3</span>Context Recall',
+h176:'Context Recall',
+h177:'\n                    $$\\text{CR} = \\frac{|\\{\\,s \\in S(y^*) \\;:\\; s \\in c\\}|}{|S(y^*)|}$$\n                ',
+h178:'Der Anteil der atomaren Aussagen der Gold-Antwort $y^*$, der vom abgerufenen Kontext $c$ abgedeckt wird. Niedriger CR &rarr; der Retriever liefert unvollständigen Kontext &rarr; der Generator <em>kann</em> selbst bei perfekter Faithfulness keine vollständige Antwort liefern.',
+h179:'✏️ Rechenbeispiel: Context Recall — Schweißfehler',
+h180:'<strong>Gold-Antwort $y^*$ umfasst 6 Aussagen:</strong> Porosität, Einbrandkerbe, Bindefehler, Risse, Spritzer, Wurzelfehler',
+h181:'<strong>Abgerufener Kontext $c$ enthält:</strong> Porosität, Einbrandkerbe, Bindefehler, Spritzer (4 von 6)',
+h182:'Context Recall =',
+h183:'<strong>Abb. 4.</strong> RAGAS-Profil zweier hypothetischer Systeme im Vergleich. Der Plot visualisiert Stärken und Schwächen je Dimension.',
+h184:'💡 Diagnostischer Einsatz der RAGAS-Metriken',
+h185:'Die vier Metriken ermöglichen eine kausale Diagnose: <strong>niedriger Context Recall</strong> → Retriever-Problem. <strong>Niedrige Faithfulness bei gutem Context Recall</strong> → der Generator halluziniert. <strong>Niedrige Answer Relevance</strong> → der Generator beantwortet eine andere Frage. Diese Modularität ist der zentrale Fortschritt gegenüber monolithischen End-to-End-Metriken.',
+h186:'Fine-Tuning-Metriken',
+h187:'Klassische Textgenerierungsmetriken bewerten, wie gut eine generierte Hypothese $\\hat y$ zu einer (oder mehreren) Referenzantwort(en) $y^*$ passt. Sie unterscheiden sich vor allem in der <em>Granularität</em> (n-Gramme vs. Token) und in der <em>Repräsentation</em> (lexikalisch vs. semantisch).',
+h188:'<span class="h3-num">4.1</span>BLEU (Bilingual Evaluation Understudy)',
+h189:'\n                📖 <strong>Papineni et al.</strong> (2002). "BLEU: a Method for Automatic Evaluation of Machine Translation." <em>ACL 2002</em>, S. 311–318. DOI: <a href="https://doi.org/10.3115/1073083.1073135">10.3115/1073083.1073135</a>\n            ',
+h190:'BLEU-N',
+h191:'\n                    $$\\text{BLEU} = \\text{BP} \\cdot \\exp\\!\\left(\\sum_{n=1}^{N} w_n \\log p_n\\right), \\quad \\text{BP} = \\begin{cases} 1 & \\text{falls } |\\hat y| > |y^*| \\\\ e^{1 - |y^*|/|\\hat y|} & \\text{sonst}\\end{cases}$$\n                ',
+h192:'BLEU mittelt die n-Gramm-Präzisionen $p_n$ geometrisch und multipliziert mit einer <em>Brevity Penalty</em> (BP), die zu kurze Hypothesen bestraft. Standardgewichte: $w_n = 1/N$ mit $N=4$.',
+h193:'✏️ Rechenbeispiel: BLEU-1 und BLEU-2',
+h194:'<strong>Referenz:</strong> „Der Motor erreicht eine Drehzahl von 3000 Umdrehungen pro Minute"',
+h195:'<strong>Generiert:</strong> „Der Motor hat eine Drehzahl von 3000 Umdrehungen pro Minute"',
+h196:'Unigramm-Präzision $p_1 = 8/9 \\approx 0.889$ (die meisten Wörter stimmen überein)',
+h197:'Bigramm-Präzision $p_2 = 6/8 = 0.750$',
+h198:'Gleiche Länge → $\\text{BP} = 1$',
+h199:'BLEU-1 ≈',
+h200:'BLEU-2 ≈',
+h201:'<span class="h3-num">4.2</span>ROUGE (Recall-Oriented Understudy for Gisting Evaluation)',
+h202:'\n                📖 <strong>Lin, C.-Y.</strong> (2004). "ROUGE: A Package for Automatic Evaluation of Summaries." <em>ACL Workshop</em>, S. 74–81.\n            ',
+h203:'ROUGE-N',
+h204:'\n                    $$\\text{ROUGE-}N = \\frac{\\sum_{g \\in y^*} \\min(\\#g_{\\hat y}, \\#g_{y^*})}{\\sum_{g \\in y^*} \\#g_{y^*}}$$\n                ',
+h205:'ROUGE-N ist recall-orientiert (der Nenner basiert auf der Referenz, nicht auf der Hypothese). ROUGE-L nutzt die längste gemeinsame Teilsequenz (LCS) und ist robust gegenüber Änderungen der Wortreihenfolge.',
+h206:'<span class="h3-num">4.3</span>BERTScore',
+h207:'\n                📖 <strong>Zhang, T., Kishore, V., Wu, F., Weinberger, K. Q., &amp; Artzi, Y.</strong> (2020). "BERTScore: Evaluating Text Generation with BERT." <em>ICLR 2020</em>. <a href="https://arxiv.org/abs/1904.09675">[arXiv:1904.09675]</a>\n            ',
+h208:'BERTScore F1',
+h209:'\n                    $$P_{\\text{BERT}} = \\frac{1}{|\\hat y|}\\sum_{\\hat x \\in \\hat y} \\max_{x \\in y^*} \\mathbf{e}(\\hat x)^{\\!\\top}\\mathbf{e}(x), \\quad F_1 = \\frac{2 P R}{P+R}$$\n                ',
+h210:'Statt exakte Token-Übereinstimmungen zu zählen, berechnet BERTScore die maximale Kosinus-Ähnlichkeit kontextualisierter Embeddings (z. B. aus BERT oder RoBERTa). Das löst das Grundproblem lexikalischer Metriken: <em>semantische Äquivalenz bei lexikalischer Variation</em>.',
+h211:'✏️ BERTScore erkennt Synonyme',
+h212:'<strong>Referenz:</strong> „Das Getriebe überträgt ein Drehmoment"',
+h213:'<strong>Generiert:</strong> „Die Übersetzung leitet ein Drehmoment weiter"',
+h214:'Lexikalische Metriken: BLEU ist niedrig (andere Wörter). <strong>BERTScore: hoch</strong>, weil „überträgt" und „leitet weiter" in diesem Kontext semantisch äquivalent sind.',
+h215:'BERTScore F1 ≈',
+h216:'<strong>Abb. 5.</strong> Verhalten der Metriken bei zunehmender lexikalischer Variation. BERTScore fällt bei semantisch äquivalenten Umformulierungen deutlich langsamer ab als BLEU/ROUGE.',
+h217:'⚠️ Bekannte Schwächen klassischer Metriken',
+h218:'<strong>BLEU/ROUGE</strong>: korrelieren bei Open-Domain-Generierung nur <em>schwach</em> mit menschlichem Urteil (Reiter, 2018; Sai et al., 2022). Bei einzelnen Referenzantworten ist die Varianz extrem hoch.',
+h219:'<strong>BERTScore</strong>: hängt vom verwendeten Encoder-Modell ab. Sprachübergreifender Transfer und Domänendrift können die Werte verzerren.',
+h220:'<strong>Alle drei</strong>: können <em>Goodharts Gesetz</em> unterliegen — „Wenn ein Maß zum Ziel wird, hört es auf, ein gutes Maß zu sein."',
+h221:'Statistische Evaluation &amp; Signifikanz',
+h222:'Ein einzelner Metrikwert auf einem Testdatensatz ist eine <em>Punktschätzung</em> mit Stichprobenvarianz. Ohne Quantifizierung dieser Unsicherheit sind Aussagen wie „System A ist besser als System B" wissenschaftlich unbegründet. Dieses Kapitel führt drei kanonische Werkzeuge ein: Konfidenzintervalle, den Bootstrap und die Inter-Annotator-Übereinstimmung.',
+h223:'<span class="h3-num">5.1</span>Konfidenzintervalle für Metriken',
+h224:'Für einen Mittelwert $\\bar X$ über $n$ Anfragen mit Stichproben-Standardabweichung $s$ liefert der zentrale Grenzwertsatz näherungsweise:',
+h225:'95-%-Konfidenzintervall (normalapproximiert)',
+h226:'\n                    $$\\text{CI}_{95\\%} = \\bar X \\pm 1.96 \\cdot \\frac{s}{\\sqrt{n}}$$\n                ',
+h227:'✏️ Rechenbeispiel: CI für MRR',
+h228:'Über 100 Testanfragen ist $\\overline{\\text{MRR}} = 0.708$ mit $s = 0.28$. Das 95-%-CI ist:',
+h229:'Standardfehler: $\\text{SE} = 0.28/\\sqrt{100} = 0.028$',
+h230:'Halbe Breite: $1.96 \\cdot 0.028 = 0.055$',
+h231:'$\\text{CI}_{95\\%} = [0.653,\\; 0.763]$',
+h232:'95-%-CI =',
+h233:'<span class="h3-num">5.2</span>Bootstrap-Resampling',
+h234:'Für nicht-normalverteilte Metriken (z. B. NDCG, BLEU) ist das nicht-parametrische <em>Bootstrap</em>-Verfahren (Efron, 1979) vorzuziehen. Aus dem Testdatensatz werden $B$ (typisch 1000) Zufallsstichproben mit Zurücklegen gezogen; die Quantile werden dann direkt aus der Verteilung der $B$ Metrikwerte abgelesen.',
+h235:'<strong>Abb. 6.</strong> Bootstrap-Verteilung von NDCG@10 über 1000 Resamples. Das 95-%-CI wird als 2,5-%- und 97,5-%-Quantil abgelesen (gestrichelte Linien).',
+h236:'<span class="h3-num">5.3</span>Inter-Annotator-Übereinstimmung (Cohens $\\kappa$)',
+h237:'Wenn Relevanz von Menschen annotiert wird, muss die Zuverlässigkeit der Annotation selbst geprüft werden. Cohens Kappa korrigiert die beobachtete Übereinstimmung um die zufällig erwartete Übereinstimmung:',
+h238:'Cohens Kappa',
+h239:'\n                    $$\\kappa = \\frac{p_o - p_e}{1 - p_e}$$\n                ',
+h240:'$\\kappa$-Wert',
+h241:'Interpretation (Landis &amp; Koch, 1977)',
+h242:'Schlechter als Zufall',
+h243:'Geringe Übereinstimmung',
+h244:'Ausreichende Übereinstimmung',
+h245:'Mittlere Übereinstimmung',
+h246:'Beachtliche Übereinstimmung',
+h247:'Fast vollkommen',
+h248:'💡 Wissenschaftliche Berichtspraxis',
+h249:'In Konferenzpapieren (ACL, EMNLP, NeurIPS) ist es inzwischen Standard, <em>jede</em> primäre Metrik mit Konfidenzintervall <strong>plus</strong> Signifikanztest gegen die Baseline zu berichten (z. B. gepaarter Bootstrap-Test). Eine Verbesserung um 0,3 BLEU-Punkte ohne Signifikanzaussage gilt im Allgemeinen als nicht publizierbar.',
+h250:'Interaktiver Metrikvergleich',
+h251:'Die folgende Live-Demo zeigt das grundlegende Verhalten von BLEU, ROUGE und BERTScore bei fünf Klassen von Textvariation. Wähle eine Variation, um zu sehen, wie die drei Metriken qualitativ unterschiedlich reagieren.',
+h252:'🎮 Metrik-Spielwiese',
+h253:'Wähle eine Variation. Die Werte beruhen auf typischen empirischen Größenordnungen aus Sai et al. (2022).',
+h254:'Exakte Übereinstimmung',
+h255:'Ein Wort geändert',
+h256:'Synonym',
+h257:'Vollständige Paraphrase',
+h258:'Widerspruch (gleiche Wörter)',
+h259:'Referenz:',
+h260:'Der Motor erreicht 3000 Umdrehungen pro Minute.',
+h261:'Hypothese:',
+h262:'Der Motor erreicht 3000 Umdrehungen pro Minute.',
+h263:'BLEU-2',
+h264:'ROUGE-L',
+h265:'BERTScore',
+h266:'\n                    Identische Hypothese und Referenz → alle drei Metriken liefern ihren Maximalwert.\n                ',
+h268:'⚠️ Der Widerspruchsfall',
+h269:'Achte besonders auf die letzte Variante: Wenn die Hypothese die Referenz lexikalisch fast vollständig wiederholt, semantisch aber das <em>Gegenteil</em> aussagt (z. B. „erreicht NICHT 3000 …"), bleibt BLEU künstlich hoch. Das ist eine bekannte Schwäche aller n-Gramm-Metriken (Freitag et al., 2022) und eine der zentralen Motivationen für die Entwicklung <em>NLI-basierter</em> Metriken wie BLEURT.',
+h270:'Entscheidungsleitfaden',
+h271:'Die Wahl der „richtigen" Metrik hängt vom Anwendungskontext ab. Die folgende Tabelle bietet pragmatische Empfehlungen für typische Ingenieurszenarien:',
+h272:'Anwendungsfall',
+h273:'Primäre Metrik',
+h274:'Sekundäre Metrik',
+h275:'Begründung',
+h276:'Sicherheitsdatenblätter (RAG)',
+h277:'Faithfulness',
+h278:'Context Recall',
+h279:'Halluzinationen sind sicherheitskritisch',
+h280:'Normen-/Vorschriftensuche',
+h281:'Context Recall',
+h282:'NDCG@10',
+h283:'Vollständigkeit vor Präzision',
+h284:'FAQ-Bot / Such-UI',
+h285:'MRR',
+h286:'Precision@1',
+h287:'Erstes Ergebnis dominiert die UX',
+h288:'Maschinelle Übersetzung',
+h289:'BLEU + chrF',
+h290:'BERTScore',
+h291:'Etablierte Standardmetriken',
+h292:'Zusammenfassung',
+h293:'ROUGE-L',
+h294:'BERTScore',
+h295:'Recall-Orientierung wesentlich',
+h296:'Codegenerierung',
+h297:'Pass@K (funktionaler Test)',
+h298:'BLEU',
+h299:'Korrektheit ist binär',
+h300:'Open-Domain-QA',
+h301:'RAGAS-Profil (alle 4)',
+h302:'Menschliche Evaluation',
+h303:'Mehrdimensionale Qualität',
+h304:'<span class="h3-num">7.1</span>Anti-Patterns: häufige Evaluationsfehler',
+h305:'⚠️ Was man <em>nicht</em> tun sollte',
+h306:'<strong>Eindimensionale Optimierung</strong>: Nur eine Metrik zu betrachten ignoriert die Mehrdimensionalität von Qualität.',
+h307:'<strong>Metric Hacking (Goodharts Gesetz)</strong>: Direkte Optimierung auf eine Metrik führt oft zu Qualitätsverlust auf anderen Achsen.',
+h308:'<strong>Vernachlässigung menschlicher Evaluation</strong>: Automatische Metriken sind <em>Proxys</em>; die finale Validierung erfordert stichprobenbasierte menschliche Bewertung.',
+h309:'<strong>Die Retrieval-Komponente vergessen</strong>: Bei RAG wird schlechte End-to-End-Qualität oft fälschlich dem Generator zugeschrieben, obwohl tatsächlich das Retrieval versagt.',
+h310:'<strong>Fehlende statistische Signifikanz</strong>: Punktschätzungen ohne Konfidenzintervalle sind nicht aussagekräftig (siehe Kap. 5).',
+h311:'<strong>Testdaten-Kontamination</strong>: Überlappen Trainings- und Testdaten, werden alle Metriken unzuverlässig.',
+h312:'Python-Implementierung',
+h313:'Die folgenden Referenzimplementierungen zeigen die Kernlogik. Für Produktionssysteme wird der Einsatz etablierter Bibliotheken empfohlen (RAGAS, evaluate, bert_score, scikit-learn).',
+h314:'<span class="h3-num">8.1</span>Eigene Implementierung der Retrieval-Metriken',
+h316:'<span class="h3-num">8.2</span>Bootstrap-Konfidenzintervall',
+h318:'<span class="h3-num">8.3</span>RAGAS, BLEU, ROUGE, BERTScore (Bibliotheken)',
+h320:'Selbsttest',
+h321:'Sechs Multiple-Choice-Fragen zur Selbsteinschätzung. Klicke eine Antwort an, um sofort Feedback zu erhalten.',
+h322:'Dein Ergebnis',
+h323:'Übungen',
+h324:'📝 Übung 1: Precision &amp; Recall',
+h325:'10 Dokumente werden abgerufen; die auf den Rängen 1, 3, 5, 8, 10 sind relevant. Der Korpus enthält insgesamt 15 relevante Dokumente.',
+h326:'Lösung anzeigen',
+h327:'Precision@5 = $3/5 = 0.60$ &nbsp;|&nbsp; Precision@10 = $5/10 = 0.50$',
+h328:'Recall@5 = $3/15 = 0.20$ &nbsp;|&nbsp; Recall@10 = $5/15 \\approx 0.333$',
+h329:'F1@10 = $\\frac{2 \\cdot 0.5 \\cdot 0.333}{0.5 + 0.333} \\approx 0.40$',
+h330:'📝 Übung 2: MRR über 5 Anfragen',
+h331:'Erste relevante Ränge: $q_1 \\to 1$, $q_2 \\to 4$, $q_3 \\to 2$, $q_4 \\to 1$, $q_5 \\to 3$',
+h332:'Lösung anzeigen',
+h333:'$\\text{MRR} = \\dfrac{1 + 0.25 + 0.5 + 1 + 0.333}{5} = \\dfrac{3.083}{5} \\approx 0.617$',
+h334:'📝 Übung 3: Faithfulness',
+h335:'Kontext: „Transformator: 230&nbsp;V → 24&nbsp;V, Verhältnis 9,6&nbsp;:&nbsp;1, Leistung 500&nbsp;W". Die Antwort nennt zusätzlich „95 % Wirkungsgrad" (nicht im Kontext enthalten).',
+h336:'Lösung anzeigen',
+h337:'3 gestützte Aussagen + 1 Halluzination → $F = 3/4 = 0.75$',
+h338:'📝 Übung 4: NDCG mit abgestufter Relevanz',
+h339:'Relevanzstufen der Top-5: $(2, 3, 0, 1, 2)$. Berechne NDCG@5.',
+h340:'Lösung anzeigen',
+h341:'DCG = $3 + \\frac{7}{1.585} + 0 + \\frac{1}{2.322} + \\frac{3}{2.585} = 3 + 4.416 + 0.431 + 1.160 = 9.007$',
+h342:'Ideale Reihenfolge $(3,2,2,1,0)$: IDCG = $7 + \\frac{3}{1.585} + \\frac{3}{2.000} + \\frac{1}{2.322} + 0 = 7 + 1.893 + 1.500 + 0.431 = 10.824$',
+h343:'$\\text{NDCG@}5 = 9.007 / 10.824 \\approx 0.832$',
+h344:'📝 Übung 5: Konfidenzintervall',
+h345:'Auf einem Testdatensatz mit $n=50$ Anfragen beträgt der mittlere BERTScore $\\bar X = 0.82$ mit $s = 0.11$. Berechne das 95-%-CI.',
+h346:'Lösung anzeigen',
+h347:'$\\text{SE} = 0.11/\\sqrt{50} \\approx 0.0156$',
+h348:'Halbe Breite: $1.96 \\cdot 0.0156 \\approx 0.0305$',
+h349:'$\\text{CI}_{95\\%} = [0.789,\\; 0.851]$',
+h350:'Kurzreferenz &amp; Literatur',
+h351:'<span class="h3-num">11.1</span>Metrikübersicht',
+h352:'Metrik',
+h353:'Formel (kurz)',
+h354:'Wertebereich',
+h355:'Hauptanwendung',
+h356:'Precision@K',
+h357:'$|\\mathcal{R}_K \\cap \\mathcal{V}| / K$',
+h358:'Suche',
+h359:'Recall@K',
+h360:'$|\\mathcal{R}_K \\cap \\mathcal{V}| / |\\mathcal{V}|$',
+h361:'Vollständigkeit',
+h362:'MRR',
+h363:'$\\frac{1}{|Q|}\\sum 1/\\text{rank}_i$',
+h364:'Erster relevanter Treffer',
+h365:'NDCG@K',
+h366:'DCG / IDCG',
+h367:'Abgestufte Relevanz',
+h368:'Faithfulness',
+h369:'$|\\text{gestützt}|/|\\text{gesamt}|$',
+h370:'Halluzinationserkennung',
+h371:'BLEU',
+h372:'$\\text{BP}\\cdot\\exp(\\sum w_n \\log p_n)$',
+h373:'Übersetzung',
+h374:'ROUGE-N/L',
+h375:'n-Gramm- / LCS-Recall',
+h376:'Zusammenfassung',
+h377:'BERTScore',
+h378:'$F_1$ der Embedding-Kosinusse',
+h379:'Semantische Evaluation',
+h380:'📚 Literatur',
+h394:'Ein Leitfaden zur quantitativen Evaluation von RAG-Systemen und feinjustierten Large Language Models',
+h395:'\n  Erstellt von \n  <strong>\n    <a href="https://www.linkedin.com/feed/" target="_blank" rel="noopener">\n      Dr. Kawther Aboalam\n    </a>\n  </strong> \n  und KI-Agenten — \n  <a href="https://github.com/abka0002/Machine-Learning-Explained" target="_blank" rel="noopener">\n    Auf GitHub ansehen\n  </a>\n'
+};
+
+const I18N_EN = {};
+document.querySelectorAll('[data-i18n]').forEach(el => { I18N_EN[el.dataset.i18n] = el.innerHTML; });
+const KATEX_OPTS = {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false};
+function setLang(lang) {
+    LANG = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.dataset.i18n;
+        const tx = (lang === 'de' && HDE[k] !== undefined) ? HDE[k] : I18N_EN[k];
+        if (tx === undefined) return;
+        el.innerHTML = tx;
+        if (window.renderMathInElement && /\$/.test(tx)) { try { window.renderMathInElement(el, KATEX_OPTS); } catch(e){} }
+    });
+    document.documentElement.lang = lang;
+    document.title = L('Guide: Evaluating RAG Systems and Fine-Tuned LLMs', 'Leitfaden: Evaluation von RAG-Systemen und feinjustierten LLMs');
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+    if (typeof applyTheme === 'function') applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+    if (typeof renderPrecisionGrid === 'function') renderPrecisionGrid();
+    const activeVariant = document.querySelector('.variant-btn.active');
+    if (activeVariant && typeof applyVariant === 'function') applyVariant(activeVariant);
+    if (typeof renderQuiz === 'function') {
+        const prev = userAnswers.slice(); userAnswers.fill(null);
+        renderQuiz();
+        window._i18nReplaying = true;
+        prev.forEach((a, qi) => { if (a !== null) { const el = quizContainer.querySelector(`.quiz-option[data-q="${qi}"][data-o="${a}"]`); if (el) el.click(); } });
+        window._i18nReplaying = false;
+    }
+    if (typeof buildCharts === 'function') { buildCharts(); if (window._chartThemeUpdater) setTimeout(window._chartThemeUpdater, 50); }
+    try { localStorage.setItem('rag_eval_lang', lang); } catch(e) {}
+}
+
+// =================================================================
 //   THEME TOGGLE
 // =================================================================
 const themeToggle = document.getElementById('theme-toggle');
 function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
-    themeToggle.textContent = t === 'dark' ? '☀️ Light' : '🌙 Dark';
+    themeToggle.textContent = t === 'dark' ? L('☀️ Light', '☀️ Hell') : L('🌙 Dark', '🌙 Dunkel');
     try { localStorage.setItem('rag_theme', t); } catch(e){}
     if (window.allCharts) {
         window.allCharts.forEach(c => { try { c.update(); } catch(e){} });
@@ -1630,7 +2051,7 @@ function renderPrecisionGrid() {
     for (let i = 1; i <= 10; i++) {
         const item = document.createElement('div');
         item.className = 'relevance-item' + (selectedRanks.has(i) ? ' selected' : '');
-        item.innerHTML = `<span class="rank">${i}</span><span class="label">${selectedRanks.has(i) ? 'relevant' : 'click'}</span>`;
+        item.innerHTML = `<span class="rank">${i}</span><span class="label">${selectedRanks.has(i) ? L('relevant','relevant') : L('click','klicken')}</span>`;
         item.addEventListener('click', () => {
             if (selectedRanks.has(i)) selectedRanks.delete(i);
             else selectedRanks.add(i);
@@ -1680,112 +2101,115 @@ updateFaithfulness();
 // =================================================================
 const variants = {
     exact: {
-        ref: 'The motor reaches 3000 revolutions per minute.',
-        hyp: 'The motor reaches 3000 revolutions per minute.',
+        get ref() { return L('The motor reaches 3000 revolutions per minute.', 'Der Motor erreicht 3000 Umdrehungen pro Minute.'); },
+        get hyp() { return L('The motor reaches 3000 revolutions per minute.', 'Der Motor erreicht 3000 Umdrehungen pro Minute.'); },
         bleu: 1.00, rouge: 1.00, bert: 1.00,
-        explain: 'Identical hypothesis and reference → all three metrics return their maximum value.'
+        get explain() { return L('Identical hypothesis and reference → all three metrics return their maximum value.', 'Identische Hypothese und Referenz → alle drei Metriken liefern ihren Maximalwert.'); }
     },
     oneword: {
-        ref: 'The motor reaches 3000 revolutions per minute.',
-        hyp: 'The motor attains 3000 revolutions per minute.',
+        get ref() { return L('The motor reaches 3000 revolutions per minute.', 'Der Motor erreicht 3000 Umdrehungen pro Minute.'); },
+        get hyp() { return L('The motor attains 3000 revolutions per minute.', 'Der Motor erzielt 3000 Umdrehungen pro Minute.'); },
         bleu: 0.79, rouge: 0.88, bert: 0.95,
-        explain: 'One word replaced ("reaches" → "attains"). N-gram metrics penalize this more than BERTScore, because the synonym does not match lexically though it is almost identical semantically.'
+        get explain() { return L('One word replaced ("reaches" → "attains"). N-gram metrics penalize this more than BERTScore, because the synonym does not match lexically though it is almost identical semantically.', 'Ein Wort ersetzt („erreicht" → „erzielt"). N-Gramm-Metriken bestrafen das stärker als BERTScore, weil das Synonym lexikalisch nicht übereinstimmt, obwohl es semantisch fast identisch ist.'); }
     },
     synonym: {
-        ref: 'The transmission transmits a torque.',
-        hyp: 'The gearbox forwards a moment.',
+        get ref() { return L('The transmission transmits a torque.', 'Das Getriebe überträgt ein Drehmoment.'); },
+        get hyp() { return L('The gearbox forwards a moment.', 'Die Übersetzung leitet ein Moment weiter.'); },
         bleu: 0.30, rouge: 0.42, bert: 0.91,
-        explain: 'Full synonym replacement. BLEU/ROUGE collapse because no n-grams match. BERTScore stays high because the embeddings are semantically very close — this is the strength of contextualized representations.'
+        get explain() { return L('Full synonym replacement. BLEU/ROUGE collapse because no n-grams match. BERTScore stays high because the embeddings are semantically very close — this is the strength of contextualized representations.', 'Vollständiger Synonym-Austausch. BLEU/ROUGE brechen ein, weil keine n-Gramme übereinstimmen. BERTScore bleibt hoch, weil die Embeddings semantisch sehr nah beieinanderliegen — das ist die Stärke kontextualisierter Repräsentationen.'); }
     },
     paraphrase: {
-        ref: 'The system reaches an accuracy of 95% on the test data.',
-        hyp: 'On the test data the model shows 95-percent correctness.',
+        get ref() { return L('The system reaches an accuracy of 95% on the test data.', 'Das System erreicht auf den Testdaten eine Genauigkeit von 95 %.'); },
+        get hyp() { return L('On the test data the model shows 95-percent correctness.', 'Auf den Testdaten zeigt das Modell 95-prozentige Korrektheit.'); },
         bleu: 0.35, rouge: 0.50, bert: 0.88,
-        explain: 'Full paraphrase with the same meaning. Classical metrics largely fail; only BERTScore reliably detects the semantic equivalence.'
+        get explain() { return L('Full paraphrase with the same meaning. Classical metrics largely fail; only BERTScore reliably detects the semantic equivalence.', 'Vollständige Paraphrase mit gleicher Bedeutung. Klassische Metriken versagen weitgehend; nur BERTScore erkennt die semantische Äquivalenz zuverlässig.'); }
     },
     contradict: {
-        ref: 'The motor reaches 3000 revolutions per minute.',
-        hyp: 'The motor does NOT reach 3000 revolutions per minute.',
+        get ref() { return L('The motor reaches 3000 revolutions per minute.', 'Der Motor erreicht 3000 Umdrehungen pro Minute.'); },
+        get hyp() { return L('The motor does NOT reach 3000 revolutions per minute.', 'Der Motor erreicht NICHT 3000 Umdrehungen pro Minute.'); },
         bleu: 0.92, rouge: 0.94, bert: 0.96,
-        explain: '⚠️ Critical case: the hypothesis contradicts the reference but shares almost all tokens. ALL three metrics are misleadingly high here! This failure mode motivates NLI-based metrics (e.g., BLEURT, COMET).'
+        get explain() { return L('⚠️ Critical case: the hypothesis contradicts the reference but shares almost all tokens. ALL three metrics are misleadingly high here! This failure mode motivates NLI-based metrics (e.g., BLEURT, COMET).', '⚠️ Kritischer Fall: Die Hypothese widerspricht der Referenz, teilt aber fast alle Token. ALLE drei Metriken sind hier irreführend hoch! Diese Schwäche motiviert NLI-basierte Metriken (z. B. BLEURT, COMET).'); }
     }
 };
 
+function applyVariant(btn) {
+    document.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const v = variants[btn.dataset.variant];
+    document.getElementById('ref-text').textContent = v.ref;
+    document.getElementById('hyp-text').textContent = v.hyp;
+    document.getElementById('bleuVal').textContent = v.bleu.toFixed(2);
+    document.getElementById('rougeVal').textContent = v.rouge.toFixed(2);
+    document.getElementById('bertVal').textContent = v.bert.toFixed(2);
+    document.getElementById('variant-explanation').textContent = v.explain;
+}
 document.querySelectorAll('.variant-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const v = variants[btn.dataset.variant];
-        document.getElementById('ref-text').textContent = v.ref;
-        document.getElementById('hyp-text').textContent = v.hyp;
-        document.getElementById('bleuVal').textContent = v.bleu.toFixed(2);
-        document.getElementById('rougeVal').textContent = v.rouge.toFixed(2);
-        document.getElementById('bertVal').textContent = v.bert.toFixed(2);
-        document.getElementById('variant-explanation').textContent = v.explain;
-    });
+    btn.addEventListener('click', () => applyVariant(btn));
 });
 
 // =================================================================
 //   QUIZ
 // =================================================================
-const quizData = [
+function getQuizData() { return [
     {
-        q: 'Which metric is best suited to detect hallucinations in RAG answers?',
+        q: L('Which metric is best suited to detect hallucinations in RAG answers?','Welche Metrik eignet sich am besten, um Halluzinationen in RAG-Antworten zu erkennen?'),
         opts: ['BLEU', 'Faithfulness', 'MRR', 'NDCG'],
         correct: 1,
-        feedback: 'Faithfulness measures exactly the fraction of answer claims supported by the retrieved context. Low faithfulness is the direct signature of a hallucination.'
+        feedback: L('Faithfulness measures exactly the fraction of answer claims supported by the retrieved context. Low faithfulness is the direct signature of a hallucination.','Faithfulness misst genau den Anteil der Antwortaussagen, die vom abgerufenen Kontext gestützt werden. Niedrige Faithfulness ist die direkte Signatur einer Halluzination.')
     },
     {
-        q: 'A retriever returns 4 relevant documents in the top-5; the corpus contains 12 relevant ones in total. What are Precision@5 and Recall@5?',
+        q: L('A retriever returns 4 relevant documents in the top-5; the corpus contains 12 relevant ones in total. What are Precision@5 and Recall@5?','Ein Retriever liefert 4 relevante Dokumente in den Top-5; der Korpus enthält insgesamt 12 relevante. Wie groß sind Precision@5 und Recall@5?'),
         opts: ['P=0.80; R=0.33', 'P=0.33; R=0.80', 'P=0.40; R=0.12', 'P=0.80; R=0.40'],
         correct: 0,
-        feedback: 'Precision@5 = 4/5 = 0.80. Recall@5 = 4/12 ≈ 0.333.'
+        feedback: L('Precision@5 = 4/5 = 0.80. Recall@5 = 4/12 ≈ 0.333.','Precision@5 = 4/5 = 0.80. Recall@5 = 4/12 ≈ 0.333.')
     },
     {
-        q: 'Which statement about NDCG is CORRECT?',
+        q: L('Which statement about NDCG is CORRECT?','Welche Aussage über NDCG ist RICHTIG?'),
         opts: [
-            'NDCG can only handle binary relevance.',
-            'NDCG discounts later ranks logarithmically.',
-            'NDCG is always higher than MRR.',
-            'NDCG requires no ground truth.'
+            L('NDCG can only handle binary relevance.','NDCG kann nur binäre Relevanz verarbeiten.'),
+            L('NDCG discounts later ranks logarithmically.','NDCG diskontiert spätere Ränge logarithmisch.'),
+            L('NDCG is always higher than MRR.','NDCG ist immer höher als MRR.'),
+            L('NDCG requires no ground truth.','NDCG benötigt keine Ground Truth.')
         ],
         correct: 1,
-        feedback: 'The factor $1/\\log_2(i+1)$ in DCG implements position discounting: hits at higher ranks contribute more to the score.'
+        feedback: L('The factor $1/\\log_2(i+1)$ in DCG implements position discounting: hits at higher ranks contribute more to the score.','Der Faktor $1/\\log_2(i+1)$ im DCG implementiert die Positionsdiskontierung: Treffer auf vorderen Rängen tragen mehr zum Wert bei.')
     },
     {
-        q: 'Why can BERTScore detect semantic equivalence better than BLEU?',
+        q: L('Why can BERTScore detect semantic equivalence better than BLEU?','Warum kann BERTScore semantische Äquivalenz besser erkennen als BLEU?'),
         opts: [
-            'Because BERTScore uses longer n-grams.',
-            'Because BERTScore includes a brevity penalty.',
-            'Because BERTScore uses contextualized embeddings instead of exact token matches.',
-            'Because BERTScore is recall-oriented.'
+            L('Because BERTScore uses longer n-grams.','Weil BERTScore längere n-Gramme verwendet.'),
+            L('Because BERTScore includes a brevity penalty.','Weil BERTScore eine Brevity Penalty enthält.'),
+            L('Because BERTScore uses contextualized embeddings instead of exact token matches.','Weil BERTScore kontextualisierte Embeddings statt exakter Token-Übereinstimmungen verwendet.'),
+            L('Because BERTScore is recall-oriented.','Weil BERTScore recall-orientiert ist.')
         ],
         correct: 2,
-        feedback: 'BERTScore replaces exact matching with maximum cosine similarity of BERT embeddings. Synonyms and paraphrases are recognized because their vectors lie close together in embedding space.'
+        feedback: L('BERTScore replaces exact matching with maximum cosine similarity of BERT embeddings. Synonyms and paraphrases are recognized because their vectors lie close together in embedding space.','BERTScore ersetzt exaktes Matching durch die maximale Kosinus-Ähnlichkeit von BERT-Embeddings. Synonyme und Paraphrasen werden erkannt, weil ihre Vektoren im Embedding-Raum nah beieinanderliegen.')
     },
     {
-        q: 'Which Cohen\'s kappa value indicates "substantial agreement" between two annotators (Landis & Koch, 1977)?',
+        q: L('Which Cohen\'s kappa value indicates "substantial agreement" between two annotators (Landis & Koch, 1977)?','Welcher Cohens-Kappa-Wert zeigt „beachtliche Übereinstimmung" zwischen zwei Annotatoren an (Landis & Koch, 1977)?'),
         opts: ['0.15', '0.45', '0.75', '0.95'],
         correct: 2,
-        feedback: 'The range 0.61–0.80 is classified as "substantial agreement". 0.75 falls clearly within this interval.'
+        feedback: L('The range 0.61–0.80 is classified as "substantial agreement". 0.75 falls clearly within this interval.','Der Bereich 0,61–0,80 wird als „beachtliche Übereinstimmung" eingestuft. 0,75 liegt klar in diesem Intervall.')
     },
     {
-        q: 'A RAG system has high faithfulness (0.95) but low context recall (0.40). Where is the problem?',
+        q: L('A RAG system has high faithfulness (0.95) but low context recall (0.40). Where is the problem?','Ein RAG-System hat hohe Faithfulness (0,95), aber niedrigen Context Recall (0,40). Wo liegt das Problem?'),
         opts: [
-            'The generator hallucinates.',
-            'The retriever delivers incomplete context.',
-            'The answer addresses a different question.',
-            'The embeddings are poorly trained.'
+            L('The generator hallucinates.','Der Generator halluziniert.'),
+            L('The retriever delivers incomplete context.','Der Retriever liefert unvollständigen Kontext.'),
+            L('The answer addresses a different question.','Die Antwort adressiert eine andere Frage.'),
+            L('The embeddings are poorly trained.','Die Embeddings sind schlecht trainiert.')
         ],
         correct: 1,
-        feedback: 'High faithfulness means: what is generated is supported. Low context recall means: the retrieved context does not cover the gold answer. A textbook diagnosis of a retrieval problem.'
+        feedback: L('High faithfulness means: what is generated is supported. Low context recall means: the retrieved context does not cover the gold answer. A textbook diagnosis of a retrieval problem.','Hohe Faithfulness bedeutet: Was generiert wird, ist gestützt. Niedriger Context Recall bedeutet: Der abgerufene Kontext deckt die Gold-Antwort nicht ab. Eine Lehrbuchdiagnose eines Retrieval-Problems.')
     }
-];
+]; }
+let quizData = getQuizData();
 
 const quizContainer = document.getElementById('quiz-container');
 const userAnswers = new Array(quizData.length).fill(null);
 
 function renderQuiz() {
+    quizData = getQuizData();
     quizContainer.innerHTML = '';
     quizData.forEach((item, qi) => {
         const block = document.createElement('div');
@@ -1823,7 +2247,7 @@ function renderQuiz() {
             const fb = document.getElementById('fb-' + qi);
             const isCorrect = oi === correct;
             fb.className = 'quiz-feedback show ' + (isCorrect ? 'correct' : 'incorrect');
-            fb.innerHTML = (isCorrect ? '✓ Correct. ' : '✗ Not quite. The correct answer is <strong>' + ['A','B','C','D'][correct] + '</strong>. ') + quizData[qi].feedback;
+            fb.innerHTML = (isCorrect ? L('✓ Correct. ','✓ Richtig. ') : L('✗ Not quite. The correct answer is <strong>','✗ Nicht ganz. Die richtige Antwort ist <strong>') + ['A','B','C','D'][correct] + '</strong>. ') + quizData[qi].feedback;
             if (window.renderMathInElement) {
                 window.renderMathInElement(fb, {
                     delimiters:[
@@ -1839,13 +2263,13 @@ function renderQuiz() {
                 document.getElementById('quiz-score').textContent = `${score} / ${quizData.length}`;
                 let msg;
                 const pct = score / quizData.length;
-                if (pct === 1) msg = 'Excellent! You have a solid command of the evaluation metrics.';
-                else if (pct >= 0.7) msg = 'Solid understanding. Recommendation: revisit the chapters covering the questions you missed.';
-                else if (pct >= 0.5) msg = 'Reasonable foundation. Recommendation: re-study Chapters 2 and 3.';
-                else msg = 'Recommendation: work systematically through Chapters 1–4 once more.';
+                if (pct === 1) msg = L('Excellent! You have a solid command of the evaluation metrics.','Ausgezeichnet! Du beherrschst die Evaluationsmetriken sicher.');
+                else if (pct >= 0.7) msg = L('Solid understanding. Recommendation: revisit the chapters covering the questions you missed.','Solides Verständnis. Empfehlung: Schau dir die Kapitel zu den verfehlten Fragen noch einmal an.');
+                else if (pct >= 0.5) msg = L('Reasonable foundation. Recommendation: re-study Chapters 2 and 3.','Brauchbare Grundlage. Empfehlung: Kapitel 2 und 3 noch einmal durcharbeiten.');
+                else msg = L('Recommendation: work systematically through Chapters 1–4 once more.','Empfehlung: Kapitel 1–4 noch einmal systematisch durcharbeiten.');
                 document.getElementById('quiz-message').textContent = msg;
                 document.getElementById('quiz-summary').style.display = 'block';
-                document.getElementById('quiz-summary').scrollIntoView({behavior:'smooth', block:'center'});
+                if (!window._i18nReplaying) document.getElementById('quiz-summary').scrollIntoView({behavior:'smooth', block:'center'});
             }
         });
     });
@@ -1862,6 +2286,9 @@ function cssVar(name) {
 }
 function chartTextColor() { return cssVar('--text'); }
 function chartGridColor() { return cssVar('--border'); }
+function buildCharts() {
+window.allCharts.forEach(c => { try { c.destroy(); } catch(e){} });
+window.allCharts = [];
 
 Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
 Chart.defaults.color = chartTextColor();
@@ -1872,7 +2299,7 @@ window.allCharts.push(new Chart(document.getElementById('retrievalMetricsChart')
     data: {
         labels: ['Precision@5', 'Recall@5', 'MRR', 'NDCG@5'],
         datasets: [{
-            label: 'Value',
+            label: L('Value','Wert'),
             data: [0.60, 0.375, 0.708, 0.871],
             backgroundColor: ['#1a365d', '#2c5282', '#1f5235', '#8b1a1a'],
             borderRadius: 6,
@@ -1883,7 +2310,7 @@ window.allCharts.push(new Chart(document.getElementById('retrievalMetricsChart')
         responsive: true, maintainAspectRatio: false,
         plugins: {
             legend: { display: false },
-            title: { display: true, text: 'Retrieval metrics compared', font: { size: 15, weight: '600' } },
+            title: { display: true, text: L('Retrieval metrics compared','Retrieval-Metriken im Vergleich'), font: { size: 15, weight: '600' } },
             tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y.toFixed(3)}` } }
         },
         scales: {
@@ -1899,19 +2326,19 @@ window.allCharts.push(new Chart(document.getElementById('prCurveChart').getConte
     data: {
         datasets: [
             {
-                label: 'BM25 (classic)',
+                label: L('BM25 (classic)','BM25 (klassisch)'),
                 data: [{x:0,y:0.65},{x:0.1,y:0.58},{x:0.2,y:0.50},{x:0.3,y:0.44},{x:0.4,y:0.38},{x:0.5,y:0.32},{x:0.6,y:0.26},{x:0.7,y:0.20},{x:0.8,y:0.15},{x:0.9,y:0.10},{x:1.0,y:0.06}],
                 borderColor: '#8b1a1a', backgroundColor: 'rgba(139,26,26,0.1)',
                 fill: false, tension: 0.3, borderWidth: 2.5
             },
             {
-                label: 'Dense retriever (DPR)',
+                label: L('Dense retriever (DPR)','Dichter Retriever (DPR)'),
                 data: [{x:0,y:0.92},{x:0.1,y:0.88},{x:0.2,y:0.83},{x:0.3,y:0.78},{x:0.4,y:0.72},{x:0.5,y:0.66},{x:0.6,y:0.58},{x:0.7,y:0.50},{x:0.8,y:0.40},{x:0.9,y:0.30},{x:1.0,y:0.18}],
                 borderColor: '#1a365d', backgroundColor: 'rgba(26,54,93,0.1)',
                 fill: false, tension: 0.3, borderWidth: 2.5
             },
             {
-                label: 'Hybrid (BM25 + DPR + reranker)',
+                label: L('Hybrid (BM25 + DPR + reranker)','Hybrid (BM25 + DPR + Re-Ranker)'),
                 data: [{x:0,y:0.96},{x:0.1,y:0.94},{x:0.2,y:0.91},{x:0.3,y:0.87},{x:0.4,y:0.83},{x:0.5,y:0.78},{x:0.6,y:0.72},{x:0.7,y:0.65},{x:0.8,y:0.55},{x:0.9,y:0.42},{x:1.0,y:0.28}],
                 borderColor: '#1f5235', backgroundColor: 'rgba(31,82,53,0.12)',
                 fill: false, tension: 0.3, borderWidth: 2.5
@@ -1921,7 +2348,7 @@ window.allCharts.push(new Chart(document.getElementById('prCurveChart').getConte
     options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-            title: { display: true, text: 'Precision-recall curves of three retrieval strategies', font: { size: 15, weight: '600' } },
+            title: { display: true, text: L('Precision-recall curves of three retrieval strategies','Precision-Recall-Kurven dreier Retrieval-Strategien'), font: { size: 15, weight: '600' } },
             legend: { position: 'bottom' }
         },
         scales: {
@@ -1935,9 +2362,9 @@ window.allCharts.push(new Chart(document.getElementById('prCurveChart').getConte
 window.allCharts.push(new Chart(document.getElementById('confusionChart').getContext('2d'), {
     type: 'bar',
     data: {
-        labels: ['Relevant + retrieved (TP)', 'Irrelevant + retrieved (FP)', 'Relevant + not retrieved (FN)', 'Irrelevant + not retrieved (TN)'],
+        labels: [L('Relevant + retrieved (TP)','Relevant + abgerufen (TP)'), L('Irrelevant + retrieved (FP)','Irrelevant + abgerufen (FP)'), L('Relevant + not retrieved (FN)','Relevant + nicht abgerufen (FN)'), L('Irrelevant + not retrieved (TN)','Irrelevant + nicht abgerufen (TN)')],
         datasets: [{
-            label: 'Document count',
+            label: L('Document count','Anzahl Dokumente'),
             data: [42, 18, 8, 932],
             backgroundColor: ['#1f5235', '#9a6b1c', '#8b1a1a', '#4a5568'],
             borderRadius: 6
@@ -1948,7 +2375,7 @@ window.allCharts.push(new Chart(document.getElementById('confusionChart').getCon
         responsive: true, maintainAspectRatio: false,
         plugins: {
             legend: { display: false },
-            title: { display: true, text: 'Confusion matrix distribution (1000 documents, K=60)', font: { size: 15, weight: '600' } }
+            title: { display: true, text: L('Confusion matrix distribution (1000 documents, K=60)','Verteilung der Konfusionsmatrix (1000 Dokumente, K=60)'), font: { size: 15, weight: '600' } }
         },
         scales: {
             x: { type: 'logarithmic', grid: { color: () => chartGridColor() }, ticks: { color: () => chartTextColor() } },
@@ -1964,14 +2391,14 @@ window.allCharts.push(new Chart(document.getElementById('ragasRadarChart').getCo
         labels: ['Faithfulness', 'Answer relevance', 'Context precision', 'Context recall'],
         datasets: [
             {
-                label: 'System A (vanilla RAG)',
+                label: L('System A (vanilla RAG)','System A (Vanilla-RAG)'),
                 data: [0.72, 0.65, 0.58, 0.52],
                 backgroundColor: 'rgba(139,26,26,0.18)',
                 borderColor: '#8b1a1a', borderWidth: 2,
                 pointBackgroundColor: '#8b1a1a'
             },
             {
-                label: 'System B (hybrid + reranker)',
+                label: L('System B (hybrid + reranker)','System B (hybrid + Re-Ranker)'),
                 data: [0.91, 0.88, 0.84, 0.79],
                 backgroundColor: 'rgba(26,54,93,0.18)',
                 borderColor: '#1a365d', borderWidth: 2,
@@ -1982,7 +2409,7 @@ window.allCharts.push(new Chart(document.getElementById('ragasRadarChart').getCo
     options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-            title: { display: true, text: 'RAGAS profile: vanilla vs. hybrid-reranker system', font: { size: 15, weight: '600' } },
+            title: { display: true, text: L('RAGAS profile: vanilla vs. hybrid-reranker system','RAGAS-Profil: Vanilla- vs. Hybrid-Re-Ranker-System'), font: { size: 15, weight: '600' } },
             legend: { position: 'bottom' }
         },
         scales: {
@@ -2001,7 +2428,7 @@ window.allCharts.push(new Chart(document.getElementById('ragasRadarChart').getCo
 window.allCharts.push(new Chart(document.getElementById('metricComparisonChart').getContext('2d'), {
     type: 'bar',
     data: {
-        labels: ['Exact', 'One word', 'Synonym', 'Paraphrase', 'Contradiction'],
+        labels: [L('Exact','Exakt'), L('One word','Ein Wort'), 'Synonym', 'Paraphrase', L('Contradiction','Widerspruch')],
         datasets: [
             { label: 'BLEU', data: [1.0, 0.79, 0.30, 0.35, 0.92], backgroundColor: '#1a365d', borderRadius: 4 },
             { label: 'ROUGE-L', data: [1.0, 0.88, 0.42, 0.50, 0.94], backgroundColor: '#1f5235', borderRadius: 4 },
@@ -2011,7 +2438,7 @@ window.allCharts.push(new Chart(document.getElementById('metricComparisonChart')
     options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-            title: { display: true, text: 'Metrics under increasing text variation', font: { size: 15, weight: '600' } },
+            title: { display: true, text: L('Metrics under increasing text variation','Metriken bei zunehmender Textvariation'), font: { size: 15, weight: '600' } },
             legend: { position: 'bottom' }
         },
         scales: {
@@ -2073,7 +2500,7 @@ window.allCharts.push(new Chart(document.getElementById('bootstrapChart').getCon
     data: {
         labels: labels,
         datasets: [{
-            label: 'Bootstrap frequency',
+            label: L('Bootstrap frequency','Bootstrap-Häufigkeit'),
             data: counts,
             backgroundColor: '#2c5282',
             borderRadius: 1
@@ -2083,7 +2510,7 @@ window.allCharts.push(new Chart(document.getElementById('bootstrapChart').getCon
         responsive: true, maintainAspectRatio: false,
         plugins: {
             legend: { display: false },
-            title: { display: true, text: 'Bootstrap distribution of NDCG@10 (1000 resamples)', font: { size: 15, weight: '600' } }
+            title: { display: true, text: L('Bootstrap distribution of NDCG@10 (1000 resamples)','Bootstrap-Verteilung von NDCG@10 (1000 Resamples)'), font: { size: 15, weight: '600' } }
         },
         scales: {
             x: {
@@ -2095,12 +2522,14 @@ window.allCharts.push(new Chart(document.getElementById('bootstrapChart').getCon
                 beginAtZero: true,
                 grid: { color: () => chartGridColor() },
                 ticks: { color: () => chartTextColor() },
-                title: { display: true, text: 'Number of resamples' }
+                title: { display: true, text: L('Number of resamples','Anzahl Resamples') }
             }
         }
     },
     plugins: [ciPlugin]
 }));
+}
+buildCharts();
 
 // Theme update for charts
 window._chartThemeUpdater = () => {
@@ -2121,6 +2550,7 @@ window._chartThemeUpdater = () => {
 };
 themeToggle.addEventListener('click', () => setTimeout(window._chartThemeUpdater, 50));
 setTimeout(window._chartThemeUpdater, 100);
+(function(){ let sv = null; try { sv = localStorage.getItem('rag_eval_lang'); } catch(e){} if (sv === 'de') setLang('de'); })();
 </script>
 </body>
 </html>
