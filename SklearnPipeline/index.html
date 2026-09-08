@@ -14,6 +14,10 @@ nav{width:240px;background:var(--green);color:var(--white);padding:20px 0;positi
 nav h2{padding:0 18px 14px;font-size:1.05rem;border-bottom:1px solid rgba(255,255,255,.2);margin-bottom:10px;letter-spacing:.5px}
 nav a{display:block;padding:9px 18px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.88rem;cursor:pointer;transition:all .2s}
 nav a:hover,nav a.active{background:rgba(255,255,255,.15);color:#fff}
+.lang-toggle{display:flex;gap:4px;margin:0 18px 12px;background:rgba(0,0,0,.18);border-radius:8px;padding:3px}
+.lang-btn{flex:1;text-align:center;padding:5px 0;font-size:.8rem;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,.7);border-radius:6px;cursor:pointer;transition:all .2s;user-select:none}
+.lang-btn:hover{color:#fff}
+.lang-btn.active{background:var(--white);color:var(--green)}
 main{flex:1;max-width:960px;margin:0 auto;padding:30px 36px 60px}
 section{display:none;animation:fadeIn .3s}
 section.active{display:block}
@@ -91,6 +95,10 @@ pre .kw{color:#569cd6} pre .fn{color:#dcdcaa} pre .st{color:#ce9178} pre .cm{col
 <div class="app">
 <nav id="nav">
   <h2>🔗 Sklearn Pipeline</h2>
+  <div class="lang-toggle" title="Language / Sprache">
+    <div class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</div>
+    <div class="lang-btn" data-lang="de" onclick="setLang('de')">DE</div>
+  </div>
   <a onclick="showSec('intro')" class="active">1. What is a Pipeline?</a>
   <a onclick="showSec('why')">2. Why Use Pipelines?</a>
   <a onclick="showSec('anatomy')">3. Anatomy</a>
@@ -547,6 +555,195 @@ pipe = <span class="cls">Pipeline</span>([
 </div>
 
 <script>
+// ========== LANGUAGE (EN / DE) ==========
+// Keys = original English innerHTML (whitespace-collapsed). Code blocks (<pre>) and identifiers stay untouched.
+const DE={
+  // nav
+  "1. What is a Pipeline?":"1. Was ist eine Pipeline?",
+  "2. Why Use Pipelines?":"2. Warum Pipelines?",
+  "3. Anatomy":"3. Aufbau",
+  "4. fit / transform / predict":"4. fit / transform / predict",
+  "5. ColumnTransformer":"5. ColumnTransformer",
+  "6. Code Examples":"6. Code-Beispiele",
+  "7. Advanced Topics":"7. Fortgeschrittene Themen",
+  "8. Quiz":"8. Quiz",
+  // 1 intro
+  "What is a Sklearn Pipeline?":"Was ist eine Sklearn-Pipeline?",
+  "Chaining preprocessing steps and a model into a single, reproducible workflow":"Vorverarbeitungsschritte und Modell zu einem einzigen, reproduzierbaren Workflow verketten",
+  "The Problem":"Das Problem",
+  "In a typical ML workflow, you need to apply multiple transformations before training a model:":"In einem typischen ML-Workflow müssen vor dem Training eines Modells mehrere Transformationen angewendet werden:",
+  "Impute":"Imputieren",
+  "Missing values":"Fehlende Werte",
+  "Scale":"Skalieren",
+  "Standardize":"Standardisieren",
+  "Encode":"Kodieren",
+  "Categorical":"Kategorial",
+  "Model":"Modell",
+  "Estimator":"Estimator",
+  "Without a pipeline, you must manually call <code>fit_transform()</code> on each step, track fitted transformers, and reapply them identically at prediction time. This is <strong>error-prone</strong> and <strong>verbose</strong>.":"Ohne Pipeline muss man bei jedem Schritt manuell <code>fit_transform()</code> aufrufen, die gefitteten Transformer verwalten und sie bei der Vorhersage exakt gleich erneut anwenden. Das ist <strong>fehleranfällig</strong> und <strong>umständlich</strong>.",
+  "The Solution: <code>sklearn.pipeline.Pipeline</code>":"Die Lösung: <code>sklearn.pipeline.Pipeline</code>",
+  "A Pipeline bundles a sequence of <strong>transformers</strong> and a final <strong>estimator</strong> into a single object that behaves like an estimator itself:":"Eine Pipeline bündelt eine Folge von <strong>Transformern</strong> und einen abschließenden <strong>Estimator</strong> in einem einzigen Objekt, das sich selbst wie ein Estimator verhält:",
+  "<strong>Key Insight:</strong> A Pipeline ensures that the <em>exact same</em> transformations applied during training are automatically applied during prediction — preventing data leakage and inconsistencies.":"<strong>Kernidee:</strong> Eine Pipeline stellt sicher, dass <em>exakt dieselben</em> Transformationen wie im Training automatisch auch bei der Vorhersage angewendet werden — das verhindert Data Leakage und Inkonsistenzen.",
+  // 2 why
+  "Why Use Pipelines?":"Warum Pipelines?",
+  "Five compelling reasons to adopt pipelines in every ML project":"Fünf gute Gründe, Pipelines in jedem ML-Projekt einzusetzen",
+  "1. 🛡️ Prevent Data Leakage":"1. 🛡️ Data Leakage verhindern",
+  "Without a pipeline, it's easy to accidentally fit a scaler on the full dataset (including test data) before splitting. A pipeline guarantees transformers are fit <strong>only on training data</strong> during cross-validation.":"Ohne Pipeline passiert es leicht, dass ein Scaler versehentlich vor dem Split auf den gesamten Datensatz (inklusive Testdaten) gefittet wird. Eine Pipeline garantiert, dass Transformer bei der Cross-Validation <strong>nur auf Trainingsdaten</strong> gefittet werden.",
+  "2. 🧼 Cleaner Code":"2. 🧼 Sauberer Code",
+  "Replace dozens of manual <code>fit_transform()</code> / <code>transform()</code> calls with a single <code>pipe.fit()</code> and <code>pipe.predict()</code>.":"Dutzende manuelle <code>fit_transform()</code>-/<code>transform()</code>-Aufrufe werden durch ein einziges <code>pipe.fit()</code> und <code>pipe.predict()</code> ersetzt.",
+  "3. 🔄 Easy Cross-Validation":"3. 🔄 Einfache Cross-Validation",
+  "Pass the entire pipeline to <code>cross_val_score()</code> — each fold correctly fits transformers only on its training portion.":"Die gesamte Pipeline wird an <code>cross_val_score()</code> übergeben — in jedem Fold werden die Transformer korrekt nur auf dem Trainingsanteil gefittet.",
+  "4. 🎯 Grid Search over Everything":"4. 🎯 Grid Search über alles",
+  "Tune hyperparameters of <em>any</em> step using <code>GridSearchCV</code> with the <code>stepname__param</code> syntax:":"Hyperparameter <em>jedes</em> Schritts lassen sich mit <code>GridSearchCV</code> über die Syntax <code>stepname__param</code> tunen:",
+  "5. 📦 Deployment-Ready":"5. 📦 Bereit fürs Deployment",
+  "Serialize the entire pipeline with <code>joblib.dump(pipe, 'model.pkl')</code> — one file contains all preprocessing + model logic.":"Die gesamte Pipeline wird mit <code>joblib.dump(pipe, 'model.pkl')</code> serialisiert — eine Datei enthält die komplette Vorverarbeitung + Modelllogik.",
+  // 3 anatomy
+  "Anatomy of a Pipeline":"Aufbau einer Pipeline",
+  "Understanding the building blocks":"Die Bausteine verstehen",
+  "Two Types of Components":"Zwei Arten von Komponenten",
+  "🔄 Transformer":"🔄 Transformer",
+  "Has <code>fit()</code> + <code>transform()</code> methods.":"Hat die Methoden <code>fit()</code> + <code>transform()</code>.",
+  "All intermediate steps must be transformers.":"Alle Zwischenschritte müssen Transformer sein.",
+  "<em>Examples:</em> StandardScaler, OneHotEncoder, PCA, SimpleImputer":"<em>Beispiele:</em> StandardScaler, OneHotEncoder, PCA, SimpleImputer",
+  "🎯 Estimator":"🎯 Estimator",
+  "Has <code>fit()</code> + <code>predict()</code> methods.":"Hat die Methoden <code>fit()</code> + <code>predict()</code>.",
+  "Only the <strong>last step</strong> can be an estimator (or another transformer).":"Nur der <strong>letzte Schritt</strong> darf ein Estimator sein (oder ein weiterer Transformer).",
+  "<em>Examples:</em> Lasso, RandomForestRegressor, SVC":"<em>Beispiele:</em> Lasso, RandomForestRegressor, SVC",
+  "The <code>steps</code> Parameter":"Der Parameter <code>steps</code>",
+  "A pipeline is defined by a list of <code>(name, estimator)</code> tuples:":"Eine Pipeline wird durch eine Liste von <code>(name, estimator)</code>-Tupeln definiert:",
+  "Or use the shorthand <code>make_pipeline()</code> which auto-generates names:":"Oder man nutzt die Kurzform <code>make_pipeline()</code>, die die Namen automatisch erzeugt:",
+  "Accessing Steps":"Zugriff auf die Schritte",
+  "<strong>Rule:</strong> All steps except the last <em>must</em> implement <code>transform()</code>. The last step can be any estimator (classifier, regressor) or a transformer.":"<strong>Regel:</strong> Alle Schritte außer dem letzten <em>müssen</em> <code>transform()</code> implementieren. Der letzte Schritt kann ein beliebiger Estimator (Klassifikator, Regressor) oder ein Transformer sein.",
+  // 4 flow
+  "How fit / transform / predict Work":"Wie fit / transform / predict funktionieren",
+  "Visualizing the data flow through the pipeline":"Der Datenfluss durch die Pipeline, visualisiert",
+  "Pipeline Flow — Reference Diagram":"Pipeline-Ablauf — Referenzdiagramm",
+  "The following diagram shows the complete pipeline flow for both <strong>Step 1 (Training)</strong> and <strong>Step 2 (Prediction)</strong>:":"Das folgende Diagramm zeigt den vollständigen Pipeline-Ablauf für <strong>Schritt 1 (Training)</strong> und <strong>Schritt 2 (Vorhersage)</strong>:",
+  "Pipeline data flow: Step 1 (fit) uses .fit() &amp; .transform() on the left; Step 2 (predict) uses .transform() &amp; .predict() on the right":"Datenfluss der Pipeline: Schritt 1 (fit) nutzt links .fit() &amp; .transform(); Schritt 2 (predict) nutzt rechts .transform() &amp; .predict()",
+  "<strong>pipe.fit(X, y):</strong> For each intermediate step, call <code>fit_transform(X, y)</code> and pass the result to the next step. On the <strong>final step</strong>, call only <code>fit(X, y)</code>.":"<strong>pipe.fit(X, y):</strong> Für jeden Zwischenschritt wird <code>fit_transform(X, y)</code> aufgerufen und das Ergebnis an den nächsten Schritt weitergegeben. Beim <strong>letzten Schritt</strong> wird nur <code>fit(X, y)</code> aufgerufen.",
+  "<strong>pipe.predict(X):</strong> For each intermediate step, call <code>transform(X)</code> (using parameters learned during fit). On the final step, call <code>predict(X)</code>.":"<strong>pipe.predict(X):</strong> Für jeden Zwischenschritt wird <code>transform(X)</code> aufgerufen (mit den beim Fit gelernten Parametern). Beim letzten Schritt wird <code>predict(X)</code> aufgerufen.",
+  "<code>pipe.fit_predict(X, y)</code> is equivalent to <code>pipe.fit(X, y).predict(X)</code> but may be more efficient if the final estimator implements <code>fit_predict</code>.":"<code>pipe.fit_predict(X, y)</code> entspricht <code>pipe.fit(X, y).predict(X)</code>, kann aber effizienter sein, wenn der letzte Estimator <code>fit_predict</code> implementiert.",
+  "Similarly, <code>pipe.fit_transform(X, y)</code> calls <code>fit_transform</code> on all steps (requires last step to be a transformer).":"Analog ruft <code>pipe.fit_transform(X, y)</code> auf allen Schritten <code>fit_transform</code> auf (der letzte Schritt muss dafür ein Transformer sein).",
+  // 5 columntransformer
+  "ColumnTransformer Example":"ColumnTransformer-Beispiel",
+  "Handling heterogeneous data (numerical and categorical features) in a single pipeline":"Heterogene Daten (numerische und kategoriale Merkmale) in einer einzigen Pipeline verarbeiten",
+  "Why do we need ColumnTransformer?":"Wozu brauchen wir den ColumnTransformer?",
+  "Most real-world datasets contain a mix of feature types. For example, a dataset might have numerical columns (like <code>Age</code> and <code>Fare</code>) and categorical columns (like <code>Gender</code> and <code>Job</code>). You cannot apply a <code>StandardScaler</code> to categorical text, and you shouldn't apply <code>OneHotEncoder</code> to continuous numbers.":"Die meisten realen Datensätze enthalten gemischte Merkmalstypen. Ein Datensatz kann z. B. numerische Spalten (wie <code>Age</code> und <code>Fare</code>) und kategoriale Spalten (wie <code>Gender</code> und <code>Job</code>) haben. Auf kategorialen Text lässt sich kein <code>StandardScaler</code> anwenden, und auf stetige Zahlen sollte man keinen <code>OneHotEncoder</code> anwenden.",
+  "<code>ColumnTransformer</code> allows you to apply different preprocessing pipelines to different subsets of features, and then it automatically concatenates the results back into a single feature matrix.":"Der <code>ColumnTransformer</code> erlaubt es, auf verschiedene Teilmengen der Merkmale unterschiedliche Vorverarbeitungs-Pipelines anzuwenden; anschließend fügt er die Ergebnisse automatisch wieder zu einer einzigen Merkmalsmatrix zusammen.",
+  "Input DataFrame (X)<br><small style=\"font-weight:normal\">['Age', 'Fare', 'Gender', 'Job']</small>":"Eingabe-DataFrame (X)<br><small style=\"font-weight:normal\">['Age', 'Fare', 'Gender', 'Job']</small>",
+  "Numerical Pipeline<br><small>columns: ['Age', 'Fare']</small>":"Numerische Pipeline<br><small>Spalten: ['Age', 'Fare']</small>",
+  "Categorical Pipeline<br><small>columns: ['Gender', 'Job']</small>":"Kategoriale Pipeline<br><small>Spalten: ['Gender', 'Job']</small>",
+  "Scale to mean=0, std=1":"Skalieren auf mean=0, std=1",
+  "🔗 ColumnTransformer<br><small style=\"font-weight:normal\">Concatenates transformed columns back together</small>":"🔗 ColumnTransformer<br><small style=\"font-weight:normal\">Fügt die transformierten Spalten wieder zusammen</small>",
+  "Final Estimator":"Finaler Estimator",
+  "The Code":"Der Code",
+  // 6 code
+  "Code Examples":"Code-Beispiele",
+  "Common pipeline patterns you'll use in practice":"Typische Pipeline-Muster für die Praxis",
+  "Basic":"Basis",
+  "Cross-Val":"Cross-Val",
+  "Grid Search":"Grid Search",
+  // 7 advanced
+  "Advanced Topics":"Fortgeschrittene Themen",
+  "Custom transformers, visualization, and caching":"Eigene Transformer, Visualisierung und Caching",
+  "Custom Transformers with <code>FunctionTransformer</code>":"Eigene Transformer mit <code>FunctionTransformer</code>",
+  "Visualizing a Pipeline":"Eine Pipeline visualisieren",
+  "In modern versions of scikit-learn (1.4+), simply evaluating the pipeline object in a Jupyter Notebook cell automatically renders a beautiful, interactive HTML diagram:":"In aktuellen scikit-learn-Versionen (1.4+) genügt es, das Pipeline-Objekt in einer Jupyter-Notebook-Zelle auszuwerten — es wird automatisch ein interaktives HTML-Diagramm gerendert:",
+  "<em>Note: If you are using an older version and it prints text instead, you can manually enable it using <code>sklearn.set_config(display='diagram')</code>.</em>":"<em>Hinweis: Bei einer älteren Version, die stattdessen Text ausgibt, lässt sich die Darstellung manuell mit <code>sklearn.set_config(display='diagram')</code> aktivieren.</em>",
+  "Pipeline Memory (Caching)":"Pipeline-Memory (Caching)",
+  "Use the <code>memory</code> parameter to cache fitted transformers — useful when transformations are expensive:":"Mit dem Parameter <code>memory</code> werden gefittete Transformer zwischengespeichert — nützlich, wenn Transformationen teuer sind:",
+  // 8 quiz
+  "Test Your Understanding":"Teste dein Verständnis",
+  "Check what you've learned about sklearn pipelines":"Überprüfe, was du über Sklearn-Pipelines gelernt hast",
+  "1. What methods must all <em>intermediate</em> steps in a Pipeline implement?":"1. Welche Methoden müssen alle <em>Zwischenschritte</em> einer Pipeline implementieren?",
+  "A) fit() and predict()":"A) fit() und predict()",
+  "B) fit() and transform()":"B) fit() und transform()",
+  "C) transform() and predict()":"C) transform() und predict()",
+  "D) Only fit()":"D) Nur fit()",
+  "2. When <code>pipe.fit(X, y)</code> is called, what happens at intermediate steps?":"2. Was passiert bei den Zwischenschritten, wenn <code>pipe.fit(X, y)</code> aufgerufen wird?",
+  "A) Only transform(X) is called":"A) Nur transform(X) wird aufgerufen",
+  "B) Only fit(X, y) is called":"B) Nur fit(X, y) wird aufgerufen",
+  "C) fit_transform(X, y) is called, and the result is passed forward":"C) fit_transform(X, y) wird aufgerufen und das Ergebnis weitergegeben",
+  "D) predict(X) is called":"D) predict(X) wird aufgerufen",
+  "3. How do you reference the hyperparameter <code>alpha</code> of a step named <code>'lasso'</code> in GridSearchCV?":"3. Wie spricht man in GridSearchCV den Hyperparameter <code>alpha</code> des Schritts <code>'lasso'</code> an?",
+  "4. What is the main advantage of using a Pipeline with cross-validation?":"4. Was ist der Hauptvorteil einer Pipeline bei der Cross-Validation?",
+  "A) It runs faster":"A) Sie läuft schneller",
+  "B) It prevents data leakage by fitting transformers only on each training fold":"B) Sie verhindert Data Leakage, weil Transformer nur auf dem jeweiligen Trainings-Fold gefittet werden",
+  "C) It automatically selects the best model":"C) Sie wählt automatisch das beste Modell",
+  "D) It eliminates the need for feature engineering":"D) Sie macht Feature Engineering überflüssig",
+  "5. Which component allows applying different transformations to different column groups?":"5. Welche Komponente erlaubt es, unterschiedliche Transformationen auf verschiedene Spaltengruppen anzuwenden?",
+  "6. When <code>pipe.predict(X_new)</code> is called on new data, what happens at intermediate steps?":"6. Was passiert bei den Zwischenschritten, wenn <code>pipe.predict(X_new)</code> auf neuen Daten aufgerufen wird?",
+  "B) transform(X_new) using previously fitted parameters":"B) transform(X_new) mit den zuvor gefitteten Parametern",
+  "C) fit(X_new) then transform(X_new)":"C) fit(X_new), dann transform(X_new)"
+};
+
+// Strings used from JS (canvas labels, quiz feedback)
+const STR={
+  en:{
+    model:'Model', fitted:'→ fitted pipe', preds:'→ ŷ predictions',
+    fitNote:'Each transformer learns parameters (mean, std, etc.) AND transforms X before passing it forward.',
+    predNote:'Transformers use parameters learned during fit() — no re-fitting occurs!',
+    wrong:'❌ Not quite. The correct answer is highlighted in green.',
+    title:'Sklearn Pipeline – Interactive Guide',
+    answers:{
+      q1:'Correct! Intermediate steps must be transformers with fit() and transform().',
+      q2:'Correct! fit_transform() learns parameters AND transforms the data in one call.',
+      q3:'Correct! The double-underscore syntax stepname__param links parameters to specific steps.',
+      q4:'Correct! Without a pipeline, you might accidentally fit transformers on validation data too.',
+      q5:'Correct! ColumnTransformer routes different columns through different transformation pipelines.',
+      q6:'Correct! Only transform() is called — the transformer uses what it learned during fit().'
+    }
+  },
+  de:{
+    model:'Modell', fitted:'→ gefittete Pipe', preds:'→ ŷ Vorhersagen',
+    fitNote:'Jeder Transformer lernt Parameter (mean, std usw.) UND transformiert X, bevor es weitergegeben wird.',
+    predNote:'Die Transformer nutzen die in fit() gelernten Parameter — es wird nichts neu gefittet!',
+    wrong:'❌ Nicht ganz. Die richtige Antwort ist grün markiert.',
+    title:'Sklearn Pipeline – Interaktiver Guide',
+    answers:{
+      q1:'Richtig! Zwischenschritte müssen Transformer mit fit() und transform() sein.',
+      q2:'Richtig! fit_transform() lernt die Parameter UND transformiert die Daten in einem Aufruf.',
+      q3:'Richtig! Die Doppel-Unterstrich-Syntax stepname__param ordnet Parameter einem bestimmten Schritt zu.',
+      q4:'Richtig! Ohne Pipeline würde man Transformer womöglich versehentlich auch auf Validierungsdaten fitten.',
+      q5:'Richtig! Der ColumnTransformer leitet verschiedene Spalten durch verschiedene Transformations-Pipelines.',
+      q6:'Richtig! Es wird nur transform() aufgerufen — der Transformer nutzt, was er in fit() gelernt hat.'
+    }
+  }
+};
+
+let LANG='en';
+function t(k){return STR[LANG][k];}
+const I18N_SEL='nav a, h1, h3, p, .step-name, .step-type, .ct-branch-label, .ct-box, .info-box, .warn-box, .quiz-opt, .tab, .ref-image-caption';
+const i18nEls=[]; // {el, en, de}
+function i18nCollect(){
+  document.querySelectorAll(I18N_SEL).forEach(el=>{
+    if(el.closest('pre'))return;
+    const en=el.innerHTML;
+    const key=en.replace(/\s+/g,' ').trim();
+    if(DE[key]!==undefined) i18nEls.push({el,en,de:DE[key]});
+  });
+}
+function setLang(lang){
+  LANG=lang;
+  i18nEls.forEach(o=>{o.el.innerHTML=(lang==='de')?o.de:o.en;});
+  document.documentElement.lang=lang;
+  document.title=t('title');
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+  // re-render quiz feedback that is already visible
+  document.querySelectorAll('.quiz-q[data-answered]').forEach(q=>{
+    const fb=document.getElementById(q.id+'fb');
+    fb.textContent=(q.dataset.answered==='ok')?('✅ '+t('answers')[q.id]):t('wrong');
+  });
+  if(document.getElementById('flow').classList.contains('active'))drawFlowDiagrams();
+  try{localStorage.setItem('sklearn_pipeline_lang',lang);}catch(e){}
+}
+i18nCollect();
+(function(){
+  let saved=null;
+  try{saved=localStorage.getItem('sklearn_pipeline_lang');}catch(e){}
+  if(saved==='de')setLang('de');
+})();
+
 // ========== NAVIGATION ==========
 function showSec(id){
   document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
@@ -635,7 +832,7 @@ function drawFitFlow(){
   const steps=[
     {title:'Imputer',method:'.fit_transform(X,y)',fill:'#e8f5e9',border:'#2e7d32'},
     {title:'Scaler',method:'.fit_transform(X,y)',fill:'#e8f5e9',border:'#2e7d32'},
-    {title:'Model',method:'.fit(X,y)',fill:'#e3f2fd',border:'#1565c0'}
+    {title:t('model'),method:'.fit(X,y)',fill:'#e3f2fd',border:'#1565c0'}
   ];
   const bw=170,bh=65,gap=50,totalW=steps.length*bw+(steps.length-1)*gap;
   const startX=(w-totalW)/2, cy=h/2-bh/2+20;
@@ -657,11 +854,11 @@ function drawFitFlow(){
   drawDataLabel(ctx,startX-25,cy+bh/2,'X →');
   // Output
   ctx.fillStyle='#1565c0';ctx.font='bold 12px Segoe UI';ctx.textAlign='left';
-  ctx.fillText('→ fitted pipe',startX+totalW+8,cy+bh/2+4);
+  ctx.fillText(t('fitted'),startX+totalW+8,cy+bh/2+4);
 
   // Bottom note
   ctx.fillStyle='#5f7d5f';ctx.font='12px Segoe UI';ctx.textAlign='center';
-  ctx.fillText('Each transformer learns parameters (mean, std, etc.) AND transforms X before passing it forward.',w/2,h-20);
+  ctx.fillText(t('fitNote'),w/2,h-20);
 }
 
 function drawPredFlow(){
@@ -671,7 +868,7 @@ function drawPredFlow(){
   const steps=[
     {title:'Imputer',method:'.transform(X)',fill:'#e8f5e9',border:'#2e7d32'},
     {title:'Scaler',method:'.transform(X)',fill:'#e8f5e9',border:'#2e7d32'},
-    {title:'Model',method:'.predict(X)',fill:'#e3f2fd',border:'#1565c0'}
+    {title:t('model'),method:'.predict(X)',fill:'#e3f2fd',border:'#1565c0'}
   ];
   const bw=170,bh=65,gap=50,totalW=steps.length*bw+(steps.length-1)*gap;
   const startX=(w-totalW)/2, cy=h/2-bh/2+20;
@@ -689,30 +886,23 @@ function drawPredFlow(){
   }
   drawDataLabel(ctx,startX-35,cy+bh/2,'X_new →');
   ctx.fillStyle='#1565c0';ctx.font='bold 12px Segoe UI';ctx.textAlign='left';
-  ctx.fillText('→ ŷ predictions',startX+totalW+8,cy+bh/2+4);
+  ctx.fillText(t('preds'),startX+totalW+8,cy+bh/2+4);
 
   ctx.fillStyle='#5f7d5f';ctx.font='12px Segoe UI';ctx.textAlign='center';
-  ctx.fillText('Transformers use parameters learned during fit() — no re-fitting occurs!',w/2,h-20);
+  ctx.fillText(t('predNote'),w/2,h-20);
 }
 
 // ========== QUIZ ==========
-const answers={
-  q1:'Correct! Intermediate steps must be transformers with fit() and transform().',
-  q2:'Correct! fit_transform() learns parameters AND transforms the data in one call.',
-  q3:'Correct! The double-underscore syntax stepname__param links parameters to specific steps.',
-  q4:'Correct! Without a pipeline, you might accidentally fit transformers on validation data too.',
-  q5:'Correct! ColumnTransformer routes different columns through different transformation pipelines.',
-  q6:'Correct! Only transform() is called — the transformer uses what it learned during fit().'
-};
+// answers → STR[LANG].answers (see LANGUAGE block)
 
 function checkQ(qid,el,correct){
   const q=document.getElementById(qid);
   if(q.dataset.answered)return;
-  q.dataset.answered='1';
+  q.dataset.answered=correct?'ok':'no';
   const fb=document.getElementById(qid+'fb');
   if(correct){
     el.classList.add('correct');
-    fb.textContent='✅ '+answers[qid];
+    fb.textContent='✅ '+t('answers')[qid];
     fb.style.background='#c8e6c9';fb.style.display='block';
   }else{
     el.classList.add('wrong');
@@ -720,7 +910,7 @@ function checkQ(qid,el,correct){
     q.querySelectorAll('.quiz-opt').forEach(o=>{
       o.style.pointerEvents='none';
     });
-    fb.textContent='❌ Not quite. The correct answer is highlighted in green.';
+    fb.textContent=t('wrong');
     fb.style.background='#ffcdd2';fb.style.display='block';
     // Find correct
     q.querySelectorAll('.quiz-opt').forEach(o=>{

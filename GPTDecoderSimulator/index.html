@@ -136,24 +136,29 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);line-height:1
 .refs li .ven{color:var(--txt3);font-family:var(--mono);font-size:0.72rem;}
 .refs li a{color:var(--k);text-decoration:none;font-family:var(--mono);font-size:0.72rem;border-bottom:1px dotted var(--kbrd);}
 .refs li a:hover{border-bottom-style:solid;}
+.lang-toggle{margin-left:0.8rem;display:flex;gap:2px;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:2px;}
+.lang-btn{font-family:var(--mono);font-size:0.66rem;font-weight:600;letter-spacing:0.05em;padding:0.2rem 0.6rem;border-radius:999px;cursor:pointer;color:var(--txt3);user-select:none;transition:all .2s;}
+.lang-btn:hover{color:var(--txt);}
+.lang-btn.on{background:var(--acc);color:#fff;}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="header">
   <div class="logo">GPT_DECODER<span>.sim</span></div>
-  <div class="header-meta">decoder-only transformer · step-by-step data flow</div>
+  <div class="header-meta" data-i18n="hdr-meta">decoder-only transformer · step-by-step data flow</div>
   <div class="token-bar">
-    <label>Input</label>
+    <label data-i18n="lbl-input">Input</label>
     <select id="input-select" onchange="restart()">
       <option value="the cat sat">the cat sat</option>
       <option value="I love">I love</option>
       <option value="dogs are great">dogs are great</option>
       <option value="the sun is">the sun is</option>
     </select>
-    <label style="margin-left:0.6rem;">Temperature</label>
+    <label style="margin-left:0.6rem;" data-i18n="lbl-temp">Temperature</label>
     <input id="temp-slider" type="range" min="0.1" max="2.0" step="0.1" value="1.0" oninput="onTempChange()" style="width:110px;accent-color:var(--acc);cursor:pointer;">
     <span id="temp-val" style="font-family:var(--mono);font-size:0.74rem;color:var(--acc);font-weight:600;min-width:28px;">1.0</span>
+    <div class="lang-toggle" title="Language / Sprache"><span class="lang-btn on" data-lang="en" onclick="setLang('en')">EN</span><span class="lang-btn" data-lang="de" onclick="setLang('de')">DE</span></div>
   </div>
 </header>
 
@@ -163,6 +168,24 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);line-height:1
 </div>
 
 <script>
+// ═══════ LANGUAGE (EN / DE) ═══════
+let LANG='en';
+function L(en,de){return LANG==='de'?de:en;}
+const STATIC_I18N={
+  'lbl-input':['Input','Eingabe'],
+  'lbl-temp':['Temperature','Temperatur'],
+  'hdr-meta':['decoder-only transformer · step-by-step data flow','Decoder-only-Transformer · Datenfluss Schritt für Schritt']
+};
+function setLang(lang){
+  LANG=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const e=STATIC_I18N[el.dataset.i18n];if(e)el.textContent=lang==='de'?e[1]:e[0];});
+  document.documentElement.lang=lang;
+  document.title=L('GPT Decoder Simulator — Step-by-Step Data Flow','GPT-Decoder-Simulator — Datenfluss Schritt für Schritt');
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('on',b.dataset.lang===lang));
+  if(typeof renderSidebar==='function'&&STATE.tokens){renderSidebar();renderMain();}
+  try{localStorage.setItem('gpt_decoder_lang',lang);}catch(e){}
+}
+
 // ═══════ MODEL CONFIGURATION ═══════
 const CFG = {
   d_model: 4,
@@ -369,33 +392,44 @@ function renderMtx(M,label,cls,rowLabels,colLabels){
 
 // ═══════ STEP DEFINITIONS ═══════
 const STEPS=[
-{id:'overview',title:'Overview',tag:'tt',tagText:'OVERVIEW',
+{id:'overview',get title(){return L('Overview','Übersicht');},tag:'tt',tagText:'OVERVIEW',
 render(){
-  let h=`<div class="stage-title">GPT Decoder Architecture <span class="tag tt">OVERVIEW</span></div>`;
-  h+=`<p class="stage-desc">A decoder-only transformer (the GPT family) processes a sequence of tokens through <strong>embedding</strong>, <strong>masked multi-head self-attention</strong>, a <strong>feed-forward network</strong>, and a final <strong>linear projection</strong> to predict the next token. The diagram below shows one decoder layer — real GPT models stack 12–96 of these.</p>`;
+  let h=`<div class="stage-title">${L('GPT Decoder Architecture','GPT-Decoder-Architektur')} <span class="tag tt">${L('OVERVIEW','ÜBERSICHT')}</span></div>`;
+  h+=`<p class="stage-desc">${L('A decoder-only transformer (the GPT family) processes a sequence of tokens through <strong>embedding</strong>, <strong>masked multi-head self-attention</strong>, a <strong>feed-forward network</strong>, and a final <strong>linear projection</strong> to predict the next token. The diagram below shows one decoder layer — real GPT models stack 12–96 of these.','Ein Decoder-only-Transformer (die GPT-Familie) schickt eine Token-Sequenz durch <strong>Embedding</strong>, <strong>maskierte Multi-Head-Self-Attention</strong>, ein <strong>Feed-Forward-Netz</strong> und eine abschließende <strong>lineare Projektion</strong>, um den nächsten Token vorherzusagen. Das Diagramm unten zeigt eine Decoder-Schicht — echte GPT-Modelle stapeln 12–96 davon.')}</p>`;
 
   // ── What does GPT stand for? ──
-  h+=`<div class="info ip"><div class="il">What does "GPT" stand for?</div>
+  h+=`<div class="info ip">${L(`<div class="il">What does "GPT" stand for?</div>
 <strong>GPT</strong> = <strong>Generative Pre-trained Transformer</strong>. Each word reflects a deliberate design choice:<br><br>
 <strong>Generative</strong> &nbsp;— the model generates new tokens. It is trained to predict the next token in a sequence, so at inference time you can sample from it autoregressively to produce text.<br>
 <strong>Pre-trained</strong> &nbsp;— it is first trained on a massive corpus of unlabeled text in a self-supervised way (just <em>predict-the-next-token</em>), and only afterward fine-tuned, prompted, or aligned for specific downstream tasks. This separation of pre-training from downstream use was the key insight of the original GPT-1 paper [2].<br>
-<strong>Transformer</strong> &nbsp;— the underlying architecture is the <em>decoder half</em> of the Transformer from <em>Attention Is All You Need</em> [1] — exactly the architecture this simulator walks through, step by step.</div>`;
+<strong>Transformer</strong> &nbsp;— the underlying architecture is the <em>decoder half</em> of the Transformer from <em>Attention Is All You Need</em> [1] — exactly the architecture this simulator walks through, step by step.`,`<div class="il">Wofür steht „GPT"?</div>
+<strong>GPT</strong> = <strong>Generative Pre-trained Transformer</strong>. Jedes Wort steht für eine bewusste Designentscheidung:<br><br>
+<strong>Generative</strong> &nbsp;— das Modell erzeugt neue Token. Es wird darauf trainiert, den nächsten Token einer Sequenz vorherzusagen, sodass man bei der Inferenz autoregressiv daraus samplen und Text erzeugen kann.<br>
+<strong>Pre-trained</strong> &nbsp;— es wird zuerst selbstüberwacht auf einem riesigen Korpus unbeschrifteten Texts trainiert (nur <em>den nächsten Token vorhersagen</em>) und erst danach für konkrete Aufgaben feinjustiert, geprompted oder ausgerichtet. Diese Trennung von Vortraining und späterer Nutzung war die Kernidee des ursprünglichen GPT-1-Papers [2].<br>
+<strong>Transformer</strong> &nbsp;— die zugrunde liegende Architektur ist die <em>Decoder-Hälfte</em> des Transformers aus <em>Attention Is All You Need</em> [1] — genau die Architektur, die dieser Simulator Schritt für Schritt durchläuft.`)}</div>`;
 
   // ── Models built on the GPT architecture ──
-  h+=`<div class="info ia"><div class="il">Which models depend on the GPT architecture?</div>
-The GPT-style decoder-only transformer is now the dominant architecture for large language models. The direct OpenAI lineage and the wider family include:<br><br>
-<strong>OpenAI GPT lineage</strong><br>
+  h+=`<div class="info ia"><div class="il">${L('Which models depend on the GPT architecture?','Welche Modelle bauen auf der GPT-Architektur auf?')}</div>
+${L('The GPT-style decoder-only transformer is now the dominant architecture for large language models. The direct OpenAI lineage and the wider family include:','Der Decoder-only-Transformer im GPT-Stil ist heute die dominierende Architektur für große Sprachmodelle. Die direkte OpenAI-Linie und die weitere Familie umfassen:')}<br><br>
+<strong>${L('OpenAI GPT lineage','OpenAI-GPT-Linie')}</strong><br>
 <span style="font-family:var(--mono);font-size:0.74rem;color:var(--txt2);">
-• <strong>GPT-1</strong> (2018) — 117 M parameters, 12 layers; the original [2]<br>
+${L(`• <strong>GPT-1</strong> (2018) — 117 M parameters, 12 layers; the original [2]<br>
 • <strong>GPT-2</strong> (2019) — up to 1.5 B parameters, 48 layers; introduced pre-LayerNorm [3]<br>
 • <strong>GPT-3</strong> (2020) — 175 B parameters, 96 layers, d_model = 12 288; in-context learning [4]<br>
 • <strong>Codex</strong> (2021) — GPT-3 fine-tuned on code; original engine behind GitHub Copilot<br>
 • <strong>InstructGPT</strong> (2022) — GPT-3 aligned with human feedback (RLHF)<br>
 • <strong>ChatGPT</strong> (2022) — conversational fine-tune of the GPT-3.5 line<br>
 • <strong>GPT-4 / GPT-4o / GPT-4 Turbo</strong> (2023–2024) — multimodal successors<br>
-• <strong>GPT-5 and the o-series</strong> (o1, o3) — current generation with chain-of-thought reasoning training
+• <strong>GPT-5 and the o-series</strong> (o1, o3) — current generation with chain-of-thought reasoning training`,`• <strong>GPT-1</strong> (2018) — 117 M Parameter, 12 Schichten; das Original [2]<br>
+• <strong>GPT-2</strong> (2019) — bis zu 1,5 B Parameter, 48 Schichten; führte Pre-LayerNorm ein [3]<br>
+• <strong>GPT-3</strong> (2020) — 175 B Parameter, 96 Schichten, d_model = 12 288; In-Context Learning [4]<br>
+• <strong>Codex</strong> (2021) — auf Code feinjustiertes GPT-3; ursprüngliche Engine hinter GitHub Copilot<br>
+• <strong>InstructGPT</strong> (2022) — GPT-3, mit menschlichem Feedback ausgerichtet (RLHF)<br>
+• <strong>ChatGPT</strong> (2022) — konversationelles Fine-Tuning der GPT-3.5-Linie<br>
+• <strong>GPT-4 / GPT-4o / GPT-4 Turbo</strong> (2023–2024) — multimodale Nachfolger<br>
+• <strong>GPT-5 und die o-Serie</strong> (o1, o3) — aktuelle Generation mit Chain-of-Thought-Reasoning-Training`)}
 </span><br><br>
-<strong>Other major decoder-only LLMs (same architecture, different brand)</strong><br>
+<strong>${L('Other major decoder-only LLMs (same architecture, different brand)','Weitere große Decoder-only-LLMs (gleiche Architektur, andere Marke)')}</strong><br>
 <span style="font-family:var(--mono);font-size:0.74rem;color:var(--txt2);">
 • <strong>Anthropic Claude</strong> family<br>
 • <strong>Google Gemini</strong> family (and earlier PaLM, LaMDA)<br>
@@ -404,11 +438,13 @@ The GPT-style decoder-only transformer is now the dominant architecture for larg
 • <strong>Falcon</strong> (TII), <strong>Qwen</strong> (Alibaba), <strong>DeepSeek</strong>, <strong>Grok</strong> (xAI)<br>
 • <strong>Phi</strong> (Microsoft), <strong>Command</strong> (Cohere)
 </span><br><br>
-All of these are architecturally "GPT-style": masked self-attention, residual connections, FFN sub-layers, autoregressive next-token prediction. They differ in parameter counts, tokenizers, positional encoding (RoPE vs. ALiBi vs. learned), normalization placement (pre-LN vs. post-LN), attention variants (multi-query, grouped-query, sliding-window), and activation functions (SwiGLU vs. GELU vs. ReLU) — but the skeleton is the same decoder-only transformer this simulator visualizes.</div>`;
+${L('All of these are architecturally "GPT-style": masked self-attention, residual connections, FFN sub-layers, autoregressive next-token prediction. They differ in parameter counts, tokenizers, positional encoding (RoPE vs. ALiBi vs. learned), normalization placement (pre-LN vs. post-LN), attention variants (multi-query, grouped-query, sliding-window), and activation functions (SwiGLU vs. GELU vs. ReLU) — but the skeleton is the same decoder-only transformer this simulator visualizes.','All diese Modelle sind architektonisch „GPT-artig": maskierte Self-Attention, Residual-Verbindungen, FFN-Teilschichten, autoregressive Vorhersage des nächsten Tokens. Sie unterscheiden sich in Parameterzahl, Tokenizer, Positionskodierung (RoPE vs. ALiBi vs. gelernt), Platzierung der Normalisierung (Pre-LN vs. Post-LN), Attention-Varianten (Multi-Query, Grouped-Query, Sliding-Window) und Aktivierungsfunktionen (SwiGLU vs. GELU vs. ReLU) — aber das Skelett ist derselbe Decoder-only-Transformer, den dieser Simulator visualisiert.')}</div>`;
 
-  h+=`<div class="info it"><div class="il">Architectural cousins that are NOT GPT-style</div>
+  h+=`<div class="info it">${L(`<div class="il">Architectural cousins that are NOT GPT-style</div>
 <strong>BERT</strong> (Google, 2018) uses the <em>encoder</em> half of the Transformer with bidirectional attention; trained on masked-language modeling instead of next-token prediction — not generative in the GPT sense.<br>
-<strong>T5</strong> (Google) and the original Transformer for translation are full <em>encoder-decoder</em> models, not decoder-only. They use cross-attention between an encoder and a decoder stack.</div>`;
+<strong>T5</strong> (Google) and the original Transformer for translation are full <em>encoder-decoder</em> models, not decoder-only. They use cross-attention between an encoder and a decoder stack.`,`<div class="il">Architektonische Verwandte, die NICHT GPT-artig sind</div>
+<strong>BERT</strong> (Google, 2018) nutzt die <em>Encoder</em>-Hälfte des Transformers mit bidirektionaler Attention; trainiert mit Masked Language Modeling statt Next-Token-Vorhersage — nicht generativ im GPT-Sinn.<br>
+<strong>T5</strong> (Google) und der ursprüngliche Transformer für Übersetzung sind vollständige <em>Encoder-Decoder</em>-Modelle, nicht Decoder-only. Sie nutzen Cross-Attention zwischen einem Encoder- und einem Decoder-Stapel.`)}</div>`;
 
   h+=`<div class="arch-wrap">
 <svg viewBox="0 0 560 720" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, sans-serif">
@@ -420,11 +456,11 @@ All of these are architecturally "GPT-style": masked self-attention, residual co
 
   <!-- Input tokens -->
   <rect x="180" y="10" width="200" height="34" rx="6" fill="#ebe9e2" stroke="#cfccc0" stroke-width="1.2"/>
-  <text x="280" y="32" text-anchor="middle" font-size="13" fill="#1c1b18" font-weight="500">Input tokens (the cat sat)</text>
+  <text x="280" y="32" text-anchor="middle" font-size="13" fill="#1c1b18" font-weight="500">${L('Input tokens','Eingabe-Token')} (the cat sat)</text>
 
   <!-- Token embedding -->
   <rect x="180" y="68" width="200" height="38" rx="6" fill="#be185d28" stroke="#be185d90" stroke-width="1.5"/>
-  <text x="280" y="86" text-anchor="middle" font-size="12" fill="#be185d" font-weight="600">Token Embedding</text>
+  <text x="280" y="86" text-anchor="middle" font-size="12" fill="#be185d" font-weight="600">${L('Token Embedding','Token-Embedding')}</text>
   <text x="280" y="100" text-anchor="middle" font-size="10" fill="#56544c" font-family="DM Mono, monospace">W_emb [V × d_model]</text>
 
   <!-- + Position -->
@@ -434,7 +470,7 @@ All of these are architecturally "GPT-style": masked self-attention, residual co
 
   <!-- Decoder layer box -->
   <rect x="50" y="160" width="460" height="420" rx="10" fill="none" stroke="#6d28d990" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="60" y="178" font-size="10" fill="#6d28d9" font-family="DM Mono, monospace" font-weight="600">DECODER LAYER (×N)</text>
+  <text x="60" y="178" font-size="10" fill="#6d28d9" font-family="DM Mono, monospace" font-weight="600">${L('DECODER LAYER (×N)','DECODER-SCHICHT (×N)')}</text>
 
   <!-- Q K V projections -->
   <rect x="80" y="195" width="120" height="36" rx="6" fill="#e11d4828" stroke="#e11d4890" stroke-width="1.5"/>
@@ -451,17 +487,17 @@ All of these are architecturally "GPT-style": masked self-attention, residual co
 
   <!-- Split into heads -->
   <rect x="80" y="250" width="400" height="28" rx="6" fill="#0e749028" stroke="#0e749090" stroke-width="1.5"/>
-  <text x="280" y="269" text-anchor="middle" font-size="11" fill="#0e7490" font-weight="600">Split into n_heads × [d_k = d_model / n_heads]</text>
+  <text x="280" y="269" text-anchor="middle" font-size="11" fill="#0e7490" font-weight="600">${L('Split into','Aufteilen in')} n_heads × [d_k = d_model / n_heads]</text>
 
   <!-- Scaled dot-product attention -->
   <rect x="80" y="295" width="400" height="58" rx="6" fill="#6d28d928" stroke="#6d28d990" stroke-width="1.5"/>
   <text x="280" y="314" text-anchor="middle" font-size="12" fill="#6d28d9" font-weight="600">Masked Scaled Dot-Product Attention</text>
   <text x="280" y="330" text-anchor="middle" font-size="10" fill="#56544c" font-family="DM Mono, monospace">softmax( (Q · Kᵀ) / √d_k  +  causal_mask ) · V</text>
-  <text x="280" y="345" text-anchor="middle" font-size="9" fill="#928f84">per head</text>
+  <text x="280" y="345" text-anchor="middle" font-size="9" fill="#928f84">${L('per head','pro Head')}</text>
 
   <!-- Concat + W_O -->
   <rect x="80" y="370" width="400" height="36" rx="6" fill="#be185d28" stroke="#be185d90" stroke-width="1.5"/>
-  <text x="280" y="387" text-anchor="middle" font-size="12" fill="#be185d" font-weight="600">Concat heads → Linear</text>
+  <text x="280" y="387" text-anchor="middle" font-size="12" fill="#be185d" font-weight="600">${L('Concat heads → Linear','Heads konkatenieren → Linear')}</text>
   <text x="280" y="400" text-anchor="middle" font-size="9" fill="#56544c" font-family="DM Mono, monospace">W_O [d_model × d_model]</text>
 
   <!-- Add & Norm 1 -->
@@ -485,8 +521,8 @@ All of these are architecturally "GPT-style": masked self-attention, residual co
 
   <!-- Softmax → next token -->
   <rect x="180" y="660" width="200" height="38" rx="6" fill="#15803d28" stroke="#15803d90" stroke-width="1.5"/>
-  <text x="280" y="678" text-anchor="middle" font-size="12" fill="#15803d" font-weight="600">Softmax → Next token</text>
-  <text x="280" y="692" text-anchor="middle" font-size="10" fill="#56544c" font-family="DM Mono, monospace">argmax over V</text>
+  <text x="280" y="678" text-anchor="middle" font-size="12" fill="#15803d" font-weight="600">${L('Softmax → Next token','Softmax → Nächster Token')}</text>
+  <text x="280" y="692" text-anchor="middle" font-size="10" fill="#56544c" font-family="DM Mono, monospace">${L('argmax over V','argmax über V')}</text>
 
   <!-- Arrows -->
   <line x1="280" y1="44" x2="280" y2="64" stroke="#928f84" stroke-width="1.5" marker-end="url(#arr)"/>
@@ -511,18 +547,18 @@ All of these are architecturally "GPT-style": masked self-attention, residual co
 
   <!-- Residual connections -->
   <path d="M 60,140 Q 30,140 30,440 Q 30,460 175,440" fill="none" stroke="#6d28d9" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#arr)"/>
-  <text x="14" y="290" font-size="9" fill="#6d28d9" font-family="DM Mono, monospace" transform="rotate(-90, 14, 290)">residual</text>
+  <text x="14" y="290" font-size="9" fill="#6d28d9" font-family="DM Mono, monospace" transform="rotate(-90, 14, 290)">Residual</text>
 
   <path d="M 60,460 Q 30,460 30,560 Q 30,580 175,560" fill="none" stroke="#6d28d9" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#arr)"/>
 </svg>
 </div>`;
 
   // ── Variables glossary ──
-  h+=`<div class="stage-title" style="margin-top:1.5rem">Variables &amp; Hyperparameters</div>`;
-  h+=`<p class="stage-desc">Every symbol you'll see in the following steps, with its meaning, shape, and value used in this simulator.</p>`;
+  h+=`<div class="stage-title" style="margin-top:1.5rem">${L('Variables &amp; Hyperparameters','Variablen &amp; Hyperparameter')}</div>`;
+  h+=`<p class="stage-desc">${L("Every symbol you'll see in the following steps, with its meaning, shape, and value used in this simulator.",'Jedes Symbol, das in den folgenden Schritten vorkommt, mit Bedeutung, Form und dem in diesem Simulator verwendeten Wert.')}</p>`;
 
   h+=`<div class="glossary"><table>
-    <tr><th>Symbol</th><th>Value</th><th>Meaning</th></tr>
+${L(`    <tr><th>Symbol</th><th>Value</th><th>Meaning</th></tr>
 
     <tr><td colspan="3" class="gloss-section">Hyperparameters (model size)</td></tr>
     <tr><td class="sym">d_model</td><td class="val">${CFG.d_model}</td><td class="def"><strong>Model dimension.</strong> The width of every hidden vector that flows through the network. Each token is represented by a vector of this length. Real GPT-2 uses 768, GPT-3 up to 12 288.</td></tr>
@@ -548,101 +584,127 @@ All of these are architecturally "GPT-style": masked self-attention, residual co
     <tr><td class="sym">scores</td><td class="val">[n × n]</td><td class="def"><strong>Raw attention scores</strong> from <code>Q · Kᵀ</code> per head. Element <code>(i, j)</code> = how much token i attends to token j.</td></tr>
     <tr><td class="sym">mask</td><td class="val">[n × n]</td><td class="def"><strong>Causal mask.</strong> Adds −∞ to all positions where j &gt; i, so each token can only attend to itself and earlier tokens — this is what makes the model "decoder-only" / autoregressive.</td></tr>
     <tr><td class="sym">logits</td><td class="val">[V]</td><td class="def"><strong>Raw next-token scores</strong> for the last position, before softmax.</td></tr>
-    <tr><td class="sym">probs</td><td class="val">[V]</td><td class="def"><strong>Probability distribution</strong> over the vocabulary after softmax. <code>argmax(probs)</code> is the predicted next token.</td></tr>
+    <tr><td class="sym">probs</td><td class="val">[V]</td><td class="def"><strong>Probability distribution</strong> over the vocabulary after softmax. <code>argmax(probs)</code> is the predicted next token.</td></tr>`,`    <tr><th>Symbol</th><th>Wert</th><th>Bedeutung</th></tr>
+
+    <tr><td colspan="3" class="gloss-section">Hyperparameter (Modellgröße)</td></tr>
+    <tr><td class="sym">d_model</td><td class="val">${CFG.d_model}</td><td class="def"><strong>Modelldimension.</strong> Die Breite jedes verdeckten Vektors, der durch das Netz fließt. Jeder Token wird durch einen Vektor dieser Länge repräsentiert. Das echte GPT-2 nutzt 768, GPT-3 bis zu 12 288.</td></tr>
+    <tr><td class="sym">n_heads</td><td class="val">${CFG.n_heads}</td><td class="def"><strong>Anzahl der Attention-Heads.</strong> Multi-Head Attention führt so viele parallele Attention-Berechnungen auf verschiedenen Scheiben von Q/K/V aus, sodass das Modell gleichzeitig auf verschiedene Muster achten kann.</td></tr>
+    <tr><td class="sym">d_k</td><td class="val">${CFG.d_k}</td><td class="def"><strong>Dimension pro Head.</strong> Gleich <code>d_model / n_heads</code>. Jeder Head arbeitet mit Vektoren dieser Größe. Dient als Skalierungsfaktor √d_k in der Attention, damit die Softmax-Eingaben gutartig bleiben.</td></tr>
+    <tr><td class="sym">d_ff</td><td class="val">${CFG.d_ff}</td><td class="def"><strong>Innere Dimension des Feed-Forward-Netzes.</strong> Die verdeckte Breite des positionsweisen FFN nach der Attention. In echten GPT-Modellen üblicherweise <code>d_ff = 4 × d_model</code> — es weitet auf, wendet eine Nichtlinearität an und projiziert wieder zurück.</td></tr>
+    <tr><td class="sym">V</td><td class="val">${V}</td><td class="def"><strong>Vokabulargröße.</strong> Anzahl der verschiedenen Token, die das Modell kennt. Bestimmt die Höhe der Embedding-Tabelle und die Breite der finalen Ausgabeprojektion.</td></tr>
+    <tr><td class="sym">seq_len (n)</td><td class="val">var</td><td class="def"><strong>Sequenzlänge.</strong> Anzahl der Eingabe-Token im aktuellen Forward-Pass. Bestimmt die Höhe jeder Zwischenmatrix.</td></tr>
+    <tr><td class="sym">T</td><td class="val">${TEMPERATURE.toFixed(1)}</td><td class="def"><strong>Sampling-Temperatur.</strong> Skalar, durch den die Logits vor dem finalen Softmax geteilt werden: <code>P = softmax(logits / T)</code>. <code>T = 1</code> ist die natürliche Verteilung; <code>T &lt; 1</code> schärft sie (deterministischer); <code>T &gt; 1</code> flacht sie ab (zufälliger/kreativer). Einstellbar über den Schieberegler oben rechts.</td></tr>
+
+    <tr><td colspan="3" class="gloss-section">Gelernte Gewichtsmatrizen</td></tr>
+    <tr><td class="sym">W_emb</td><td class="val">[V × d_model]</td><td class="def"><strong>Token-Embedding-Tabelle.</strong> Eine Nachschlagetabelle, die jede Token-ID auf einen dichten Vektor der Länge <code>d_model</code> abbildet.</td></tr>
+    <tr><td class="sym">W_Q, W_K, W_V</td><td class="val">[d_model × d_model]</td><td class="def"><strong>Query-, Key-, Value-Projektionsmatrizen.</strong> Projizieren die Eingabe in drei verschiedene Repräsentationen, die die Attention nutzt. Q fragt „Wonach suche ich?", K wirbt „Was enthalte ich?", V hält „Was ich beitrage, wenn auf mich attendiert wird".</td></tr>
+    <tr><td class="sym">W_O</td><td class="val">[d_model × d_model]</td><td class="def"><strong>Ausgabeprojektion</strong>, angewendet nach dem Konkatenieren der Head-Ausgaben. Mischt die Information aller Heads zurück in einen einzigen <code>d_model</code>-Vektor pro Token.</td></tr>
+    <tr><td class="sym">W₁, b₁</td><td class="val">[d_model × d_ff]</td><td class="def"><strong>FFN-Aufweitung.</strong> Erste lineare Feed-Forward-Schicht, die jeden Token-Vektor vor der ReLU von <code>d_model</code> auf <code>d_ff</code> hebt.</td></tr>
+    <tr><td class="sym">W₂, b₂</td><td class="val">[d_ff × d_model]</td><td class="def"><strong>FFN-Projektion.</strong> Zweite lineare Feed-Forward-Schicht, die von <code>d_ff</code> zurück auf <code>d_model</code> projiziert.</td></tr>
+    <tr><td class="sym">γ, β</td><td class="val">[d_model]</td><td class="def"><strong>LayerNorm-Skalierung und -Verschiebung.</strong> Pro Merkmal lernbare Parameter, die nach der Normalisierung angewendet werden (ein γ/β-Paar pro LayerNorm-Schicht).</td></tr>
+    <tr><td class="sym">W_out</td><td class="val">[d_model × V]</td><td class="def"><strong>Ausgabe-/Un-Embedding-Projektion.</strong> Bildet den finalen verdeckten Zustand auf einen Score (Logit) für jeden Token im Vokabular ab.</td></tr>
+
+    <tr><td colspan="3" class="gloss-section">Zwischentensoren (pro Forward-Pass)</td></tr>
+    <tr><td class="sym">PE</td><td class="val">[n × d_model]</td><td class="def"><strong>Positionskodierung.</strong> Sinusförmiges Muster, das zu den Embeddings addiert wird, damit das Modell die Reihenfolge der Token kennt (Attention selbst ist reihenfolgeunabhängig).</td></tr>
+    <tr><td class="sym">Q, K, V</td><td class="val">[n × d_model]</td><td class="def"><strong>Query-/Key-/Value-Matrizen</strong> nach der Projektion — eine Zeile pro Token, dann auf die Heads aufgeteilt.</td></tr>
+    <tr><td class="sym">scores</td><td class="val">[n × n]</td><td class="def"><strong>Rohe Attention-Scores</strong> aus <code>Q · Kᵀ</code> pro Head. Element <code>(i, j)</code> = wie stark Token i auf Token j attendiert.</td></tr>
+    <tr><td class="sym">mask</td><td class="val">[n × n]</td><td class="def"><strong>Kausale Maske.</strong> Addiert −∞ auf alle Positionen mit j &gt; i, sodass jeder Token nur auf sich selbst und frühere Token attendieren kann — das macht das Modell „decoder-only" / autoregressiv.</td></tr>
+    <tr><td class="sym">logits</td><td class="val">[V]</td><td class="def"><strong>Rohe Next-Token-Scores</strong> für die letzte Position, vor dem Softmax.</td></tr>
+    <tr><td class="sym">probs</td><td class="val">[V]</td><td class="def"><strong>Wahrscheinlichkeitsverteilung</strong> über das Vokabular nach dem Softmax. <code>argmax(probs)</code> ist der vorhergesagte nächste Token.</td></tr>`)}
   </table></div>`;
 
-  h+=`<div class="stage-title" style="margin-top:1.5rem">Scientific References</div>`;
-  h+=`<p class="stage-desc">The architecture and components implemented in this simulator come from the following foundational papers. Numbers in brackets are referenced in the relevant step descriptions.</p>`;
+  h+=`<div class="stage-title" style="margin-top:1.5rem">${L('Scientific References','Wissenschaftliche Referenzen')}</div>`;
+  h+=`<p class="stage-desc">${L('The architecture and components implemented in this simulator come from the following foundational papers. Numbers in brackets are referenced in the relevant step descriptions.','Die in diesem Simulator umgesetzte Architektur und ihre Komponenten stammen aus den folgenden grundlegenden Arbeiten. Die Zahlen in eckigen Klammern werden in den jeweiligen Schrittbeschreibungen referenziert.')}</p>`;
   h+=`<div class="refs"><ol>
-    <li><span class="auth">Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., &amp; Polosukhin, I.</span> (2017). <span class="ttl">Attention Is All You Need.</span> <span class="ven">Advances in Neural Information Processing Systems (NeurIPS) 30.</span> <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">arXiv:1706.03762</a><br><em>Introduces the Transformer, scaled dot-product attention, multi-head attention, sinusoidal positional encoding, and the encoder–decoder layer structure used here.</em></li>
+    <li><span class="auth">Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., &amp; Polosukhin, I.</span> (2017). <span class="ttl">Attention Is All You Need.</span> <span class="ven">Advances in Neural Information Processing Systems (NeurIPS) 30.</span> <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">arXiv:1706.03762</a><br><em>${L('Introduces the Transformer, scaled dot-product attention, multi-head attention, sinusoidal positional encoding, and the encoder–decoder layer structure used here.','Führt den Transformer, Scaled Dot-Product Attention, Multi-Head Attention, sinusförmige Positionskodierung und die hier verwendete Encoder-Decoder-Schichtstruktur ein.')}</em></li>
 
-    <li><span class="auth">Radford, A., Narasimhan, K., Salimans, T., &amp; Sutskever, I.</span> (2018). <span class="ttl">Improving Language Understanding by Generative Pre-Training</span> (GPT-1). <span class="ven">OpenAI Technical Report.</span> <a href="https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf" target="_blank" rel="noopener">openai.com</a><br><em>First decoder-only transformer trained as an autoregressive language model — the architectural template this simulator replicates.</em></li>
+    <li><span class="auth">Radford, A., Narasimhan, K., Salimans, T., &amp; Sutskever, I.</span> (2018). <span class="ttl">Improving Language Understanding by Generative Pre-Training</span> (GPT-1). <span class="ven">OpenAI Technical Report.</span> <a href="https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf" target="_blank" rel="noopener">openai.com</a><br><em>${L('First decoder-only transformer trained as an autoregressive language model — the architectural template this simulator replicates.','Erster Decoder-only-Transformer, der als autoregressives Sprachmodell trainiert wurde — die architektonische Vorlage, die dieser Simulator nachbildet.')}</em></li>
 
-    <li><span class="auth">Radford, A., Wu, J., Child, R., Luan, D., Amodei, D., &amp; Sutskever, I.</span> (2019). <span class="ttl">Language Models are Unsupervised Multitask Learners</span> (GPT-2). <span class="ven">OpenAI Technical Report.</span> <a href="https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf" target="_blank" rel="noopener">openai.com</a><br><em>Scales the GPT architecture to 1.5 B parameters; uses pre-LayerNorm and the (d_ff = 4 × d_model) FFN ratio referenced in the glossary.</em></li>
+    <li><span class="auth">Radford, A., Wu, J., Child, R., Luan, D., Amodei, D., &amp; Sutskever, I.</span> (2019). <span class="ttl">Language Models are Unsupervised Multitask Learners</span> (GPT-2). <span class="ven">OpenAI Technical Report.</span> <a href="https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf" target="_blank" rel="noopener">openai.com</a><br><em>${L('Scales the GPT architecture to 1.5 B parameters; uses pre-LayerNorm and the (d_ff = 4 × d_model) FFN ratio referenced in the glossary.','Skaliert die GPT-Architektur auf 1,5 B Parameter; nutzt Pre-LayerNorm und das im Glossar genannte FFN-Verhältnis (d_ff = 4 × d_model).')}</em></li>
 
-    <li><span class="auth">Brown, T. B., Mann, B., Ryder, N., et al.</span> (2020). <span class="ttl">Language Models are Few-Shot Learners</span> (GPT-3). <span class="ven">Advances in Neural Information Processing Systems (NeurIPS) 33.</span> <a href="https://arxiv.org/abs/2005.14165" target="_blank" rel="noopener">arXiv:2005.14165</a><br><em>Reports the d_model = 12 288 figure cited in the glossary and demonstrates emergent in-context learning at scale.</em></li>
+    <li><span class="auth">Brown, T. B., Mann, B., Ryder, N., et al.</span> (2020). <span class="ttl">Language Models are Few-Shot Learners</span> (GPT-3). <span class="ven">Advances in Neural Information Processing Systems (NeurIPS) 33.</span> <a href="https://arxiv.org/abs/2005.14165" target="_blank" rel="noopener">arXiv:2005.14165</a><br><em>${L('Reports the d_model = 12 288 figure cited in the glossary and demonstrates emergent in-context learning at scale.','Nennt den im Glossar zitierten Wert d_model = 12 288 und zeigt emergentes In-Context Learning bei großer Skala.')}</em></li>
 
-    <li><span class="auth">Ba, J. L., Kiros, J. R., &amp; Hinton, G. E.</span> (2016). <span class="ttl">Layer Normalization.</span> <span class="ven">arXiv preprint.</span> <a href="https://arxiv.org/abs/1607.06450" target="_blank" rel="noopener">arXiv:1607.06450</a><br><em>The normalization scheme applied at the "Add &amp; LayerNorm" steps, with learnable γ and β parameters.</em></li>
+    <li><span class="auth">Ba, J. L., Kiros, J. R., &amp; Hinton, G. E.</span> (2016). <span class="ttl">Layer Normalization.</span> <span class="ven">arXiv preprint.</span> <a href="https://arxiv.org/abs/1607.06450" target="_blank" rel="noopener">arXiv:1607.06450</a><br><em>${L('The normalization scheme applied at the "Add &amp; LayerNorm" steps, with learnable γ and β parameters.','Das Normalisierungsschema der „Add &amp; LayerNorm"-Schritte, mit lernbaren Parametern γ und β.')}</em></li>
 
-    <li><span class="auth">He, K., Zhang, X., Ren, S., &amp; Sun, J.</span> (2016). <span class="ttl">Deep Residual Learning for Image Recognition.</span> <span class="ven">IEEE Conference on Computer Vision and Pattern Recognition (CVPR).</span> <a href="https://arxiv.org/abs/1512.03385" target="_blank" rel="noopener">arXiv:1512.03385</a><br><em>Source of the residual ("skip") connections drawn as dashed arrows around the attention and FFN sub-layers.</em></li>
+    <li><span class="auth">He, K., Zhang, X., Ren, S., &amp; Sun, J.</span> (2016). <span class="ttl">Deep Residual Learning for Image Recognition.</span> <span class="ven">IEEE Conference on Computer Vision and Pattern Recognition (CVPR).</span> <a href="https://arxiv.org/abs/1512.03385" target="_blank" rel="noopener">arXiv:1512.03385</a><br><em>${L('Source of the residual ("skip") connections drawn as dashed arrows around the attention and FFN sub-layers.','Ursprung der Residual-(„Skip"-)Verbindungen, die als gestrichelte Pfeile um die Attention- und FFN-Teilschichten gezeichnet sind.')}</em></li>
 
-    <li><span class="auth">Bahdanau, D., Cho, K., &amp; Bengio, Y.</span> (2015). <span class="ttl">Neural Machine Translation by Jointly Learning to Align and Translate.</span> <span class="ven">International Conference on Learning Representations (ICLR).</span> <a href="https://arxiv.org/abs/1409.0473" target="_blank" rel="noopener">arXiv:1409.0473</a><br><em>Original additive attention mechanism that motivated the query / key / value formulation later generalized in [1].</em></li>
+    <li><span class="auth">Bahdanau, D., Cho, K., &amp; Bengio, Y.</span> (2015). <span class="ttl">Neural Machine Translation by Jointly Learning to Align and Translate.</span> <span class="ven">International Conference on Learning Representations (ICLR).</span> <a href="https://arxiv.org/abs/1409.0473" target="_blank" rel="noopener">arXiv:1409.0473</a><br><em>${L('Original additive attention mechanism that motivated the query / key / value formulation later generalized in [1].','Ursprünglicher additiver Attention-Mechanismus, der die Query-/Key-/Value-Formulierung motivierte, die später in [1] verallgemeinert wurde.')}</em></li>
 
-    <li><span class="auth">Xiong, R., Yang, Y., He, D., Zheng, K., Zheng, S., Xing, C., Zhang, H., Lan, Y., Wang, L., &amp; Liu, T.-Y.</span> (2020). <span class="ttl">On Layer Normalization in the Transformer Architecture.</span> <span class="ven">International Conference on Machine Learning (ICML).</span> <a href="https://arxiv.org/abs/2002.04745" target="_blank" rel="noopener">arXiv:2002.04745</a><br><em>Analyses post-LN vs pre-LN placement; explains why modern GPT variants apply LayerNorm before each sub-layer rather than after.</em></li>
+    <li><span class="auth">Xiong, R., Yang, Y., He, D., Zheng, K., Zheng, S., Xing, C., Zhang, H., Lan, Y., Wang, L., &amp; Liu, T.-Y.</span> (2020). <span class="ttl">On Layer Normalization in the Transformer Architecture.</span> <span class="ven">International Conference on Machine Learning (ICML).</span> <a href="https://arxiv.org/abs/2002.04745" target="_blank" rel="noopener">arXiv:2002.04745</a><br><em>${L('Analyses post-LN vs pre-LN placement; explains why modern GPT variants apply LayerNorm before each sub-layer rather than after.','Analysiert Post-LN- vs. Pre-LN-Platzierung; erklärt, warum moderne GPT-Varianten LayerNorm vor jeder Teilschicht statt danach anwenden.')}</em></li>
 
-    <li><span class="auth">Sennrich, R., Haddow, B., &amp; Birch, A.</span> (2016). <span class="ttl">Neural Machine Translation of Rare Words with Subword Units.</span> <span class="ven">Annual Meeting of the Association for Computational Linguistics (ACL).</span> <a href="https://arxiv.org/abs/1508.07909" target="_blank" rel="noopener">arXiv:1508.07909</a><br><em>Byte-Pair Encoding (BPE), the tokenization scheme used by GPT-2/3 to build the vocabulary V referenced in the Tokenization step.</em></li>
+    <li><span class="auth">Sennrich, R., Haddow, B., &amp; Birch, A.</span> (2016). <span class="ttl">Neural Machine Translation of Rare Words with Subword Units.</span> <span class="ven">Annual Meeting of the Association for Computational Linguistics (ACL).</span> <a href="https://arxiv.org/abs/1508.07909" target="_blank" rel="noopener">arXiv:1508.07909</a><br><em>${L('Byte-Pair Encoding (BPE), the tokenization scheme used by GPT-2/3 to build the vocabulary V referenced in the Tokenization step.','Byte-Pair Encoding (BPE), das Tokenisierungsverfahren, mit dem GPT-2/3 das im Tokenisierungsschritt referenzierte Vokabular V aufbauen.')}</em></li>
   </ol></div>`;
 
-  h+=`<div class="info ia"><div class="il">Tip</div>Use the <strong>Next →</strong> button (or the sidebar) to walk through each step of the forward pass. Switch the input prompt at the top right to see how predictions change.</div>`;
+  h+=`<div class="info ia">${L('<div class="il">Tip</div>Use the <strong>Next →</strong> button (or the sidebar) to walk through each step of the forward pass. Switch the input prompt at the top right to see how predictions change.','<div class="il">Tipp</div>Mit dem Button <strong>Weiter →</strong> (oder über die Seitenleiste) geht es Schritt für Schritt durch den Forward-Pass. Wechsle den Eingabe-Prompt oben rechts, um zu sehen, wie sich die Vorhersagen ändern.')}</div>`;
 
   return h;
 }},
 
-{id:'tokens',title:'Tokenization',tag:'ta',tagText:'INPUT',
+{id:'tokens',get title(){return L('Tokenization','Tokenisierung');},tag:'ta',tagText:'INPUT',
 render(){
   const S=STATE;
-  let h=`<div class="stage-title">Token → ID Mapping <span class="tag ta">INPUT</span></div>`;
-  h+=`<p class="stage-desc">The input string is split into tokens, and each token is mapped to an integer ID using the vocabulary lookup table (${V} tokens in our mini-vocabulary).</p>`;
+  let h=`<div class="stage-title">${L('Token → ID Mapping','Token → ID-Zuordnung')} <span class="tag ta">${L('INPUT','EINGABE')}</span></div>`;
+  h+=`<p class="stage-desc">${L(`The input string is split into tokens, and each token is mapped to an integer ID using the vocabulary lookup table (${V} tokens in our mini-vocabulary).`,`Die Eingabezeichenkette wird in Token zerlegt, und jeder Token wird über die Vokabular-Nachschlagetabelle auf eine ganzzahlige ID abgebildet (${V} Token in unserem Mini-Vokabular).`)}</p>`;
   h+=`<div class="formula">"${S.tokens.join(' ')}" → [${S.token_ids.join(', ')}]<br><span class="cm">// vocab[${S.token_ids.map((id,i)=>`${id}]="${S.tokens[i]}"`).join(', vocab[')}]</span></div>`;
-  h+=`<div class="info ia"><div class="il">Vocabulary (${V} tokens)</div>${CFG.vocab.map((t,i)=>`<span style="color:${i===S.token_ids[0]||i===S.token_ids[1]||i===S.token_ids[2]?'var(--acc)':'var(--txt3)'}">${i}:${t}</span>`).join(' · ')}</div>`;
+  h+=`<div class="info ia"><div class="il">${L('Vocabulary','Vokabular')} (${V} Token${LANG==='de'?'':'s'})</div>${CFG.vocab.map((t,i)=>`<span style="color:${i===S.token_ids[0]||i===S.token_ids[1]||i===S.token_ids[2]?'var(--acc)':'var(--txt3)'}">${i}:${t}</span>`).join(' · ')}</div>`;
   return h;
 }},
 
-{id:'embed',title:'Embedding',tag:'tp',tagText:'EMBED',
+{id:'embed',get title(){return L('Embedding','Embedding');},tag:'tp',tagText:'EMBED',
 render(){
   const S=STATE;
-  let h=`<div class="stage-title">Token Embedding Lookup <span class="tag tp">EMBED</span></div>`;
-  h+=`<p class="stage-desc">Each token ID indexes into a learned embedding matrix <strong>W_emb</strong> (${V}×${CFG.d_model}). The result is scaled by <strong>√d_model = √${CFG.d_model} ≈ ${Math.sqrt(CFG.d_model).toFixed(3)}</strong>.</p>`;
+  let h=`<div class="stage-title">${L('Token Embedding Lookup','Token-Embedding-Lookup')} <span class="tag tp">EMBED</span></div>`;
+  h+=`<p class="stage-desc">${L(`Each token ID indexes into a learned embedding matrix <strong>W_emb</strong> (${V}×${CFG.d_model}). The result is scaled by <strong>√d_model = √${CFG.d_model} ≈ ${Math.sqrt(CFG.d_model).toFixed(3)}</strong>.`,`Jede Token-ID indiziert eine gelernte Embedding-Matrix <strong>W_emb</strong> (${V}×${CFG.d_model}). Das Ergebnis wird mit <strong>√d_model = √${CFG.d_model} ≈ ${Math.sqrt(CFG.d_model).toFixed(3)}</strong> skaliert.`)}</p>`;
   h+=`<div class="formula">embedding[i] = W_emb[token_id[i]] × <span class="hl">√d_model</span></div>`;
   h+=`<div class="mtx-wrap"><div class="mtx-row">`;
-  h+=renderMtx(S.emb_scaled,'Scaled Embeddings ('+S.tokens.length+'×'+CFG.d_model+')','cp',S.tokens,Array.from({length:CFG.d_model},(_,i)=>'d'+i));
+  h+=renderMtx(S.emb_scaled,L('Scaled Embeddings','Skalierte Embeddings')+' ('+S.tokens.length+'×'+CFG.d_model+')','cp',S.tokens,Array.from({length:CFG.d_model},(_,i)=>'d'+i));
   h+=`</div></div>`;
   return h;
 }},
 
-{id:'pe',title:'+ Position',tag:'tp',tagText:'POSITION',
+{id:'pe',get title(){return L('+ Position','+ Position');},tag:'tp',tagText:'POSITION',
 render(){
   const S=STATE;
   let h=`<div class="stage-title">Positional Encoding <span class="tag tp">POSITION</span></div>`;
-  h+=`<p class="stage-desc">Sinusoidal position vectors are <strong>added</strong> to the embeddings. Each position gets a unique pattern of sine/cosine values.</p>`;
+  h+=`<p class="stage-desc">${L('Sinusoidal position vectors are <strong>added</strong> to the embeddings. Each position gets a unique pattern of sine/cosine values.','Sinusförmige Positionsvektoren werden zu den Embeddings <strong>addiert</strong>. Jede Position bekommt ein eigenes Muster aus Sinus-/Kosinuswerten.')}</p>`;
   h+=`<div class="formula">PE(pos,2i) = sin(pos/10000<sup>2i/d</sup>) &nbsp; PE(pos,2i+1) = cos(pos/10000<sup>2i/d</sup>)</div>`;
   h+=`<div class="mtx-wrap"><div class="mtx-row">`;
   h+=renderMtx(S.emb_scaled,'Embedding','cp',S.tokens);
   h+=`<span class="op">+</span>`;
-  h+=renderMtx(S.pe,'Pos. Encoding','ct',S.tokens.map((_,i)=>'p'+i));
+  h+=renderMtx(S.pe,L('Pos. Encoding','Pos.-Kodierung'),'ct',S.tokens.map((_,i)=>'p'+i));
   h+=`<span class="op">=</span>`;
-  h+=renderMtx(S.input,'Model Input X','ca',S.tokens);
+  h+=renderMtx(S.input,L('Model Input X','Modelleingabe X'),'ca',S.tokens);
   h+=`</div></div>`;
-  h+=`<div class="info it"><div class="il">This combined tensor X is the input to the decoder layer</div>Shape: ${S.tokens.length} tokens × ${CFG.d_model} dimensions. Each row carries both semantic meaning and position information.</div>`;
+  h+=`<div class="info it">${L(`<div class="il">This combined tensor X is the input to the decoder layer</div>Shape: ${S.tokens.length} tokens × ${CFG.d_model} dimensions. Each row carries both semantic meaning and position information.`,`<div class="il">Dieser kombinierte Tensor X ist die Eingabe der Decoder-Schicht</div>Form: ${S.tokens.length} Token × ${CFG.d_model} Dimensionen. Jede Zeile trägt sowohl semantische Bedeutung als auch Positionsinformation.`)}</div>`;
   return h;
 }},
 
-{id:'qkv',title:'Q, K, V',tag:'tq',tagText:'PROJECTION',
+{id:'qkv',get title(){return L('Q, K, V','Q, K, V');},tag:'tq',tagText:'PROJECTION',
 render(){
   const S=STATE;
-  let h=`<div class="stage-title">Q, K, V Projections <span class="tag tq">ATTENTION</span></div>`;
-  h+=`<p class="stage-desc">The input X is multiplied by three learned weight matrices to produce <strong style="color:var(--q)">Query</strong>, <strong style="color:var(--k)">Key</strong>, and <strong style="color:var(--v)">Value</strong> matrices.</p>`;
-  h+=`<div class="formula">Q = X · W<sup>Q</sup> &nbsp;&nbsp; K = X · W<sup>K</sup> &nbsp;&nbsp; V = X · W<sup>V</sup><br><span class="cm">// Each: (${S.tokens.length}×${CFG.d_model}) × (${CFG.d_model}×${CFG.d_model}) = (${S.tokens.length}×${CFG.d_model})</span></div>`;
+  let h=`<div class="stage-title">${L('Q, K, V Projections','Q-, K-, V-Projektionen')} <span class="tag tq">ATTENTION</span></div>`;
+  h+=`<p class="stage-desc">${L('The input X is multiplied by three learned weight matrices to produce <strong style="color:var(--q)">Query</strong>, <strong style="color:var(--k)">Key</strong>, and <strong style="color:var(--v)">Value</strong> matrices.','Die Eingabe X wird mit drei gelernten Gewichtsmatrizen multipliziert, um die <strong style="color:var(--q)">Query</strong>-, <strong style="color:var(--k)">Key</strong>- und <strong style="color:var(--v)">Value</strong>-Matrizen zu erzeugen.')}</p>`;
+  h+=`<div class="formula">Q = X · W<sup>Q</sup> &nbsp;&nbsp; K = X · W<sup>K</sup> &nbsp;&nbsp; V = X · W<sup>V</sup><br><span class="cm">// ${L('Each','Jeweils')}: (${S.tokens.length}×${CFG.d_model}) × (${CFG.d_model}×${CFG.d_model}) = (${S.tokens.length}×${CFG.d_model})</span></div>`;
   h+=`<div class="mtx-wrap"><div class="mtx-row">`;
   h+=renderMtx(S.Q,'Q (Query)','cq',S.tokens);
   h+=renderMtx(S.K,'K (Key)','ck',S.tokens);
   h+=renderMtx(S.V,'V (Value)','cv',S.tokens);
   h+=`</div></div>`;
-  h+=`<div class="info iq"><div class="il">Q = "What am I looking for?"</div>Each token's query vector encodes what context information it needs.</div>`;
-  h+=`<div class="info ik"><div class="il">K = "What do I contain?"</div>Each token's key vector advertises what information it can provide.</div>`;
-  h+=`<div class="info iv"><div class="il">V = "Here's my content"</div>Each token's value vector holds the actual information to be extracted.</div>`;
+  h+=`<div class="info iq">${L('<div class="il">Q = "What am I looking for?"</div>Each token\'s query vector encodes what context information it needs.','<div class="il">Q = „Wonach suche ich?"</div>Der Query-Vektor jedes Tokens kodiert, welche Kontextinformation er braucht.')}</div>`;
+  h+=`<div class="info ik">${L('<div class="il">K = "What do I contain?"</div>Each token\'s key vector advertises what information it can provide.','<div class="il">K = „Was enthalte ich?"</div>Der Key-Vektor jedes Tokens wirbt damit, welche Information er liefern kann.')}</div>`;
+  h+=`<div class="info iv">${L('<div class="il">V = "Here\'s my content"</div>Each token\'s value vector holds the actual information to be extracted.','<div class="il">V = „Hier ist mein Inhalt"</div>Der Value-Vektor jedes Tokens hält die eigentliche Information, die extrahiert wird.')}</div>`;
   return h;
 }},
 
-{id:'heads',title:'Split Heads',tag:'tq',tagText:'MULTI-HEAD',
+{id:'heads',get title(){return L('Split Heads','Heads aufteilen');},tag:'tq',tagText:'MULTI-HEAD',
 render(){
   const S=STATE,dk=CFG.d_k;
-  let h=`<div class="stage-title">Split into ${CFG.n_heads} Attention Heads <span class="tag tq">MULTI-HEAD</span></div>`;
-  h+=`<p class="stage-desc">Q, K, V are split along the dimension axis. Each head gets <strong>d_k = ${dk}</strong> dimensions (${CFG.d_model}/${CFG.n_heads}). Each head learns different attention patterns.</p>`;
-  h+=`<div class="formula">head_i uses Q[:,${dk}i:${dk}(i+1)], K[:,${dk}i:${dk}(i+1)], V[:,${dk}i:${dk}(i+1)]</div>`;
+  let h=`<div class="stage-title">${L(`Split into ${CFG.n_heads} Attention Heads`,`Aufteilen in ${CFG.n_heads} Attention-Heads`)} <span class="tag tq">MULTI-HEAD</span></div>`;
+  h+=`<p class="stage-desc">${L(`Q, K, V are split along the dimension axis. Each head gets <strong>d_k = ${dk}</strong> dimensions (${CFG.d_model}/${CFG.n_heads}). Each head learns different attention patterns.`,`Q, K, V werden entlang der Dimensionsachse aufgeteilt. Jeder Head bekommt <strong>d_k = ${dk}</strong> Dimensionen (${CFG.d_model}/${CFG.n_heads}). Jeder Head lernt andere Attention-Muster.`)}</p>`;
+  h+=`<div class="formula">head_i ${L('uses','nutzt')} Q[:,${dk}i:${dk}(i+1)], K[:,${dk}i:${dk}(i+1)], V[:,${dk}i:${dk}(i+1)]</div>`;
   S.heads.forEach((hd,hi)=>{
     h+=`<div style="margin:0.8rem 0;padding:0.8rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);">`;
-    h+=`<div style="font-family:var(--mono);font-size:0.68rem;color:var(--acc);margin-bottom:0.4rem;font-weight:500;">HEAD ${hi+1} — dims [${hi*dk}..${(hi+1)*dk-1}]</div>`;
+    h+=`<div style="font-family:var(--mono);font-size:0.68rem;color:var(--acc);margin-bottom:0.4rem;font-weight:500;">HEAD ${hi+1} — ${L('dims','Dims')} [${hi*dk}..${(hi+1)*dk-1}]</div>`;
     h+=`<div class="mtx-wrap"><div class="mtx-row">`;
     h+=renderMtx(hd.Qh,`Q_h${hi+1}`,'cq',S.tokens);
     h+=renderMtx(hd.Kh,`K_h${hi+1}`,'ck',S.tokens);
@@ -652,11 +714,11 @@ render(){
   return h;
 }},
 
-{id:'scores',title:'QK^T Scores',tag:'tq',tagText:'SCORES',
+{id:'scores',get title(){return L('QK^T Scores','QK^T-Scores');},tag:'tq',tagText:'SCORES',
 render(){
   const S=STATE;
-  let h=`<div class="stage-title">Attention Scores: QK<sup>T</sup> <span class="tag tq">SCORES</span></div>`;
-  h+=`<p class="stage-desc">For each head, multiply Q by K<sup>T</sup> to get raw similarity scores. Cell (i,j) = how much token i wants to attend to token j.</p>`;
+  let h=`<div class="stage-title">${L('Attention Scores','Attention-Scores')}: QK<sup>T</sup> <span class="tag tq">SCORES</span></div>`;
+  h+=`<p class="stage-desc">${L('For each head, multiply Q by K<sup>T</sup> to get raw similarity scores. Cell (i,j) = how much token i wants to attend to token j.','Für jeden Head wird Q mit K<sup>T</sup> multipliziert, um rohe Ähnlichkeits-Scores zu erhalten. Zelle (i,j) = wie stark Token i auf Token j attendieren will.')}</p>`;
   h+=`<div class="formula">scores = Q · K<sup>T</sup><br><span class="cm">// (${S.tokens.length}×${CFG.d_k}) × (${CFG.d_k}×${S.tokens.length}) = (${S.tokens.length}×${S.tokens.length})</span></div>`;
   S.heads.forEach((hd,hi)=>{
     h+=`<div style="margin:0.5rem 0;"><span style="font-family:var(--mono);font-size:0.68rem;color:var(--acc);font-weight:500;">HEAD ${hi+1}</span></div>`;
@@ -671,51 +733,51 @@ render(){
   return h;
 }},
 
-{id:'scale',title:'Scale ÷√d_k',tag:'tq',tagText:'SCALE',
+{id:'scale',get title(){return L('Scale ÷√d_k','Skalieren ÷√d_k');},tag:'tq',tagText:'SCALE',
 render(){
   const S=STATE,dk=CFG.d_k;
-  let h=`<div class="stage-title">Scale by √d_k <span class="tag tq">SCALE</span></div>`;
-  h+=`<p class="stage-desc">Divide all scores by <strong>√d_k = √${dk} ≈ ${Math.sqrt(dk).toFixed(3)}</strong>. This prevents softmax saturation when dimensions are large.</p>`;
+  let h=`<div class="stage-title">${L('Scale by √d_k','Skalieren mit √d_k')} <span class="tag tq">${L('SCALE','SKALIERUNG')}</span></div>`;
+  h+=`<p class="stage-desc">${L(`Divide all scores by <strong>√d_k = √${dk} ≈ ${Math.sqrt(dk).toFixed(3)}</strong>. This prevents softmax saturation when dimensions are large.`,`Alle Scores werden durch <strong>√d_k = √${dk} ≈ ${Math.sqrt(dk).toFixed(3)}</strong> geteilt. Das verhindert die Sättigung des Softmax bei großen Dimensionen.`)}</p>`;
   h+=`<div class="formula">scaled = scores / √d_k = scores / ${Math.sqrt(dk).toFixed(3)}</div>`;
   S.heads.forEach((hd,hi)=>{
     h+=`<div style="margin:0.5rem 0;"><span style="font-family:var(--mono);font-size:0.68rem;color:var(--acc);font-weight:500;">HEAD ${hi+1}</span></div>`;
     h+=`<div class="mtx-wrap"><div class="mtx-row">`;
-    h+=renderMtx(hd.scores,'Raw Scores','ca',S.tokens,S.tokens);
+    h+=renderMtx(hd.scores,L('Raw Scores','Rohe Scores'),'ca',S.tokens,S.tokens);
     h+=`<span class="op">÷ √${dk}</span>`;
-    h+=renderMtx(hd.scaled,'Scaled','ca',S.tokens,S.tokens);
+    h+=renderMtx(hd.scaled,L('Scaled','Skaliert'),'ca',S.tokens,S.tokens);
     h+=`</div></div>`;
   });
   return h;
 }},
 
-{id:'mask',title:'Causal Mask',tag:'tq',tagText:'GPT MASK',
+{id:'mask',get title(){return L('Causal Mask','Kausale Maske');},tag:'tq',tagText:'GPT MASK',
 render(){
   const S=STATE;
-  let h=`<div class="stage-title">Apply Causal Mask <span class="tag tq">GPT MASK</span></div>`;
-  h+=`<p class="stage-desc">This is what makes GPT <em>autoregressive</em>. Each token can only attend to itself and previous tokens. Future positions are set to <strong>−∞</strong>, which becomes 0 after softmax.</p>`;
-  h+=`<div class="formula">masked[i][j] = scaled[i][j] if j ≤ i, else <span class="hl">−∞</span><br><span class="cm">// Token at position 0 sees only itself</span><br><span class="cm">// Token at position 1 sees positions 0,1</span><br><span class="cm">// Token at position 2 sees positions 0,1,2</span></div>`;
+  let h=`<div class="stage-title">${L('Apply Causal Mask','Kausale Maske anwenden')} <span class="tag tq">${L('GPT MASK','GPT-MASKE')}</span></div>`;
+  h+=`<p class="stage-desc">${L('This is what makes GPT <em>autoregressive</em>. Each token can only attend to itself and previous tokens. Future positions are set to <strong>−∞</strong>, which becomes 0 after softmax.','Das macht GPT <em>autoregressiv</em>. Jeder Token kann nur auf sich selbst und vorherige Token attendieren. Zukünftige Positionen werden auf <strong>−∞</strong> gesetzt, was nach dem Softmax zu 0 wird.')}</p>`;
+  h+=`<div class="formula">masked[i][j] = scaled[i][j] ${L('if','falls')} j ≤ i, ${L('else','sonst')} <span class="hl">−∞</span><br>${L('<span class="cm">// Token at position 0 sees only itself</span><br><span class="cm">// Token at position 1 sees positions 0,1</span><br><span class="cm">// Token at position 2 sees positions 0,1,2</span>','<span class="cm">// Token an Position 0 sieht nur sich selbst</span><br><span class="cm">// Token an Position 1 sieht die Positionen 0,1</span><br><span class="cm">// Token an Position 2 sieht die Positionen 0,1,2</span>')}</div>`;
   S.heads.forEach((hd,hi)=>{
     h+=`<div style="margin:0.5rem 0;"><span style="font-family:var(--mono);font-size:0.68rem;color:var(--acc);font-weight:500;">HEAD ${hi+1}</span></div>`;
     h+=`<div class="mtx-wrap"><div class="mtx-row">`;
-    h+=renderMtx(hd.scaled,'Before Mask','ca',S.tokens,S.tokens);
+    h+=renderMtx(hd.scaled,L('Before Mask','Vor Maske'),'ca',S.tokens,S.tokens);
     h+=`<span class="op">→</span>`;
-    h+=renderMtx(hd.masked,'After Mask','cmask',S.tokens,S.tokens);
+    h+=renderMtx(hd.masked,L('After Mask','Nach Maske'),'cmask',S.tokens,S.tokens);
     h+=`</div></div>`;
   });
-  h+=`<div class="info iq"><div class="il">Why is this critical for GPT?</div>During training, GPT sees the entire sequence at once for efficiency. The causal mask ensures each position can only use information from the past — exactly as if it were generating one token at a time. Without this mask, the model would "cheat" by looking at future tokens.</div>`;
+  h+=`<div class="info iq">${L('<div class="il">Why is this critical for GPT?</div>During training, GPT sees the entire sequence at once for efficiency. The causal mask ensures each position can only use information from the past — exactly as if it were generating one token at a time. Without this mask, the model would "cheat" by looking at future tokens.','<div class="il">Warum ist das für GPT entscheidend?</div>Im Training sieht GPT aus Effizienzgründen die ganze Sequenz auf einmal. Die kausale Maske stellt sicher, dass jede Position nur Information aus der Vergangenheit nutzen kann — genau so, als würde sie einen Token nach dem anderen erzeugen. Ohne diese Maske würde das Modell „schummeln", indem es auf zukünftige Token schaut.')}</div>`;
   return h;
 }},
 
-{id:'softmax',title:'Softmax',tag:'tv',tagText:'WEIGHTS',
+{id:'softmax',get title(){return L('Softmax','Softmax');},tag:'tv',tagText:'WEIGHTS',
 render(){
   const S=STATE;
-  let h=`<div class="stage-title">Softmax → Attention Weights <span class="tag tv">WEIGHTS</span></div>`;
-  h+=`<p class="stage-desc">Softmax is applied row-wise. Each row becomes a probability distribution (sums to 1). −∞ values become exactly 0.</p>`;
+  let h=`<div class="stage-title">${L('Softmax → Attention Weights','Softmax → Attention-Gewichte')} <span class="tag tv">${L('WEIGHTS','GEWICHTE')}</span></div>`;
+  h+=`<p class="stage-desc">${L('Softmax is applied row-wise. Each row becomes a probability distribution (sums to 1). −∞ values become exactly 0.','Der Softmax wird zeilenweise angewendet. Jede Zeile wird zu einer Wahrscheinlichkeitsverteilung (Summe 1). −∞-Werte werden exakt 0.')}</p>`;
   h+=`<div class="formula">weights[i] = softmax(masked[i])<br><span class="cm">// softmax(x)_j = exp(x_j) / Σ exp(x_k)</span></div>`;
   S.heads.forEach((hd,hi)=>{
     h+=`<div style="margin:0.5rem 0;"><span style="font-family:var(--mono);font-size:0.68rem;color:var(--acc);font-weight:500;">HEAD ${hi+1}</span></div>`;
     h+=`<div class="mtx-wrap"><div class="mtx-row">`;
-    h+=renderMtx(hd.weights,'Attention Weights','cv',S.tokens,S.tokens);
+    h+=renderMtx(hd.weights,L('Attention Weights','Attention-Gewichte'),'cv',S.tokens,S.tokens);
     h+=`</div></div>`;
     // Interpretation
     h+='<div class="info iv"><div class="il">Interpretation</div>';
@@ -729,30 +791,30 @@ render(){
   return h;
 }},
 
-{id:'weighted',title:'Weighted V',tag:'tv',tagText:'AGGREGATE',
+{id:'weighted',get title(){return L('Weighted V','Gewichtetes V');},tag:'tv',tagText:'AGGREGATE',
 render(){
   const S=STATE;
-  let h=`<div class="stage-title">Weighted Sum of Values <span class="tag tv">AGGREGATE</span></div>`;
-  h+=`<p class="stage-desc">Multiply attention weights by V to get the output. Each token's output is a <strong>context-aware mixture</strong> of value vectors, weighted by relevance.</p>`;
+  let h=`<div class="stage-title">${L('Weighted Sum of Values','Gewichtete Summe der Values')} <span class="tag tv">${L('AGGREGATE','AGGREGIEREN')}</span></div>`;
+  h+=`<p class="stage-desc">${L('Multiply attention weights by V to get the output. Each token\'s output is a <strong>context-aware mixture</strong> of value vectors, weighted by relevance.','Die Attention-Gewichte werden mit V multipliziert, um die Ausgabe zu erhalten. Die Ausgabe jedes Tokens ist eine <strong>kontextbewusste Mischung</strong> von Value-Vektoren, nach Relevanz gewichtet.')}</p>`;
   h+=`<div class="formula">output = weights × V<br><span class="cm">// (${S.tokens.length}×${S.tokens.length}) × (${S.tokens.length}×${CFG.d_k}) = (${S.tokens.length}×${CFG.d_k})</span></div>`;
   S.heads.forEach((hd,hi)=>{
     h+=`<div style="margin:0.5rem 0;"><span style="font-family:var(--mono);font-size:0.68rem;color:var(--acc);font-weight:500;">HEAD ${hi+1}</span></div>`;
     h+=`<div class="mtx-wrap"><div class="mtx-row">`;
-    h+=renderMtx(hd.weights,'Weights','cv');
+    h+=renderMtx(hd.weights,L('Weights','Gewichte'),'cv');
     h+=`<span class="op">×</span>`;
     h+=renderMtx(hd.Vh,`V_h${hi+1}`,'cv');
     h+=`<span class="op">=</span>`;
-    h+=renderMtx(hd.out,'Head Output','ca');
+    h+=renderMtx(hd.out,L('Head Output','Head-Ausgabe'),'ca');
     h+=`</div></div>`;
   });
   return h;
 }},
 
-{id:'concat',title:'Concat + W_O',tag:'ta',tagText:'MERGE',
+{id:'concat',get title(){return L('Concat + W_O','Concat + W_O');},tag:'ta',tagText:'MERGE',
 render(){
   const S=STATE;
-  let h=`<div class="stage-title">Concatenate Heads + Output Projection <span class="tag ta">MERGE</span></div>`;
-  h+=`<p class="stage-desc">The ${CFG.n_heads} head outputs are concatenated along the dimension axis, then multiplied by <strong>W<sup>O</sup></strong> to project back to d_model.</p>`;
+  let h=`<div class="stage-title">${L('Concatenate Heads + Output Projection','Heads konkatenieren + Ausgabeprojektion')} <span class="tag ta">${L('MERGE','ZUSAMMENFÜHREN')}</span></div>`;
+  h+=`<p class="stage-desc">${L(`The ${CFG.n_heads} head outputs are concatenated along the dimension axis, then multiplied by <strong>W<sup>O</sup></strong> to project back to d_model.`,`Die ${CFG.n_heads} Head-Ausgaben werden entlang der Dimensionsachse konkateniert und dann mit <strong>W<sup>O</sup></strong> multipliziert, um zurück auf d_model zu projizieren.`)}</p>`;
   h+=`<div class="formula">concat = [head₁ | head₂]  <span class="cm">// (${S.tokens.length}×${CFG.d_model})</span><br>attn_output = concat × W<sup>O</sup>  <span class="cm">// (${S.tokens.length}×${CFG.d_model}) × (${CFG.d_model}×${CFG.d_model})</span></div>`;
   h+=`<div class="mtx-wrap"><div class="mtx-row">`;
   S.heads.forEach((hd,hi)=>{
@@ -762,27 +824,27 @@ render(){
   h+=`<span class="op">→</span>`;
   h+=renderMtx(S.concat,'Concat','ca',S.tokens);
   h+=`<span class="op">× W<sup style="color:var(--txt3)">O</sup> =</span>`;
-  h+=renderMtx(S.attn_out,'Attn Output','ca',S.tokens);
+  h+=renderMtx(S.attn_out,L('Attn Output','Attn-Ausgabe'),'ca',S.tokens);
   h+=`</div></div>`;
   return h;
 }},
 
-{id:'res1',title:'Add & Norm 1',tag:'tt',tagText:'RESIDUAL',
+{id:'res1',get title(){return L('Add & Norm 1','Add & Norm 1');},tag:'tt',tagText:'RESIDUAL',
 render(){
   const S=STATE;
-  let h=`<div class="stage-title">Residual Connection + LayerNorm <span class="tag tt">RESIDUAL 1</span></div>`;
-  h+=`<p class="stage-desc">Add the original input <strong>X</strong> back to the attention output (the <em>residual</em> or <em>skip</em> connection), then apply <strong>LayerNorm</strong>. This is one of the two skip connections in every transformer layer — see <a href="#" style="color:var(--acc);">[1, 6]</a> in the references.</p>`;
+  let h=`<div class="stage-title">${L('Residual Connection + LayerNorm','Residual-Verbindung + LayerNorm')} <span class="tag tt">RESIDUAL 1</span></div>`;
+  h+=`<p class="stage-desc">${L('Add the original input <strong>X</strong> back to the attention output (the <em>residual</em> or <em>skip</em> connection), then apply <strong>LayerNorm</strong>. This is one of the two skip connections in every transformer layer — see <a href="#" style="color:var(--acc);">[1, 6]</a> in the references.','Die ursprüngliche Eingabe <strong>X</strong> wird zur Attention-Ausgabe addiert (die <em>Residual</em>- oder <em>Skip</em>-Verbindung), dann wird <strong>LayerNorm</strong> angewendet. Das ist eine der beiden Skip-Verbindungen in jeder Transformer-Schicht — siehe <a href="#" style="color:var(--acc);">[1, 6]</a> in den Referenzen.')}</p>`;
   h+=`<div class="formula">residual = X + attn_output<br>LN₁ = LayerNorm(residual)</div>`;
   h+=`<div class="mtx-wrap"><div class="mtx-row">`;
-  h+=renderMtx(S.input,'X (input)','ct',S.tokens);
+  h+=renderMtx(S.input,L('X (input)','X (Eingabe)'),'ct',S.tokens);
   h+=`<span class="op">+</span>`;
-  h+=renderMtx(S.attn_out,'Attn Out','ca',S.tokens);
+  h+=renderMtx(S.attn_out,L('Attn Out','Attn-Ausgabe'),'ca',S.tokens);
   h+=`<span class="op">→ LN →</span>`;
-  h+=renderMtx(S.ln1,'After LN₁','ct',S.tokens);
+  h+=renderMtx(S.ln1,L('After LN₁','Nach LN₁'),'ct',S.tokens);
   h+=`</div></div>`;
 
   // ── Theoretical background ──
-  h+=`<div class="info it" style="margin-top:1rem;"><div class="il">Why is it called a "residual" connection?</div>
+  h+=`<div class="info it" style="margin-top:1rem;">${L(`<div class="il">Why is it called a "residual" connection?</div>
 The name comes from the original ResNet paper (He et al., 2016) and is a precise mathematical term, not just a nickname.<br><br>
 In a normal layer you learn a function <code>H(x)</code> that maps input <code>x</code> to output <code>y</code>:
 <div class="formula" style="margin:0.6rem 0;">y = H(x)</div>
@@ -790,89 +852,104 @@ In a <strong>residual</strong> layer you instead add the input back to the layer
 <div class="formula" style="margin:0.6rem 0;">y = F(x) + x</div>
 Rearranging to solve for what the inner function <code>F(x)</code> is actually learning:
 <div class="formula" style="margin:0.6rem 0;">F(x) = y − x &nbsp;&nbsp;&nbsp;<span class="cm">// the residual / leftover / correction</span></div>
-<strong><code>y − x</code> is, by definition, the residual</strong> — the difference between what you have and what you want. So <code>F(x)</code> isn't learning the full output; it's only learning the <em>correction</em> that needs to be added to <code>x</code>.
+<strong><code>y − x</code> is, by definition, the residual</strong> — the difference between what you have and what you want. So <code>F(x)</code> isn't learning the full output; it's only learning the <em>correction</em> that needs to be added to <code>x</code>.`,`<div class="il">Warum heißt es „Residual"-Verbindung?</div>
+Der Name stammt aus dem ursprünglichen ResNet-Paper (He et al., 2016) und ist ein präziser mathematischer Begriff, kein bloßer Spitzname.<br><br>
+In einer normalen Schicht lernt man eine Funktion <code>H(x)</code>, die die Eingabe <code>x</code> auf die Ausgabe <code>y</code> abbildet:
+<div class="formula" style="margin:0.6rem 0;">y = H(x)</div>
+In einer <strong>Residual</strong>-Schicht addiert man stattdessen die Eingabe zur Ausgabe der Schicht:
+<div class="formula" style="margin:0.6rem 0;">y = F(x) + x</div>
+Umgestellt danach, was die innere Funktion <code>F(x)</code> tatsächlich lernt:
+<div class="formula" style="margin:0.6rem 0;">F(x) = y − x &nbsp;&nbsp;&nbsp;<span class="cm">// das Residuum / der Rest / die Korrektur</span></div>
+<strong><code>y − x</code> ist per Definition das Residuum</strong> — die Differenz zwischen dem, was man hat, und dem, was man will. <code>F(x)</code> lernt also nicht die ganze Ausgabe; es lernt nur die <em>Korrektur</em>, die zu <code>x</code> addiert werden muss.`)}
 </div>`;
 
-  h+=`<div class="info ia"><div class="il">Why this matters in practice</div>
+  h+=`<div class="info ia">${L(`<div class="il">Why this matters in practice</div>
 <strong>1. The identity mapping is free.</strong> If the optimal thing for a sub-layer is to leave the input alone, the network just has to push <code>F(x) → 0</code>, which is trivial — all weights go toward zero. Without the skip connection, the layer would have to learn to reproduce <code>H(x) = x</code> exactly, which is surprisingly hard for a stack of nonlinear layers.<br><br>
-<strong>2. Gradients have a direct highway.</strong> Backpropagating through <code>y = F(x) + x</code>, the derivative of the <code>+ x</code> term is just <code>1</code>, so gradients flow straight from the output back to <code>x</code> without being attenuated by <code>F</code>'s weights. This is what lets transformers be stacked 12, 48, or even 96 layers deep without vanishing gradients.
+<strong>2. Gradients have a direct highway.</strong> Backpropagating through <code>y = F(x) + x</code>, the derivative of the <code>+ x</code> term is just <code>1</code>, so gradients flow straight from the output back to <code>x</code> without being attenuated by <code>F</code>'s weights. This is what lets transformers be stacked 12, 48, or even 96 layers deep without vanishing gradients.`,`<div class="il">Warum das in der Praxis wichtig ist</div>
+<strong>1. Die Identitätsabbildung ist gratis.</strong> Wenn es für eine Teilschicht optimal ist, die Eingabe unverändert zu lassen, muss das Netz nur <code>F(x) → 0</code> treiben, was trivial ist — alle Gewichte gehen gegen null. Ohne die Skip-Verbindung müsste die Schicht lernen, <code>H(x) = x</code> exakt zu reproduzieren, was für einen Stapel nichtlinearer Schichten überraschend schwer ist.<br><br>
+<strong>2. Gradienten haben eine direkte Autobahn.</strong> Bei der Rückwärtsrechnung durch <code>y = F(x) + x</code> ist die Ableitung des Terms <code>+ x</code> einfach <code>1</code>, also fließen die Gradienten direkt von der Ausgabe zurück zu <code>x</code>, ohne von den Gewichten von <code>F</code> gedämpft zu werden. Das erlaubt es, Transformer 12, 48 oder sogar 96 Schichten tief zu stapeln, ohne dass Gradienten verschwinden.`)}
 </div>`;
 
-  h+=`<div class="info ip"><div class="il">In the transformer specifically</div>
+  h+=`<div class="info ip">${L(`<div class="il">In the transformer specifically</div>
 The two residual connections in every decoder layer are:
 <div class="formula" style="margin:0.6rem 0;">LN₁ = LayerNorm( x + Attention(x) )&nbsp;&nbsp;&nbsp;<span class="cm">// attention learns a residual on x</span><br>
 LN₂ = LayerNorm( LN₁ + FFN(LN₁) )&nbsp;&nbsp;&nbsp;<span class="cm">// FFN learns a residual on LN₁</span></div>
-The attention sub-layer isn't trying to compute "the new representation of each token" from scratch — it's only computing <strong>how much each token's representation should change</strong> based on attending to the others. The FFN similarly only computes a per-token <em>adjustment</em>. The original signal flows through largely intact, and each sub-layer just nudges it.
+The attention sub-layer isn't trying to compute "the new representation of each token" from scratch — it's only computing <strong>how much each token's representation should change</strong> based on attending to the others. The FFN similarly only computes a per-token <em>adjustment</em>. The original signal flows through largely intact, and each sub-layer just nudges it.`,`<div class="il">Konkret im Transformer</div>
+Die beiden Residual-Verbindungen in jeder Decoder-Schicht sind:
+<div class="formula" style="margin:0.6rem 0;">LN₁ = LayerNorm( x + Attention(x) )&nbsp;&nbsp;&nbsp;<span class="cm">// Attention lernt ein Residuum auf x</span><br>
+LN₂ = LayerNorm( LN₁ + FFN(LN₁) )&nbsp;&nbsp;&nbsp;<span class="cm">// FFN lernt ein Residuum auf LN₁</span></div>
+Die Attention-Teilschicht versucht nicht, „die neue Repräsentation jedes Tokens" von Grund auf zu berechnen — sie berechnet nur, <strong>wie stark sich die Repräsentation jedes Tokens ändern soll</strong>, basierend darauf, worauf er attendiert. Das FFN berechnet ebenso nur eine <em>Anpassung</em> pro Token. Das ursprüngliche Signal fließt weitgehend unverändert hindurch, und jede Teilschicht schubst es nur ein wenig.`)}
 </div>`;
 
-  h+=`<div class="info it"><div class="il">Useful analogy</div>
-Think of it like editing a document. A non-residual layer is "rewrite the paragraph from scratch." A residual layer is <strong>track changes</strong> — it only outputs the edits (the residual), and those edits are applied on top of the original. Most paragraphs only need small edits, so the editor's job is much easier, and if no edit is needed it can output nothing at all.
+  h+=`<div class="info it">${L(`<div class="il">Useful analogy</div>
+Think of it like editing a document. A non-residual layer is "rewrite the paragraph from scratch." A residual layer is <strong>track changes</strong> — it only outputs the edits (the residual), and those edits are applied on top of the original. Most paragraphs only need small edits, so the editor's job is much easier, and if no edit is needed it can output nothing at all.`,`<div class="il">Nützliche Analogie</div>
+Stell es dir vor wie das Redigieren eines Dokuments. Eine Schicht ohne Residual bedeutet „den Absatz von Grund auf neu schreiben". Eine Residual-Schicht ist der <strong>Änderungsmodus</strong> — sie gibt nur die Änderungen aus (das Residuum), und diese werden auf das Original angewendet. Die meisten Absätze brauchen nur kleine Änderungen, also ist die Arbeit des Redakteurs viel leichter, und wenn keine Änderung nötig ist, kann er gar nichts ausgeben.`)}
 </div>`;
 
   return h;
 }},
 
-{id:'ffn',title:'Feed-Forward',tag:'tp',tagText:'FFN',
+{id:'ffn',get title(){return L('Feed-Forward','Feed-Forward');},tag:'tp',tagText:'FFN',
 render(){
   const S=STATE;
   let h=`<div class="stage-title">Feed-Forward Network <span class="tag tp">FFN</span></div>`;
-  h+=`<p class="stage-desc">Two linear transformations with ReLU. Expands to <strong>d_ff=${CFG.d_ff}</strong> (${CFG.d_ff/CFG.d_model}× d_model) then contracts back. Applied to each token independently — this is where per-token "thinking" happens.</p>`;
+  h+=`<p class="stage-desc">${L(`Two linear transformations with ReLU. Expands to <strong>d_ff=${CFG.d_ff}</strong> (${CFG.d_ff/CFG.d_model}× d_model) then contracts back. Applied to each token independently — this is where per-token "thinking" happens.`,`Zwei lineare Transformationen mit ReLU. Weitet auf <strong>d_ff=${CFG.d_ff}</strong> (${CFG.d_ff/CFG.d_model}× d_model) auf und zieht dann wieder zusammen. Wird auf jeden Token unabhängig angewendet — hier passiert das „Denken" pro Token.`)}</p>`;
   h+=`<div class="formula">hidden = ReLU(LN₁ × W₁ + b₁)  <span class="cm">// (${S.tokens.length}×${CFG.d_model}) × (${CFG.d_model}×${CFG.d_ff}) = (${S.tokens.length}×${CFG.d_ff})</span><br>ffn_out = hidden × W₂ + b₂  <span class="cm">// (${S.tokens.length}×${CFG.d_ff}) × (${CFG.d_ff}×${CFG.d_model}) = (${S.tokens.length}×${CFG.d_model})</span></div>`;
   h+=`<div class="mtx-wrap"><div class="mtx-row">`;
-  h+=renderMtx(S.ln1,'LN₁ Input','ct',S.tokens);
+  h+=renderMtx(S.ln1,L('LN₁ Input','LN₁-Eingabe'),'ct',S.tokens);
   h+=`<span class="op">→ FFN →</span>`;
-  h+=renderMtx(S.ffn_out,'FFN Output','cp',S.tokens);
+  h+=renderMtx(S.ffn_out,L('FFN Output','FFN-Ausgabe'),'cp',S.tokens);
   h+=`</div></div>`;
-  h+=`<div class="info ip"><div class="il">Hidden layer (${S.tokens.length}×${CFG.d_ff}) — first 4 dims shown</div>`;
+  h+=`<div class="info ip"><div class="il">${L(`Hidden layer (${S.tokens.length}×${CFG.d_ff}) — first 4 dims shown`,`Verdeckte Schicht (${S.tokens.length}×${CFG.d_ff}) — die ersten 4 Dims gezeigt`)}</div>`;
   h+='<table class="mtx">';
-  S.ffn_hidden.forEach((r,i)=>{h+='<tr>';h+=`<td class="cheader">${S.tokens[i]}</td>`;r.slice(0,4).forEach(v=>h+=`<td class="cp">${fmtS(v)}</td>`);h+=`<td class="cheader">…${CFG.d_ff-4} more</td></tr>`;});
+  S.ffn_hidden.forEach((r,i)=>{h+='<tr>';h+=`<td class="cheader">${S.tokens[i]}</td>`;r.slice(0,4).forEach(v=>h+=`<td class="cp">${fmtS(v)}</td>`);h+=`<td class="cheader">…${CFG.d_ff-4} ${L('more','weitere')}</td></tr>`;});
   h+='</table>';
-  h+=`<span style="font-size:0.7rem;color:var(--txt3);">ReLU zeros out negative values. The expansion to ${CFG.d_ff} dims gives the model more computational capacity.</span></div>`;
+  h+=`<span style="font-size:0.7rem;color:var(--txt3);">${L(`ReLU zeros out negative values. The expansion to ${CFG.d_ff} dims gives the model more computational capacity.`,`Die ReLU setzt negative Werte auf null. Die Aufweitung auf ${CFG.d_ff} Dims gibt dem Modell mehr Rechenkapazität.`)}</span></div>`;
   return h;
 }},
 
-{id:'res2',title:'Add & Norm 2',tag:'tt',tagText:'RESIDUAL',
+{id:'res2',get title(){return L('Add & Norm 2','Add & Norm 2');},tag:'tt',tagText:'RESIDUAL',
 render(){
   const S=STATE;
   let h=`<div class="stage-title">Residual + LayerNorm 2 <span class="tag tt">RESIDUAL 2</span></div>`;
-  h+=`<p class="stage-desc">Same pattern: add the FFN input back (skip connection), then normalize.</p>`;
+  h+=`<p class="stage-desc">${L('Same pattern: add the FFN input back (skip connection), then normalize.','Dasselbe Muster: die FFN-Eingabe wieder addieren (Skip-Verbindung), dann normalisieren.')}</p>`;
   h+=`<div class="formula">residual₂ = LN₁ + ffn_out<br>LN₂ = LayerNorm(residual₂)</div>`;
   h+=`<div class="mtx-wrap"><div class="mtx-row">`;
   h+=renderMtx(S.ln1,'LN₁','ct',S.tokens);
   h+=`<span class="op">+</span>`;
-  h+=renderMtx(S.ffn_out,'FFN Out','cp',S.tokens);
+  h+=renderMtx(S.ffn_out,L('FFN Out','FFN-Ausgabe'),'cp',S.tokens);
   h+=`<span class="op">→ LN →</span>`;
-  h+=renderMtx(S.ln2,'After LN₂','ct',S.tokens);
+  h+=renderMtx(S.ln2,L('After LN₂','Nach LN₂'),'ct',S.tokens);
   h+=`</div></div>`;
-  h+=`<div class="info it"><div class="il">End of decoder layer</div>In a real GPT, this output would feed into the next decoder layer (GPT-2 has 12–48 layers). Our simulation uses 1 layer for clarity.</div>`;
+  h+=`<div class="info it">${L('<div class="il">End of decoder layer</div>In a real GPT, this output would feed into the next decoder layer (GPT-2 has 12–48 layers). Our simulation uses 1 layer for clarity.','<div class="il">Ende der Decoder-Schicht</div>In einem echten GPT würde diese Ausgabe in die nächste Decoder-Schicht fließen (GPT-2 hat 12–48 Schichten). Unsere Simulation nutzt der Übersicht halber 1 Schicht.')}</div>`;
   return h;
 }},
 
-{id:'logits',title:'Logits',tag:'ta',tagText:'OUTPUT',
+{id:'logits',get title(){return L('Logits','Logits');},tag:'ta',tagText:'OUTPUT',
 render(){
   const S=STATE,lastTok=S.tokens[S.tokens.length-1];
-  let h=`<div class="stage-title">Linear Projection → Logits <span class="tag ta">OUTPUT</span></div>`;
-  h+=`<p class="stage-desc">The final hidden state of the <strong>last token</strong> ("${lastTok}") is projected to vocabulary size (${V}) via <strong>W_out</strong>. These raw scores are called <strong>logits</strong>.</p>`;
+  let h=`<div class="stage-title">${L('Linear Projection → Logits','Lineare Projektion → Logits')} <span class="tag ta">${L('OUTPUT','AUSGABE')}</span></div>`;
+  h+=`<p class="stage-desc">${L(`The final hidden state of the <strong>last token</strong> ("${lastTok}") is projected to vocabulary size (${V}) via <strong>W_out</strong>. These raw scores are called <strong>logits</strong>.`,`Der finale verdeckte Zustand des <strong>letzten Tokens</strong> („${lastTok}") wird über <strong>W_out</strong> auf die Vokabulargröße (${V}) projiziert. Diese rohen Scores heißen <strong>Logits</strong>.`)}</p>`;
   h+=`<div class="formula">logits = final_hidden[last_pos] × W_out<br><span class="cm">// (1×${CFG.d_model}) × (${CFG.d_model}×${V}) = (1×${V})</span></div>`;
   h+=`<div class="mtx-wrap"><div class="mtx-row">`;
-  h+=renderMtx([S.final_ln[S.tokens.length-1]],'Last Hidden','ct',[lastTok]);
+  h+=renderMtx([S.final_ln[S.tokens.length-1]],L('Last Hidden','Letzter verdeckter Zustand'),'ct',[lastTok]);
   h+=`<span class="op">× W_out =</span>`;
-  h+=renderMtx([S.logits.map(v=>+v.toFixed(2))],'Logits','ca',['score'],CFG.vocab.map((_,i)=>i));
+  h+=renderMtx([S.logits.map(v=>+v.toFixed(2))],'Logits','ca',[L('score','Score')],CFG.vocab.map((_,i)=>i));
   h+=`</div></div>`;
-  h+=`<div class="info ia"><div class="il">Logits for each vocabulary token</div>`;
+  h+=`<div class="info ia"><div class="il">${L('Logits for each vocabulary token','Logits für jeden Token im Vokabular')}</div>`;
   const sorted=S.logits.map((v,i)=>({v,i,t:CFG.vocab[i]})).sort((a,b)=>b.v-a.v);
   h+=sorted.slice(0,6).map((x,i)=>`<span style="color:${i===0?'var(--acc)':'var(--txt2)'};font-weight:${i===0?'600':'400'}">${x.t}: ${x.v.toFixed(3)}</span>`).join(' · ');
   h+='</div>';
   return h;
 }},
 
-{id:'predict',title:'Prediction',tag:'ta',tagText:'PREDICT',
+{id:'predict',get title(){return L('Prediction','Vorhersage');},tag:'ta',tagText:'PREDICT',
 render(){
   const S=STATE;
   const T=S.temperature;
-  let h=`<div class="stage-title">Softmax → Next Token Prediction <span class="tag ta">PREDICT</span></div>`;
-  h+=`<p class="stage-desc">Logits are first divided by the <strong>temperature T</strong>, then softmax converts them into a probability distribution over the vocabulary. The token with the highest probability is the model's prediction for what comes after "<strong>${S.tokens.join(' ')}</strong>".</p>`;
-  h+=`<div class="formula">P(next_token) = softmax(logits / <span class="hl">T</span>)&nbsp;&nbsp;&nbsp;<span class="cm">// T = ${T.toFixed(1)} (current)</span><br>predicted = argmax(P) = <span class="hl">"${S.predicted_token}"</span></div>`;
+  let h=`<div class="stage-title">${L('Softmax → Next Token Prediction','Softmax → Vorhersage des nächsten Tokens')} <span class="tag ta">${L('PREDICT','VORHERSAGE')}</span></div>`;
+  h+=`<p class="stage-desc">${L(`Logits are first divided by the <strong>temperature T</strong>, then softmax converts them into a probability distribution over the vocabulary. The token with the highest probability is the model's prediction for what comes after "<strong>${S.tokens.join(' ')}</strong>".`,`Die Logits werden zuerst durch die <strong>Temperatur T</strong> geteilt, dann wandelt der Softmax sie in eine Wahrscheinlichkeitsverteilung über das Vokabular um. Der Token mit der höchsten Wahrscheinlichkeit ist die Vorhersage des Modells dafür, was nach „<strong>${S.tokens.join(' ')}</strong>" kommt.`)}</p>`;
+  h+=`<div class="formula">P(next_token) = softmax(logits / <span class="hl">T</span>)&nbsp;&nbsp;&nbsp;<span class="cm">// T = ${T.toFixed(1)} (${L('current','aktuell')})</span><br>predicted = argmax(P) = <span class="hl">"${S.predicted_token}"</span></div>`;
   
   // Probability bars
   const sorted=S.probs.map((p,i)=>({p,i,t:CFG.vocab[i]})).sort((a,b)=>b.p-a.p);
@@ -893,24 +970,30 @@ render(){
   h+=`</div>`;
 
   // ── Temperature explainer ──
-  h+=`<div class="info ip"><div class="il">What is the temperature parameter?</div>
+  h+=`<div class="info ip">${L(`<div class="il">What is the temperature parameter?</div>
 <strong>Temperature</strong> is a single scalar <code>T</code> that divides the logits before softmax. It controls how <em>peaked</em> or <em>flat</em> the resulting probability distribution is — without changing which token has the highest score.<br><br>
 <strong>T = 1.0</strong> &nbsp;→ standard softmax, the model's natural distribution.<br>
 <strong>T &lt; 1.0</strong> &nbsp;→ <em>sharper</em> distribution. Differences between logits get amplified, the top token dominates, output becomes more deterministic and "confident". As <code>T → 0</code> it approaches one-hot (pure argmax).<br>
 <strong>T &gt; 1.0</strong> &nbsp;→ <em>flatter</em> distribution. Differences shrink, low-probability tokens get a bigger share, output becomes more random and "creative". As <code>T → ∞</code> it approaches uniform.<br><br>
-Use the slider in the top-right corner to change <code>T</code> and watch the bars above redistribute. Try <code>0.2</code> vs <code>2.0</code> on the same prompt.</div>`;
+Use the slider in the top-right corner to change <code>T</code> and watch the bars above redistribute. Try <code>0.2</code> vs <code>2.0</code> on the same prompt.`,`<div class="il">Was ist der Temperatur-Parameter?</div>
+Die <strong>Temperatur</strong> ist ein einzelner Skalar <code>T</code>, durch den die Logits vor dem Softmax geteilt werden. Sie steuert, wie <em>spitz</em> oder <em>flach</em> die resultierende Wahrscheinlichkeitsverteilung ist — ohne zu ändern, welcher Token den höchsten Score hat.<br><br>
+<strong>T = 1.0</strong> &nbsp;→ Standard-Softmax, die natürliche Verteilung des Modells.<br>
+<strong>T &lt; 1.0</strong> &nbsp;→ <em>schärfere</em> Verteilung. Unterschiede zwischen den Logits werden verstärkt, der Top-Token dominiert, die Ausgabe wird deterministischer und „selbstbewusster". Für <code>T → 0</code> nähert sie sich One-Hot (reines argmax).<br>
+<strong>T &gt; 1.0</strong> &nbsp;→ <em>flachere</em> Verteilung. Unterschiede schrumpfen, unwahrscheinliche Token bekommen einen größeren Anteil, die Ausgabe wird zufälliger und „kreativer". Für <code>T → ∞</code> nähert sie sich der Gleichverteilung.<br><br>
+Ändere <code>T</code> mit dem Schieberegler oben rechts und beobachte, wie sich die Balken oben umverteilen. Probiere <code>0.2</code> gegen <code>2.0</code> beim selben Prompt.`)}</div>`;
 
-  h+=`<div class="info it"><div class="il">Why temperature only changes the shape, not the argmax</div>
-Dividing every logit by the same positive constant <code>T</code> is a <strong>monotonic</strong> transformation — it preserves the ordering of the logits. So <code>argmax(softmax(logits/T)) = argmax(logits)</code> for any <code>T &gt; 0</code>. Temperature only affects which token gets picked when you <em>sample</em> from the distribution (e.g. multinomial sampling, top-k, or nucleus/top-p sampling) instead of taking the argmax. Real GPT inference almost always samples, which is why temperature is one of the most-tuned generation parameters.</div>`;
+  h+=`<div class="info it">${L(`<div class="il">Why temperature only changes the shape, not the argmax</div>
+Dividing every logit by the same positive constant <code>T</code> is a <strong>monotonic</strong> transformation — it preserves the ordering of the logits. So <code>argmax(softmax(logits/T)) = argmax(logits)</code> for any <code>T &gt; 0</code>. Temperature only affects which token gets picked when you <em>sample</em> from the distribution (e.g. multinomial sampling, top-k, or nucleus/top-p sampling) instead of taking the argmax. Real GPT inference almost always samples, which is why temperature is one of the most-tuned generation parameters.`,`<div class="il">Warum die Temperatur nur die Form ändert, nicht das argmax</div>
+Jeden Logit durch dieselbe positive Konstante <code>T</code> zu teilen ist eine <strong>monotone</strong> Transformation — sie erhält die Reihenfolge der Logits. Also gilt <code>argmax(softmax(logits/T)) = argmax(logits)</code> für jedes <code>T &gt; 0</code>. Die Temperatur beeinflusst nur, welcher Token gewählt wird, wenn man aus der Verteilung <em>sampelt</em> (z. B. multinomiales Sampling, Top-k oder Nucleus-/Top-p-Sampling), statt das argmax zu nehmen. Echte GPT-Inferenz sampelt fast immer, weshalb die Temperatur einer der meistjustierten Generierungsparameter ist.`)}</div>`;
   
-  h+=`<div class="info ia"><div class="il">Complete</div>The GPT decoder predicts <strong style="color:var(--acc);">"${S.predicted_token}"</strong> as the most likely next token after "${S.tokens.join(' ')}". In autoregressive generation, this token would be appended to the input and the entire process would repeat to generate the next token.</div>`;
+  h+=`<div class="info ia">${L(`<div class="il">Complete</div>The GPT decoder predicts <strong style="color:var(--acc);">"${S.predicted_token}"</strong> as the most likely next token after "${S.tokens.join(' ')}". In autoregressive generation, this token would be appended to the input and the entire process would repeat to generate the next token.`,`<div class="il">Fertig</div>Der GPT-Decoder sagt <strong style="color:var(--acc);">„${S.predicted_token}"</strong> als wahrscheinlichsten nächsten Token nach „${S.tokens.join(' ')}" vorher. Bei der autoregressiven Generierung würde dieser Token an die Eingabe angehängt und der ganze Prozess wiederholt, um den nächsten Token zu erzeugen.`)}</div>`;
   
   // Full pipeline summary
   h+=`<div style="margin-top:1rem;padding:1rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);">`;
-  h+=`<div style="font-family:var(--mono);font-size:0.65rem;color:var(--acc);margin-bottom:0.5rem;font-weight:500;">FULL PIPELINE SUMMARY</div>`;
+  h+=`<div style="font-family:var(--mono);font-size:0.65rem;color:var(--acc);margin-bottom:0.5rem;font-weight:500;">${L('FULL PIPELINE SUMMARY','GESAMTE PIPELINE IM ÜBERBLICK')}</div>`;
   h+=`<div style="font-size:0.78rem;color:var(--txt2);line-height:1.8;">`;
-  h+=`"${S.tokens.join(' ')}" → tokenize → embed(${S.tokens.length}×${CFG.d_model}) → +PE → `;
-  h+=`Q,K,V → ${CFG.n_heads} heads × [QK<sup>T</sup>/√${CFG.d_k} → mask → softmax → ×V] → concat → W<sup>O</sup> → `;
+  h+=`"${S.tokens.join(' ')}" → ${L('tokenize','tokenisieren')} → ${L('embed','einbetten')}(${S.tokens.length}×${CFG.d_model}) → +PE → `;
+  h+=`Q,K,V → ${CFG.n_heads} Heads × [QK<sup>T</sup>/√${CFG.d_k} → ${L('mask','Maske')} → softmax → ×V] → concat → W<sup>O</sup> → `;
   h+=`+residual → LN → FFN(${CFG.d_model}→${CFG.d_ff}→${CFG.d_model}) → +residual → LN → `;
   h+=`W_out(→${V}) → softmax(/T=${T.toFixed(1)}) → <strong style="color:var(--acc);">"${S.predicted_token}"</strong>`;
   h+=`</div></div>`;
@@ -923,12 +1006,12 @@ let currentStep = 0;
 
 function renderSidebar(){
   const sb=document.getElementById('sidebar');
-  let h='<div class="side-label">Data flow</div>';
+  let h=`<div class="side-label">${L('Data flow','Datenfluss')}</div>`;
   const groups=[
-    {label:'Input',steps:[0,1,2]},
+    {label:L('Input','Eingabe'),steps:[0,1,2]},
     {label:'Self-Attention',steps:[3,4,5,6,7,8,9,10]},
     {label:'FFN',steps:[11,12]},
-    {label:'Output',steps:[13,14]},
+    {label:L('Output','Ausgabe'),steps:[13,14]},
   ];
   groups.forEach(g=>{
     h+=`<div class="side-label" style="margin-top:0.4rem;">${g.label}</div>`;
@@ -952,12 +1035,12 @@ function renderMain(){
   h+=`<div class="cfg-item">d_ff=<span>${CFG.d_ff}</span></div>`;
   h+=`<div class="cfg-item">vocab=<span>${V}</span></div>`;
   h+=`<div class="cfg-item">T=<span>${TEMPERATURE.toFixed(1)}</span></div>`;
-  h+=`<div class="cfg-item" style="margin-left:auto;">step <span>${currentStep+1}</span>/${STEPS.length}</div>`;
+  h+=`<div class="cfg-item" style="margin-left:auto;">${L('step','Schritt')} <span>${currentStep+1}</span>/${STEPS.length}</div>`;
   h+=`</div>`;
   h+=s.render();
   h+=`<div class="nav-row">`;
-  h+=`<button class="nav-btn nav-prev" onclick="goStep(${currentStep-1})" ${currentStep===0?'disabled':''}>← Previous</button>`;
-  h+=`<button class="nav-btn nav-next" onclick="goStep(${currentStep+1})" ${currentStep===STEPS.length-1?'disabled':''}>${currentStep===STEPS.length-1?'Complete':'Next →'}</button>`;
+  h+=`<button class="nav-btn nav-prev" onclick="goStep(${currentStep-1})" ${currentStep===0?'disabled':''}>${L('← Previous','← Zurück')}</button>`;
+  h+=`<button class="nav-btn nav-next" onclick="goStep(${currentStep+1})" ${currentStep===STEPS.length-1?'disabled':''}>${currentStep===STEPS.length-1?L('Complete','Fertig'):L('Next →','Weiter →')}</button>`;
   h+=`</div>`;
   el.innerHTML=h;
 }
@@ -991,6 +1074,7 @@ function onTempChange(){
 
 // ═══════ INIT ═══════
 restart();
+(function(){let sv=null;try{sv=localStorage.getItem('gpt_decoder_lang');}catch(e){}if(sv==='de')setLang('de');})();
 </script>
 </body>
 </html>
