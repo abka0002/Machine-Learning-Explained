@@ -258,6 +258,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);line-height:1
 .lat-bar{flex:1;height:20px;background:var(--bg4);border-radius:4px;overflow:hidden;position:relative;}
 .lat-fill{height:100%;border-radius:3px;transition:width .3s;}
 .lat-val{min-width:80px;text-align:right;color:var(--txt2);font-weight:500;}
+.lang-toggle{margin-left:0.8rem;display:flex;gap:2px;background:var(--bg2);border:1px solid var(--border);border-radius:999px;padding:2px;}
+.lang-btn{font-family:var(--mono);font-size:0.66rem;font-weight:600;letter-spacing:0.05em;padding:0.2rem 0.6rem;border-radius:999px;cursor:pointer;color:var(--txt3);user-select:none;transition:all .2s;}
+.lang-btn:hover{color:var(--txt);}
+.lang-btn.on{background:var(--acc);color:#fff;}
 </style>
 </head>
 <body>
@@ -274,9 +278,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);line-height:1
     </svg>
     <span>RAG_SYS<span class="logo-suffix">.sim</span></span>
   </div>
-  <div class="header-meta">retrieval-augmented generation · step-by-step</div>
+  <div class="header-meta" data-i18n="hdr-meta">retrieval-augmented generation · step-by-step</div>
   <div class="token-bar">
-    <label>Query</label>
+    <label data-i18n="lbl-query">Query</label>
     <select id="query-select" onchange="onQueryChange()">
       <option value="0">What is LoRA?</option>
       <option value="1">Who wrote "Attention Is All You Need"?</option>
@@ -286,6 +290,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);line-height:1
     <label style="margin-left:0.5rem;">top-k</label>
     <input id="k-slider" type="range" min="1" max="5" step="1" value="3" oninput="onKChange()" style="width:80px;accent-color:var(--acc);">
     <span class="val" id="k-val">3</span>
+    <div class="lang-toggle" title="Language / Sprache"><span class="lang-btn on" data-lang="en" onclick="setLang('en')">EN</span><span class="lang-btn" data-lang="de" onclick="setLang('de')">DE</span></div>
   </div>
 </header>
 
@@ -294,6 +299,23 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);line-height:1
 </div>
 
 <script>
+// ═══════ LANGUAGE (EN / DE) ═══════
+let LANG='en';
+function L(en,de){return LANG==='de'?de:en;}
+const STATIC_I18N={
+  'lbl-query':['Query','Anfrage'],
+  'hdr-meta':['retrieval-augmented generation · step-by-step','Retrieval-Augmented Generation · Schritt für Schritt']
+};
+function setLang(lang){
+  LANG=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const e=STATIC_I18N[el.dataset.i18n];if(e)el.textContent=lang==='de'?e[1]:e[0];});
+  document.documentElement.lang=lang;
+  document.title=L('RAG Simulator — Retrieval-Augmented Generation Step-by-Step','RAG-Simulator — Retrieval-Augmented Generation Schritt für Schritt');
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('on',b.dataset.lang===lang));
+  if(typeof renderSidebar==='function'&&typeof STEPS!=='undefined'){renderSidebar();renderMain();}
+  try{localStorage.setItem('rag_sim_lang',lang);}catch(e){}
+}
+
 // ═══════ CORPUS ═══════
 // Hand-crafted 8-dim embeddings designed so topically related chunks cluster together.
 // In reality these would come from a model like all-MiniLM-L6-v2 (384 dims) or OpenAI text-embedding-3-small (1536 dims).
@@ -446,7 +468,7 @@ function renderDoc(doc, opts = {}) {
   if (opts.top) cls.push('top');
   const score = opts.score !== undefined ? `<span class="score">sim: ${fmt(opts.score)}</span>` : '';
   return `<div class="${cls.join(' ')}">
-<div class="doc-id"><span>${doc.id}${opts.rank !== undefined ? ` · rank ${opts.rank + 1}` : ''}</span>${score}</div>
+<div class="doc-id"><span>${doc.id}${opts.rank !== undefined ? ` · ${L('rank','Rang')} ${opts.rank + 1}` : ''}</span>${score}</div>
 <div class="doc-text">${doc.text}</div>
 </div>`;
 }
@@ -475,6 +497,7 @@ function renderScatter2D(opts = {}) {
     'Geography': '#a16207',            // amber
     'Vector similarity': '#7e22ce',    // purple
   };
+  const topicNames = {'LoRA fine-tuning':L('LoRA fine-tuning','LoRA-Feintuning'),'Transformers':'Transformer','Geography':L('Geography','Geographie'),'Vector similarity':L('Vector similarity','Vektorähnlichkeit')};
   const docTopics = ['LoRA fine-tuning','LoRA fine-tuning','LoRA fine-tuning','Transformers','Transformers','Transformers','Geography','Geography','Vector similarity','Vector similarity'];
 
   // Current query in 2D
@@ -540,11 +563,11 @@ function renderScatter2D(opts = {}) {
   // Legend (lower-left — avoids clusters)
   const legX = PAD + 12, legY = H - PAD - 78;
   svg += `<rect x="${legX - 6}" y="${legY - 14}" width="152" height="82" fill="#ffffff" stroke="#e0dcd0" stroke-width="1" rx="4"/>`;
-  svg += `<text x="${legX}" y="${legY}" font-size="9" fill="#8b8778" font-family="DM Mono, monospace" text-transform="uppercase">Topic clusters</text>`;
+  svg += `<text x="${legX}" y="${legY}" font-size="9" fill="#8b8778" font-family="DM Mono, monospace" text-transform="uppercase">${L('Topic clusters','Themencluster')}</text>`;
   Object.entries(topicColors).forEach(([name, color], i) => {
     const ly = legY + 14 + i * 13;
     svg += `<circle cx="${legX + 6}" cy="${ly - 3}" r="4" fill="${color}" fill-opacity="0.3" stroke="${color}" stroke-width="1.5"/>`;
-    svg += `<text x="${legX + 16}" y="${ly}" font-size="9" fill="#57534e">${name}</text>`;
+    svg += `<text x="${legX + 16}" y="${ly}" font-size="9" fill="#57534e">${topicNames[name]}</text>`;
   });
 
   svg += `</svg>`;
@@ -568,16 +591,16 @@ function renderChunkingDemo(size, overlap) {
   }
   // Render each chunk as a colored strip
   let h = `<div class="chunk-demo">`;
-  h += `<div class="chunk-meta"><strong>${chunks.length}</strong> chunks of <strong>${size}</strong> chars with <strong>${overlap}</strong> chars overlap</div>`;
+  h += L(`<div class="chunk-meta"><strong>${chunks.length}</strong> chunks of <strong>${size}</strong> chars with <strong>${overlap}</strong> chars overlap</div>`,`<div class="chunk-meta"><strong>${chunks.length}</strong> Chunks à <strong>${size}</strong> Zeichen mit <strong>${overlap}</strong> Zeichen Überlappung</div>`);
   const palette = ['#16653428','#0369a128','#c2410c28','#7e22ce28','#a1620728','#0e749028'];
   const borders = ['#166534','#0369a1','#c2410c','#7e22ce','#a16207','#0e7490'];
   chunks.forEach((c, i) => {
     const color = palette[i % palette.length];
     const border = borders[i % borders.length];
     const hasOverlapLeft = i > 0;
-    const overlapBadge = hasOverlapLeft ? `<span class="overlap-badge">↶ overlap ${overlap}</span>` : '';
+    const overlapBadge = hasOverlapLeft ? `<span class="overlap-badge">↶ ${L('overlap','Überlappung')} ${overlap}</span>` : '';
     h += `<div class="chunk-item" style="background:${color};border-left:3px solid ${border};">
-<div class="chunk-label" style="color:${border};">chunk ${i + 1} · chars [${c.start}, ${c.end}) ${overlapBadge}</div>
+<div class="chunk-label" style="color:${border};">Chunk ${i + 1} · ${L('chars','Zeichen')} [${c.start}, ${c.end}) ${overlapBadge}</div>
 <div class="chunk-text">${c.text}</div>
 </div>`;
   });
@@ -589,14 +612,16 @@ function renderChunkingDemo(size, overlap) {
 const STEPS = [
 
 // ───────────────────── 1. OVERVIEW ─────────────────────
-{id: 'overview', title: 'Overview', group: 'Setup',
+{id: 'overview', get title(){return L('Overview','Übersicht');}, get group(){return L('Setup','Einstieg');},
 render() {
-  let h = `<div class="stage-title">RAG: Retrieval-Augmented Generation <span class="tag tac">OVERVIEW</span></div>`;
-  h += `<p class="stage-desc"><strong>Retrieval-Augmented Generation</strong> (Lewis et al. 2020 [1]) combines a frozen language model with an external document retriever. Instead of relying only on what the model memorized during pre-training, the system first <em>fetches</em> relevant passages from a knowledge base and then <em>generates</em> an answer conditioned on them. This grounds the output in verifiable sources and lets the model access information that changed after its training cutoff.</p>`;
+  let h = L(`<div class="stage-title">RAG: Retrieval-Augmented Generation <span class="tag tac">OVERVIEW</span></div>`,`<div class="stage-title">RAG: Retrieval-Augmented Generation <span class="tag tac">ÜBERSICHT</span></div>`);
+  h += L(`<p class="stage-desc"><strong>Retrieval-Augmented Generation</strong> (Lewis et al. 2020 [1]) combines a frozen language model with an external document retriever. Instead of relying only on what the model memorized during pre-training, the system first <em>fetches</em> relevant passages from a knowledge base and then <em>generates</em> an answer conditioned on them. This grounds the output in verifiable sources and lets the model access information that changed after its training cutoff.</p>`,`<p class="stage-desc"><strong>Retrieval-Augmented Generation</strong> (Lewis et al. 2020 [1]) kombiniert ein eingefrorenes Sprachmodell mit einem externen Dokument-Retriever. Statt sich nur auf das zu verlassen, was das Modell im Vortraining auswendig gelernt hat, <em>holt</em> das System zuerst relevante Passagen aus einer Wissensbasis und <em>generiert</em> dann eine darauf bedingte Antwort. Das verankert die Ausgabe in überprüfbaren Quellen und gibt dem Modell Zugang zu Informationen, die sich nach seinem Trainings-Cutoff geändert haben.</p>`);
 
-  h += `<div class="info iac"><div class="il">The core idea in one line</div>
+  h += L(`<div class="info iac"><div class="il">The core idea in one line</div>
 Instead of asking the LLM to answer from memory, <strong>look up relevant passages first, then stuff them into the prompt as context</strong>. The LLM becomes a reading-comprehension engine over a live corpus rather than a static knowledge database.
-<div class="formula" style="margin:0.6rem 0;">answer = LLM( <span class="purple">query</span> + <span class="rust">retrieved_passages</span>(query) )</div></div>`;
+<div class="formula" style="margin:0.6rem 0;">answer = LLM( <span class="purple">query</span> + <span class="rust">retrieved_passages</span>(query) )</div></div>`,`<div class="info iac"><div class="il">Die Kernidee in einem Satz</div>
+Statt das LLM aus dem Gedächtnis antworten zu lassen, <strong>werden zuerst relevante Passagen nachgeschlagen und dann als Kontext in den Prompt gepackt</strong>. Das LLM wird zu einer Leseverständnis-Maschine über einem lebendigen Korpus statt zu einer statischen Wissensdatenbank.
+<div class="formula" style="margin:0.6rem 0;">answer = LLM( <span class="purple">query</span> + <span class="rust">retrieved_passages</span>(query) )</div></div>`);
 
   // Architecture SVG
   h += `<div class="arch-wrap">
@@ -609,7 +634,7 @@ Instead of asking the LLM to answer from memory, <strong>look up relevant passag
 
   <!-- Query box -->
   <rect x="20" y="20" width="140" height="50" rx="8" fill="#7e22ce28" stroke="#7e22ce" stroke-width="2"/>
-  <text x="90" y="42" text-anchor="middle" font-size="12" fill="#7e22ce" font-weight="700">User Query</text>
+  <text x="90" y="42" text-anchor="middle" font-size="12" fill="#7e22ce" ${L('font-weight="700">User Query</text>','font-weight="700">Nutzeranfrage</text>')}
   <text x="90" y="58" text-anchor="middle" font-size="10" fill="#57534e" font-family="DM Mono, monospace">"What is LoRA?"</text>
 
   <!-- Arrow to embed -->
@@ -617,7 +642,7 @@ Instead of asking the LLM to answer from memory, <strong>look up relevant passag
 
   <!-- Query embed -->
   <rect x="200" y="20" width="140" height="50" rx="8" fill="#7e22ce28" stroke="#7e22ce" stroke-width="2"/>
-  <text x="270" y="42" text-anchor="middle" font-size="12" fill="#7e22ce" font-weight="700">Query Embedding</text>
+  <text x="270" y="42" text-anchor="middle" font-size="12" fill="#7e22ce" ${L('font-weight="700">Query Embedding</text>','font-weight="700">Query-Embedding</text>')}
   <text x="270" y="58" text-anchor="middle" font-size="10" fill="#57534e" font-family="DM Mono, monospace">q_vec [d]</text>
 
   <!-- Arrow to retriever -->
@@ -625,8 +650,8 @@ Instead of asking the LLM to answer from memory, <strong>look up relevant passag
 
   <!-- Retriever / vector DB -->
   <rect x="380" y="20" width="240" height="170" rx="10" fill="#c2410c22" stroke="#c2410c" stroke-width="2"/>
-  <text x="500" y="42" text-anchor="middle" font-size="12" fill="#c2410c" font-weight="700">Vector Database</text>
-  <text x="500" y="56" text-anchor="middle" font-size="9" fill="#57534e" font-style="italic">cosine similarity search</text>
+  <text x="500" y="42" text-anchor="middle" font-size="12" fill="#c2410c" ${L('font-weight="700">Vector Database</text>','font-weight="700">Vektordatenbank</text>')}
+  <text x="500" y="56" text-anchor="middle" font-size="9" fill="#57534e" ${L('font-style="italic">cosine similarity search</text>','font-style="italic">Kosinus-Ähnlichkeitssuche</text>')}
 
   <!-- Document chunks inside -->
   <rect x="395" y="70" width="210" height="22" rx="4" fill="#ffffff" stroke="#c2410c" stroke-width="1"/>
@@ -635,7 +660,7 @@ Instead of asking the LLM to answer from memory, <strong>look up relevant passag
   <text x="405" y="111" font-size="9" fill="#57534e" font-family="DM Mono, monospace">doc_02: "Hu et al. 2021..."</text>
   <rect x="395" y="122" width="210" height="22" rx="4" fill="#ffffff" stroke="#c2410c" stroke-width="1"/>
   <text x="405" y="137" font-size="9" fill="#57534e" font-family="DM Mono, monospace">doc_03: "PEFT methods..."</text>
-  <text x="500" y="162" text-anchor="middle" font-size="9" fill="#8b8778" font-style="italic">... N chunks total</text>
+  <text x="500" y="162" text-anchor="middle" font-size="9" fill="#8b8778" ${L('font-style="italic">... N chunks total</text>','font-style="italic">... insgesamt N Chunks</text>')}
 
   <!-- Top-k retrieved arrow down -->
   <line x1="500" y1="195" x2="500" y2="230" stroke="#c2410c" stroke-width="2" marker-end="url(#arrR)"/>
@@ -643,7 +668,7 @@ Instead of asking the LLM to answer from memory, <strong>look up relevant passag
 
   <!-- Retrieved chunks -->
   <rect x="380" y="230" width="240" height="55" rx="8" fill="#c2410c28" stroke="#c2410c" stroke-width="2"/>
-  <text x="500" y="250" text-anchor="middle" font-size="11" fill="#c2410c" font-weight="700">Retrieved Passages</text>
+  <text x="500" y="250" text-anchor="middle" font-size="11" fill="#c2410c" ${L('font-weight="700">Retrieved Passages</text>','font-weight="700">Abgerufene Passagen</text>')}
   <text x="500" y="268" text-anchor="middle" font-size="9" fill="#57534e" font-family="DM Mono, monospace">[doc_01, doc_02, doc_03]</text>
 
   <!-- Arrow from retrieved + from query to prompt -->
@@ -652,7 +677,7 @@ Instead of asking the LLM to answer from memory, <strong>look up relevant passag
 
   <!-- Augmented prompt -->
   <rect x="170" y="305" width="300" height="40" rx="8" fill="#57534e22" stroke="#57534e" stroke-width="2"/>
-  <text x="320" y="323" text-anchor="middle" font-size="12" fill="#57534e" font-weight="700">Augmented Prompt</text>
+  <text x="320" y="323" text-anchor="middle" font-size="12" fill="#57534e" ${L('font-weight="700">Augmented Prompt</text>','font-weight="700">Angereicherter Prompt</text>')}
   <text x="320" y="337" text-anchor="middle" font-size="9" fill="#57534e" font-family="DM Mono, monospace">system + context + query</text>
 
   <!-- Arrow to LLM -->
@@ -660,13 +685,13 @@ Instead of asking the LLM to answer from memory, <strong>look up relevant passag
 
   <!-- LLM final -->
   <rect x="190" y="365" width="260" height="30" rx="8" fill="#16653428" stroke="#166534" stroke-width="2.5"/>
-  <text x="320" y="385" text-anchor="middle" font-size="12" fill="#166534" font-weight="700">LLM → Grounded Answer</text>
+  <text x="320" y="385" text-anchor="middle" font-size="12" fill="#166534" ${L('font-weight="700">LLM → Grounded Answer</text>','font-weight="700">LLM → Fundierte Antwort</text>')}
 </svg>
 </div>`;
 
   // Contrast: closed-book vs RAG
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Without RAG vs. with RAG</h3>`;
-  h += `<div class="answer-grid">
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Without RAG vs. with RAG</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Ohne RAG vs. mit RAG</h3>`);
+  h += L(`<div class="answer-grid">
 <div class="answer-card bad">
 <div class="lbl">Closed-book LLM</div>
 <div class="txt"><em>"What's Anthropic's revenue for Q4 2025?"</em> → Model either hallucinates a plausible-sounding number or says "I don't know" because the data is after its training cutoff. No source to verify against.</div>
@@ -675,12 +700,21 @@ Instead of asking the LLM to answer from memory, <strong>look up relevant passag
 <div class="lbl">With RAG</div>
 <div class="txt"><em>"What's Anthropic's revenue for Q4 2025?"</em> → System first retrieves recent press releases and financial docs, then generates an answer <strong>quoting and citing them</strong>. Fresh, grounded, verifiable.</div>
 </div>
-</div>`;
+</div>`,`<div class="answer-grid">
+<div class="answer-card bad">
+<div class="lbl">Closed-Book-LLM</div>
+<div class="txt"><em>"What's Anthropic's revenue for Q4 2025?"</em> → Das Modell halluziniert entweder eine plausibel klingende Zahl oder sagt „Ich weiß es nicht", weil die Daten nach seinem Trainings-Cutoff liegen. Keine Quelle zum Überprüfen.</div>
+</div>
+<div class="answer-card good">
+<div class="lbl">Mit RAG</div>
+<div class="txt"><em>"What's Anthropic's revenue for Q4 2025?"</em> → Das System holt zuerst aktuelle Pressemitteilungen und Finanzdokumente und generiert dann eine Antwort, <strong>die sie zitiert und belegt</strong>. Aktuell, fundiert, überprüfbar.</div>
+</div>
+</div>`);
 
   // Variables glossary
-  h += `<div class="stage-title" style="margin-top:1.2rem">Variables & Hyperparameters</div>`;
-  h += `<p class="stage-desc">Every symbol used in the simulator, with its meaning and the current value.</p>`;
-  h += `<div class="glossary"><table>
+  h += L(`<div class="stage-title" style="margin-top:1.2rem">Variables & Hyperparameters</div>`,`<div class="stage-title" style="margin-top:1.2rem">Variablen & Hyperparameter</div>`);
+  h += L(`<p class="stage-desc">Every symbol used in the simulator, with its meaning and the current value.</p>`,`<p class="stage-desc">Jedes im Simulator verwendete Symbol, mit Bedeutung und aktuellem Wert.</p>`);
+  h += L(`<div class="glossary"><table>
 <tr><th>Symbol</th><th>Value</th><th>Meaning</th></tr>
 
 <tr><td colspan="3" class="gloss-section">Corpus & chunks</td></tr>
@@ -698,54 +732,76 @@ Instead of asking the LLM to answer from memory, <strong>look up relevant passag
 <tr><td class="sym">context</td><td class="val">—</td><td class="def"><strong>The retrieved passages</strong> inserted into the prompt before the query.</td></tr>
 <tr><td class="sym">prompt</td><td class="val">—</td><td class="def"><strong>The full augmented prompt</strong> sent to the LLM: system instructions + context + user query.</td></tr>
 <tr><td class="sym">answer</td><td class="val">—</td><td class="def"><strong>The generated response</strong>, ideally grounded in the retrieved context and citing specific passages.</td></tr>
-</table></div>`;
+</table></div>`,`<div class="glossary"><table>
+<tr><th>Symbol</th><th>Wert</th><th>Bedeutung</th></tr>
+
+<tr><td colspan="3" class="gloss-section">Korpus & Chunks</td></tr>
+<tr><td class="sym">N</td><td class="val">${CORPUS.length}</td><td class="def"><strong>Korpusgröße.</strong> Anzahl der Dokument-Chunks in der Vektordatenbank. Echte Systeme haben Tausende bis Milliarden.</td></tr>
+<tr><td class="sym">d</td><td class="val">${CORPUS[0].vec.length}</td><td class="def"><strong>Embedding-Dimension.</strong> Länge jedes Vektors. Hier 8, damit sie auf den Bildschirm passen; echte Modelle nutzen 384 (MiniLM), 768 (BERT), 1536 (OpenAI text-embedding-3-small) oder 3072 (OpenAI text-embedding-3-large).</td></tr>
+<tr><td class="sym">chunk</td><td class="val">—</td><td class="def"><strong>Eine einzelne Textpassage</strong>, die im Korpus gespeichert ist. Typisch 200–500 Token. Die Einheit des Retrievals.</td></tr>
+
+<tr><td colspan="3" class="gloss-section">Retrieval</td></tr>
+<tr><td class="sym">q</td><td class="val">—</td><td class="def"><strong>Nutzeranfrage</strong> als Text. Die zu beantwortende Frage.</td></tr>
+<tr><td class="sym">q_vec</td><td class="val">[d]</td><td class="def"><strong>Query-Embedding.</strong> Der Anfragetext, durch dasselbe Embedding-Modell geschickt wie der Korpus.</td></tr>
+<tr><td class="sym">sim(q, d)</td><td class="val">∈ [-1, 1]</td><td class="def"><strong>Kosinus-Ähnlichkeit</strong> zwischen dem Query-Embedding und einem Dokument-Embedding. Höher = relevanter.</td></tr>
+<tr><td class="sym">k</td><td class="val">${TOP_K}</td><td class="def"><strong>Anzahl der abgerufenen Passagen.</strong> Die k Dokumente mit der höchsten Ähnlichkeit werden an das LLM übergeben. Einstellbar über den Schieberegler im Header.</td></tr>
+
+<tr><td colspan="3" class="gloss-section">Generierung</td></tr>
+<tr><td class="sym">context</td><td class="val">—</td><td class="def"><strong>Die abgerufenen Passagen</strong>, die vor der Anfrage in den Prompt eingefügt werden.</td></tr>
+<tr><td class="sym">prompt</td><td class="val">—</td><td class="def"><strong>Der vollständige angereicherte Prompt</strong>, der an das LLM geschickt wird: Systemanweisungen + Kontext + Nutzeranfrage.</td></tr>
+<tr><td class="sym">answer</td><td class="val">—</td><td class="def"><strong>Die generierte Antwort</strong>, idealerweise im abgerufenen Kontext verankert und mit Verweisen auf konkrete Passagen.</td></tr>
+</table></div>`);
 
   // References
-  h += `<div class="stage-title" style="margin-top:1.2rem">Scientific References</div>`;
+  h += L(`<div class="stage-title" style="margin-top:1.2rem">Scientific References</div>`,`<div class="stage-title" style="margin-top:1.2rem">Wissenschaftliche Referenzen</div>`);
   h += `<div class="refs"><ol>
-<li><span class="auth">Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W.-t., Rocktäschel, T., Riedel, S., &amp; Kiela, D.</span> (2020). <span class="ttl">Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.</span> <span class="ven">Advances in Neural Information Processing Systems (NeurIPS) 33.</span> <a href="https://arxiv.org/abs/2005.11401" target="_blank" rel="noopener">arXiv:2005.11401</a><br><em>The original RAG paper. Introduces the formal combination of a dense retriever (DPR) with a seq2seq generator (BART) for open-domain question answering.</em></li>
+<li><span class="auth">Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W.-t., Rocktäschel, T., Riedel, S., &amp; Kiela, D.</span> (2020). <span class="ttl">Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.</span> <span class="ven">Advances in Neural Information Processing Systems (NeurIPS) 33.</span> <a href="https://arxiv.org/abs/2005.11401" target="_blank" rel="noopener">arXiv:2005.11401</a><br><em>${L('The original RAG paper. Introduces the formal combination of a dense retriever (DPR) with a seq2seq generator (BART) for open-domain question answering.','Das ursprüngliche RAG-Paper. Führt die formale Kombination eines dichten Retrievers (DPR) mit einem Seq2seq-Generator (BART) für Open-Domain Question Answering ein.')}</em></li>
 
-<li><span class="auth">Karpukhin, V., Oğuz, B., Min, S., Lewis, P., Wu, L., Edunov, S., Chen, D., &amp; Yih, W.-t.</span> (2020). <span class="ttl">Dense Passage Retrieval for Open-Domain Question Answering.</span> <span class="ven">Empirical Methods in Natural Language Processing (EMNLP).</span> <a href="https://arxiv.org/abs/2004.04906" target="_blank" rel="noopener">arXiv:2004.04906</a><br><em>Introduces DPR, the dense bi-encoder retriever that became the standard for RAG systems. Uses two BERT encoders (one for questions, one for passages) trained contrastively.</em></li>
+<li><span class="auth">Karpukhin, V., Oğuz, B., Min, S., Lewis, P., Wu, L., Edunov, S., Chen, D., &amp; Yih, W.-t.</span> (2020). <span class="ttl">Dense Passage Retrieval for Open-Domain Question Answering.</span> <span class="ven">Empirical Methods in Natural Language Processing (EMNLP).</span> <a href="https://arxiv.org/abs/2004.04906" target="_blank" rel="noopener">arXiv:2004.04906</a><br><em>${L('Introduces DPR, the dense bi-encoder retriever that became the standard for RAG systems. Uses two BERT encoders (one for questions, one for passages) trained contrastively.','Führt DPR ein, den dichten Bi-Encoder-Retriever, der zum Standard für RAG-Systeme wurde. Nutzt zwei kontrastiv trainierte BERT-Encoder (einen für Fragen, einen für Passagen).')}</em></li>
 
-<li><span class="auth">Reimers, N., &amp; Gurevych, I.</span> (2019). <span class="ttl">Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks.</span> <span class="ven">Empirical Methods in Natural Language Processing (EMNLP).</span> <a href="https://arxiv.org/abs/1908.10084" target="_blank" rel="noopener">arXiv:1908.10084</a><br><em>Shows how to fine-tune BERT into a usable sentence encoder producing embeddings that work well under cosine similarity. The foundation of most modern embedding models.</em></li>
+<li><span class="auth">Reimers, N., &amp; Gurevych, I.</span> (2019). <span class="ttl">Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks.</span> <span class="ven">Empirical Methods in Natural Language Processing (EMNLP).</span> <a href="https://arxiv.org/abs/1908.10084" target="_blank" rel="noopener">arXiv:1908.10084</a><br><em>${L('Shows how to fine-tune BERT into a usable sentence encoder producing embeddings that work well under cosine similarity. The foundation of most modern embedding models.','Zeigt, wie man BERT zu einem brauchbaren Satz-Encoder feinjustiert, dessen Embeddings unter Kosinus-Ähnlichkeit gut funktionieren. Die Grundlage der meisten modernen Embedding-Modelle.')}</em></li>
 
-<li><span class="auth">Johnson, J., Douze, M., &amp; Jégou, H.</span> (2019). <span class="ttl">Billion-Scale Similarity Search with GPUs.</span> <span class="ven">IEEE Transactions on Big Data.</span> <a href="https://arxiv.org/abs/1702.08734" target="_blank" rel="noopener">arXiv:1702.08734</a><br><em>FAISS — Facebook's library for efficient similarity search, enabling approximate nearest-neighbor lookup over billions of vectors in milliseconds. The standard vector-search backend.</em></li>
+<li><span class="auth">Johnson, J., Douze, M., &amp; Jégou, H.</span> (2019). <span class="ttl">Billion-Scale Similarity Search with GPUs.</span> <span class="ven">IEEE Transactions on Big Data.</span> <a href="https://arxiv.org/abs/1702.08734" target="_blank" rel="noopener">arXiv:1702.08734</a><br><em>${L('FAISS — Facebook\'s library for efficient similarity search, enabling approximate nearest-neighbor lookup over billions of vectors in milliseconds. The standard vector-search backend.','FAISS — Facebooks Bibliothek für effiziente Ähnlichkeitssuche, die approximative Nächste-Nachbarn-Suche über Milliarden Vektoren in Millisekunden ermöglicht. Das Standard-Backend für Vektorsuche.')}</em></li>
 
-<li><span class="auth">Malkov, Yu. A., &amp; Yashunin, D. A.</span> (2016). <span class="ttl">Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs.</span> <span class="ven">IEEE Transactions on Pattern Analysis and Machine Intelligence.</span> <a href="https://arxiv.org/abs/1603.09320" target="_blank" rel="noopener">arXiv:1603.09320</a><br><em>HNSW, the graph-based index used by most modern vector databases (Pinecone, Weaviate, Qdrant, Milvus). Provides sub-linear search with high recall.</em></li>
+<li><span class="auth">Malkov, Yu. A., &amp; Yashunin, D. A.</span> (2016). <span class="ttl">Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs.</span> <span class="ven">IEEE Transactions on Pattern Analysis and Machine Intelligence.</span> <a href="https://arxiv.org/abs/1603.09320" target="_blank" rel="noopener">arXiv:1603.09320</a><br><em>${L('HNSW, the graph-based index used by most modern vector databases (Pinecone, Weaviate, Qdrant, Milvus). Provides sub-linear search with high recall.','HNSW, der graphbasierte Index, den die meisten modernen Vektordatenbanken nutzen (Pinecone, Weaviate, Qdrant, Milvus). Bietet sublineare Suche mit hohem Recall.')}</em></li>
 
-<li><span class="auth">Gao, L., Ma, X., Lin, J., &amp; Callan, J.</span> (2023). <span class="ttl">Precise Zero-Shot Dense Retrieval without Relevance Labels.</span> <span class="ven">Annual Meeting of the Association for Computational Linguistics (ACL).</span> <a href="https://arxiv.org/abs/2212.10496" target="_blank" rel="noopener">arXiv:2212.10496</a><br><em>HyDE (Hypothetical Document Embeddings): ask an LLM to write a fake answer to the query first, embed the fake answer, then use that embedding for retrieval. Often outperforms embedding the raw query directly.</em></li>
+<li><span class="auth">Gao, L., Ma, X., Lin, J., &amp; Callan, J.</span> (2023). <span class="ttl">Precise Zero-Shot Dense Retrieval without Relevance Labels.</span> <span class="ven">Annual Meeting of the Association for Computational Linguistics (ACL).</span> <a href="https://arxiv.org/abs/2212.10496" target="_blank" rel="noopener">arXiv:2212.10496</a><br><em>${L('HyDE (Hypothetical Document Embeddings): ask an LLM to write a fake answer to the query first, embed the fake answer, then use that embedding for retrieval. Often outperforms embedding the raw query directly.','HyDE (Hypothetical Document Embeddings): Ein LLM schreibt zuerst eine fiktive Antwort auf die Anfrage, diese wird eingebettet und das Embedding fürs Retrieval genutzt. Oft besser, als die rohe Anfrage direkt einzubetten.')}</em></li>
 
-<li><span class="auth">Izacard, G., Lewis, P., Lomeli, M., Hosseini, L., Petroni, F., Schick, T., Dwivedi-Yu, J., Joulin, A., Riedel, S., &amp; Grave, E.</span> (2023). <span class="ttl">Atlas: Few-shot Learning with Retrieval Augmented Language Models.</span> <span class="ven">Journal of Machine Learning Research (JMLR).</span> <a href="https://arxiv.org/abs/2208.03299" target="_blank" rel="noopener">arXiv:2208.03299</a><br><em>Shows RAG can match much larger closed-book models on knowledge-intensive tasks while being updatable and auditable.</em></li>
+<li><span class="auth">Izacard, G., Lewis, P., Lomeli, M., Hosseini, L., Petroni, F., Schick, T., Dwivedi-Yu, J., Joulin, A., Riedel, S., &amp; Grave, E.</span> (2023). <span class="ttl">Atlas: Few-shot Learning with Retrieval Augmented Language Models.</span> <span class="ven">Journal of Machine Learning Research (JMLR).</span> <a href="https://arxiv.org/abs/2208.03299" target="_blank" rel="noopener">arXiv:2208.03299</a><br><em>${L('Shows RAG can match much larger closed-book models on knowledge-intensive tasks while being updatable and auditable.','Zeigt, dass RAG bei wissensintensiven Aufgaben mit viel größeren Closed-Book-Modellen mithalten kann und dabei aktualisierbar und überprüfbar bleibt.')}</em></li>
 
-<li><span class="auth">Gao, Y., Xiong, Y., Gao, X., Jia, K., Pan, J., Bi, Y., Dai, Y., Sun, J., &amp; Wang, H.</span> (2024). <span class="ttl">Retrieval-Augmented Generation for Large Language Models: A Survey.</span> <span class="ven">arXiv preprint.</span> <a href="https://arxiv.org/abs/2312.10997" target="_blank" rel="noopener">arXiv:2312.10997</a><br><em>Comprehensive survey of the RAG landscape: naive RAG, advanced RAG (re-ranking, query rewriting, fusion), and modular RAG (agentic pipelines with tool use).</em></li>
+<li><span class="auth">Gao, Y., Xiong, Y., Gao, X., Jia, K., Pan, J., Bi, Y., Dai, Y., Sun, J., &amp; Wang, H.</span> (2024). <span class="ttl">Retrieval-Augmented Generation for Large Language Models: A Survey.</span> <span class="ven">arXiv preprint.</span> <a href="https://arxiv.org/abs/2312.10997" target="_blank" rel="noopener">arXiv:2312.10997</a><br><em>${L('Comprehensive survey of the RAG landscape: naive RAG, advanced RAG (re-ranking, query rewriting, fusion), and modular RAG (agentic pipelines with tool use).','Umfassender Überblick über die RAG-Landschaft: Naive RAG, Advanced RAG (Re-Ranking, Query-Rewriting, Fusion) und Modular RAG (agentische Pipelines mit Tool-Nutzung).')}</em></li>
 </ol></div>`;
 
-  h += `<div class="info iac"><div class="il">Tip</div>Use the <strong>Next →</strong> button or the sidebar to walk through each step. The <strong>query selector</strong> and <strong>top-k slider</strong> in the header are live — change them on any step and watch the retrieval and generation update in real time.</div>`;
+  h += L(`<div class="info iac"><div class="il">Tip</div>Use the <strong>Next →</strong> button or the sidebar to walk through each step. The <strong>query selector</strong> and <strong>top-k slider</strong> in the header are live — change them on any step and watch the retrieval and generation update in real time.</div>`,`<div class="info iac"><div class="il">Tipp</div>Mit dem Button <strong>Weiter →</strong> oder über die Seitenleiste geht es Schritt für Schritt weiter. Die <strong>Anfrage-Auswahl</strong> und der <strong>Top-k-Regler</strong> im Header sind live — ändere sie in jedem Schritt und sieh zu, wie sich Retrieval und Generierung in Echtzeit aktualisieren.</div>`);
 
   return h;
 }},
 
 // ───────────────────── 2. THE PROBLEM ─────────────────────
-{id: 'problem', title: 'The Problem', group: 'Setup',
+{id: 'problem', get title(){return L('The Problem','Das Problem');}, get group(){return L('Setup','Einstieg');},
 render() {
-  let h = `<div class="stage-title">The Problem: Closed-Book LLMs <span class="tag trd">PROBLEM</span></div>`;
-  h += `<p class="stage-desc">A standard LLM is a <strong>closed-book</strong> system: once training ends, all the knowledge it will ever have is compressed into its weights. This creates four hard problems that RAG directly addresses.</p>`;
+  let h = L(`<div class="stage-title">The Problem: Closed-Book LLMs <span class="tag trd">PROBLEM</span></div>`,`<div class="stage-title">Das Problem: Closed-Book-LLMs <span class="tag trd">PROBLEM</span></div>`);
+  h += L(`<p class="stage-desc">A standard LLM is a <strong>closed-book</strong> system: once training ends, all the knowledge it will ever have is compressed into its weights. This creates four hard problems that RAG directly addresses.</p>`,`<p class="stage-desc">Ein gewöhnliches LLM ist ein <strong>Closed-Book</strong>-System: Sobald das Training endet, ist alles Wissen, das es je haben wird, in seine Gewichte komprimiert. Daraus entstehen vier harte Probleme, die RAG direkt angeht.</p>`);
 
-  h += `<div class="info ird"><div class="il">1 · Knowledge cutoff</div>
-The model only knows what was in its training data. A GPT-4 variant trained on data up to April 2024 cannot tell you about events in 2025 — not because it's being cagey, but because those events are not encoded in its weights. Any answer it gives will be extrapolation or confabulation.</div>`;
+  h += L(`<div class="info ird"><div class="il">1 · Knowledge cutoff</div>
+The model only knows what was in its training data. A GPT-4 variant trained on data up to April 2024 cannot tell you about events in 2025 — not because it's being cagey, but because those events are not encoded in its weights. Any answer it gives will be extrapolation or confabulation.</div>`,`<div class="info ird"><div class="il">1 · Wissens-Cutoff</div>
+Das Modell weiß nur, was in seinen Trainingsdaten stand. Eine GPT-4-Variante, die mit Daten bis April 2024 trainiert wurde, kann nichts über Ereignisse von 2025 sagen — nicht weil sie sich ziert, sondern weil diese Ereignisse nicht in ihren Gewichten kodiert sind. Jede Antwort wäre Extrapolation oder Konfabulation.</div>`);
 
-  h += `<div class="info ird"><div class="il">2 · Hallucination</div>
-When asked about obscure facts, LLMs often produce confident-sounding but entirely fabricated answers. The model optimizes for "plausible next token" and has no internal signal for "I don't actually know this." RAG grounds the output in real sources so the model can either cite a fact or honestly say it wasn't found.</div>`;
+  h += L(`<div class="info ird"><div class="il">2 · Hallucination</div>
+When asked about obscure facts, LLMs often produce confident-sounding but entirely fabricated answers. The model optimizes for "plausible next token" and has no internal signal for "I don't actually know this." RAG grounds the output in real sources so the model can either cite a fact or honestly say it wasn't found.</div>`,`<div class="info ird"><div class="il">2 · Halluzination</div>
+Nach obskuren Fakten gefragt, liefern LLMs oft selbstbewusst klingende, aber völlig erfundene Antworten. Das Modell optimiert auf den „plausiblen nächsten Token" und hat kein internes Signal für „das weiß ich eigentlich nicht". RAG verankert die Ausgabe in echten Quellen, sodass das Modell entweder einen Fakt belegen oder ehrlich sagen kann, dass nichts gefunden wurde.</div>`);
 
-  h += `<div class="info ird"><div class="il">3 · No traceability</div>
-A closed-book answer is unauditable. You can't ask the model "where did you learn that?" and get a meaningful answer — the knowledge is diffused across billions of weights. For medical, legal, financial, and scientific applications, this is a dealbreaker.</div>`;
+  h += L(`<div class="info ird"><div class="il">3 · No traceability</div>
+A closed-book answer is unauditable. You can't ask the model "where did you learn that?" and get a meaningful answer — the knowledge is diffused across billions of weights. For medical, legal, financial, and scientific applications, this is a dealbreaker.</div>`,`<div class="info ird"><div class="il">3 · Keine Nachvollziehbarkeit</div>
+Eine Closed-Book-Antwort ist nicht überprüfbar. Man kann das Modell nicht fragen „Woher weißt du das?" und eine sinnvolle Antwort erwarten — das Wissen ist über Milliarden Gewichte verstreut. Für medizinische, juristische, finanzielle und wissenschaftliche Anwendungen ist das ein K.-o.-Kriterium.</div>`);
 
-  h += `<div class="info ird"><div class="il">4 · Can't update cheaply</div>
-Adding new knowledge means fine-tuning or re-training — expensive, slow, and error-prone. With RAG, updating the knowledge base is as simple as adding a new document to the vector database. The LLM itself never changes.</div>`;
+  h += L(`<div class="info ird"><div class="il">4 · Can't update cheaply</div>
+Adding new knowledge means fine-tuning or re-training — expensive, slow, and error-prone. With RAG, updating the knowledge base is as simple as adding a new document to the vector database. The LLM itself never changes.</div>`,`<div class="info ird"><div class="il">4 · Keine günstigen Updates</div>
+Neues Wissen hinzuzufügen bedeutet Fine-Tuning oder Neutraining — teuer, langsam und fehleranfällig. Mit RAG ist ein Update der Wissensbasis so einfach wie das Hinzufügen eines neuen Dokuments zur Vektordatenbank. Das LLM selbst ändert sich nie.</div>`);
 
   // Example hallucination
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">A concrete example</h3>`;
-  h += `<div class="answer-grid">
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">A concrete example</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Ein konkretes Beispiel</h3>`);
+  h += L(`<div class="answer-grid">
 <div class="answer-card bad">
 <div class="lbl">Closed-book LLM</div>
 <div class="txt"><em>Q: "What were Anthropic's Q4 2025 earnings?"</em><br><br>A: "In Q4 2025, Anthropic reported revenue of approximately $420 million, with year-over-year growth of 380%..."<br><br><strong style="color:var(--red);">⚠ Made up.</strong> Plausible-looking but entirely fabricated numbers.</div>
@@ -754,51 +810,74 @@ Adding new knowledge means fine-tuning or re-training — expensive, slow, and e
 <div class="lbl">RAG</div>
 <div class="txt"><em>Q: "What were Anthropic's Q4 2025 earnings?"</em><br><br>A: "Based on the retrieved press release: Anthropic reported Q4 2025 revenue of $X million [source: press_release_2026_01]."<br><br><strong style="color:var(--acc);">✓ Grounded.</strong> Either answers with a real quote or says nothing was found.</div>
 </div>
-</div>`;
+</div>`,`<div class="answer-grid">
+<div class="answer-card bad">
+<div class="lbl">Closed-Book-LLM</div>
+<div class="txt"><em>Q: "What were Anthropic's Q4 2025 earnings?"</em><br><br>A: "In Q4 2025, Anthropic reported revenue of approximately $420 million, with year-over-year growth of 380%..."<br><br><strong style="color:var(--red);">⚠ Erfunden.</strong> Plausibel aussehende, aber komplett ausgedachte Zahlen.</div>
+</div>
+<div class="answer-card good">
+<div class="lbl">RAG</div>
+<div class="txt"><em>Q: "What were Anthropic's Q4 2025 earnings?"</em><br><br>A: "Based on the retrieved press release: Anthropic reported Q4 2025 revenue of $X million [source: press_release_2026_01]."<br><br><strong style="color:var(--acc);">✓ Fundiert.</strong> Antwortet entweder mit einem echten Zitat oder sagt, dass nichts gefunden wurde.</div>
+</div>
+</div>`);
 
   return h;
 }},
 
 // ───────────────────── 3. CHUNKING ─────────────────────
-{id: 'chunking', title: 'Chunking', group: 'Indexing',
+{id: 'chunking', get title(){return L('Chunking','Chunking');}, get group(){return L('Indexing','Indexierung');},
 render() {
-  let h = `<div class="stage-title">Step 1 · Document Chunking <span class="tag tr">INDEX</span></div>`;
-  h += `<p class="stage-desc">Before retrieval can happen, the source corpus (PDFs, web pages, documentation, books, emails…) must be split into small <strong>chunks</strong>. Each chunk becomes one row in the vector database. The chunking strategy matters enormously — it determines what the retriever can actually find.</p>`;
+  let h = L(`<div class="stage-title">Step 1 · Document Chunking <span class="tag tr">INDEX</span></div>`,`<div class="stage-title">Schritt 1 · Dokumente in Chunks zerlegen <span class="tag tr">INDEX</span></div>`);
+  h += L(`<p class="stage-desc">Before retrieval can happen, the source corpus (PDFs, web pages, documentation, books, emails…) must be split into small <strong>chunks</strong>. Each chunk becomes one row in the vector database. The chunking strategy matters enormously — it determines what the retriever can actually find.</p>`,`<p class="stage-desc">Bevor Retrieval stattfinden kann, muss der Quellkorpus (PDFs, Webseiten, Dokumentation, Bücher, E-Mails …) in kleine <strong>Chunks</strong> zerlegt werden. Jeder Chunk wird zu einer Zeile in der Vektordatenbank. Die Chunking-Strategie ist enorm wichtig — sie bestimmt, was der Retriever überhaupt finden kann.</p>`);
 
-  h += `<div class="info ir"><div class="il">Why not just embed whole documents?</div>
-Two reasons. First, embedding models have a <strong>context limit</strong> (usually 512–8192 tokens) — you physically cannot feed them a whole PDF. Second, a single vector can only represent one "gist," so embedding a 50-page manual produces a fuzzy average that matches everything and nothing. Chunking gives you many focused vectors, each representing a specific topic.</div>`;
+  h += L(`<div class="info ir"><div class="il">Why not just embed whole documents?</div>
+Two reasons. First, embedding models have a <strong>context limit</strong> (usually 512–8192 tokens) — you physically cannot feed them a whole PDF. Second, a single vector can only represent one "gist," so embedding a 50-page manual produces a fuzzy average that matches everything and nothing. Chunking gives you many focused vectors, each representing a specific topic.</div>`,`<div class="info ir"><div class="il">Warum nicht einfach ganze Dokumente einbetten?</div>
+Zwei Gründe. Erstens haben Embedding-Modelle ein <strong>Kontextlimit</strong> (meist 512–8192 Token) — ein ganzes PDF passt physisch nicht hinein. Zweitens kann ein einzelner Vektor nur einen „Kern" darstellen; ein 50-seitiges Handbuch einzubetten ergibt einen unscharfen Durchschnitt, der zu allem und nichts passt. Chunking liefert viele fokussierte Vektoren, jeder für ein konkretes Thema.</div>`);
 
-  h += `<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Common chunking strategies</h3>`;
-  h += `<div class="glossary"><table>
+  h += L(`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Common chunking strategies</h3>`,`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Gängige Chunking-Strategien</h3>`);
+  h += L(`<div class="glossary"><table>
 <tr><th>Strategy</th><th>How it works</th><th>When to use</th></tr>
 <tr><td class="sym">Fixed-size</td><td class="def">Split into N-token blocks (e.g., 512 tokens) regardless of structure.</td><td class="def">Simple baseline. Cheap but cuts sentences in half.</td></tr>
 <tr><td class="sym">Sliding window</td><td class="def">Fixed-size blocks with a 10–20% <strong>overlap</strong> between consecutive chunks.</td><td class="def">Default choice for most systems. Overlap ensures facts that straddle a boundary still appear in at least one chunk.</td></tr>
 <tr><td class="sym">Sentence-based</td><td class="def">Split on sentence boundaries, group sentences until a token budget is reached.</td><td class="def">Cleaner boundaries; works well for prose.</td></tr>
 <tr><td class="sym">Structure-aware</td><td class="def">Split on Markdown headings, code blocks, HTML tags, PDF sections.</td><td class="def">Best for technical documentation, where headings carry meaning.</td></tr>
 <tr><td class="sym">Semantic</td><td class="def">Use an embedding model to detect topic shifts and split there.</td><td class="def">Highest quality but computationally expensive.</td></tr>
-</table></div>`;
+</table></div>`,`<div class="glossary"><table>
+<tr><th>Strategie</th><th>Funktionsweise</th><th>Wann einsetzen</th></tr>
+<tr><td class="sym">Feste Größe</td><td class="def">In Blöcke von N Token (z. B. 512) zerlegen, unabhängig von der Struktur.</td><td class="def">Einfache Basislinie. Billig, schneidet aber Sätze mittendurch.</td></tr>
+<tr><td class="sym">Gleitendes Fenster</td><td class="def">Blöcke fester Größe mit 10–20 % <strong>Überlappung</strong> zwischen aufeinanderfolgenden Chunks.</td><td class="def">Standardwahl für die meisten Systeme. Die Überlappung sorgt dafür, dass Fakten an einer Grenze noch in mindestens einem Chunk vorkommen.</td></tr>
+<tr><td class="sym">Satzbasiert</td><td class="def">An Satzgrenzen trennen, Sätze gruppieren, bis ein Token-Budget erreicht ist.</td><td class="def">Sauberere Grenzen; funktioniert gut für Fließtext.</td></tr>
+<tr><td class="sym">Strukturbewusst</td><td class="def">An Markdown-Überschriften, Codeblöcken, HTML-Tags, PDF-Abschnitten trennen.</td><td class="def">Am besten für technische Dokumentation, wo Überschriften Bedeutung tragen.</td></tr>
+<tr><td class="sym">Semantisch</td><td class="def">Mit einem Embedding-Modell Themenwechsel erkennen und dort trennen.</td><td class="def">Höchste Qualität, aber rechenintensiv.</td></tr>
+</table></div>`);
 
-  h += `<div class="info ig"><div class="il">The chunk-size trade-off</div>
+  h += L(`<div class="info ig"><div class="il">The chunk-size trade-off</div>
 <strong>Small chunks (~100 tokens):</strong> precise retrieval, but each chunk lacks context — the LLM may not have enough surrounding information to answer.<br>
 <strong>Large chunks (~2000 tokens):</strong> lots of context per chunk, but retrieval is less precise (the relevant sentence is buried among irrelevant ones) and you can fit fewer chunks in the LLM's context window.<br>
-<strong>Sweet spot:</strong> most systems use <strong>200–500 token chunks with 10–20% overlap</strong>. Tune empirically for your corpus and queries.</div>`;
+<strong>Sweet spot:</strong> most systems use <strong>200–500 token chunks with 10–20% overlap</strong>. Tune empirically for your corpus and queries.</div>`,`<div class="info ig"><div class="il">Der Zielkonflikt bei der Chunk-Größe</div>
+<strong>Kleine Chunks (~100 Token):</strong> präzises Retrieval, aber jedem Chunk fehlt Kontext — das LLM hat womöglich nicht genug Umfeld, um zu antworten.<br>
+<strong>Große Chunks (~2000 Token):</strong> viel Kontext pro Chunk, aber das Retrieval wird unpräziser (der relevante Satz liegt zwischen irrelevanten begraben), und ins Kontextfenster des LLM passen weniger Chunks.<br>
+<strong>Sweet Spot:</strong> Die meisten Systeme nutzen <strong>Chunks von 200–500 Token mit 10–20 % Überlappung</strong>. Empirisch für den eigenen Korpus und die eigenen Anfragen tunen.</div>`);
 
   // ── Interactive chunking slider ──
-  h += `<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">🎛️ Try it yourself · sliding-window chunker</h3>`;
-  h += `<p class="stage-desc">Below is a sample paragraph about LoRA. Drag the <strong>chunk size</strong> and <strong>overlap</strong> sliders to see how the same text gets split differently. Watch what happens when chunks are very small (too many fragments, no context) vs. very large (just one or two mega-chunks) vs. what happens with zero overlap (facts at the boundary can get cut in half).</p>`;
+  h += L(`<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">🎛️ Try it yourself · sliding-window chunker</h3>`,`<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">🎛️ Selbst ausprobieren · Sliding-Window-Chunker</h3>`);
+  h += L(`<p class="stage-desc">Below is a sample paragraph about LoRA. Drag the <strong>chunk size</strong> and <strong>overlap</strong> sliders to see how the same text gets split differently. Watch what happens when chunks are very small (too many fragments, no context) vs. very large (just one or two mega-chunks) vs. what happens with zero overlap (facts at the boundary can get cut in half).</p>`,`<p class="stage-desc">Unten steht ein Beispielabsatz über LoRA. Ziehe die Regler für <strong>Chunk-Größe</strong> und <strong>Überlappung</strong>, um zu sehen, wie derselbe Text unterschiedlich zerlegt wird. Beobachte, was passiert, wenn Chunks sehr klein sind (zu viele Fragmente, kein Kontext), sehr groß (nur ein oder zwei Mega-Chunks) oder wenn die Überlappung null ist (Fakten an der Grenze können mittendurch geschnitten werden).</p>`);
   h += `<div class="inline-slider">
-<div class="ctrl"><label>chunk size</label><input type="range" min="30" max="200" step="5" value="${CHUNK_SIZE}" oninput="onChunkSizeChange(this.value)"><span class="val" id="chunk-size-val">${CHUNK_SIZE}</span><span style="font-size:0.66rem;color:var(--txt3);font-family:var(--mono);">chars</span></div>
-<div class="ctrl"><label>overlap</label><input type="range" min="0" max="50" step="2" value="${CHUNK_OVERLAP}" oninput="onChunkOverlapChange(this.value)"><span class="val" id="chunk-overlap-val">${CHUNK_OVERLAP}</span><span style="font-size:0.66rem;color:var(--txt3);font-family:var(--mono);">chars</span></div>
+<div class="ctrl"><label>${L('chunk size','Chunk-Größe')}</label><input type="range" min="30" max="200" step="5" value="${CHUNK_SIZE}" oninput="onChunkSizeChange(this.value)"><span class="val" id="chunk-size-val">${CHUNK_SIZE}</span><span style="font-size:0.66rem;color:var(--txt3);font-family:var(--mono);">${L('chars','Zeichen')}</span></div>
+<div class="ctrl"><label>${L('overlap','Überlappung')}</label><input type="range" min="0" max="50" step="2" value="${CHUNK_OVERLAP}" oninput="onChunkOverlapChange(this.value)"><span class="val" id="chunk-overlap-val">${CHUNK_OVERLAP}</span><span style="font-size:0.66rem;color:var(--txt3);font-family:var(--mono);">${L('chars','Zeichen')}</span></div>
 </div>`;
   h += renderChunkingDemo(CHUNK_SIZE, CHUNK_OVERLAP);
-  h += `<div class="info is"><div class="il">Things to try</div>
+  h += L(`<div class="info is"><div class="il">Things to try</div>
 <strong>• Chunk size = 30, overlap = 0</strong>: see how the text shatters into tiny fragments that each carry almost no meaning.<br>
 <strong>• Chunk size = 200, overlap = 0</strong>: one or two huge chunks — if the query asks about "low-rank decomposition" which appears mid-chunk, the whole chunk's embedding is dominated by other topics.<br>
-<strong>• Chunk size = 80, overlap = 20</strong>: reasonable balance. Notice how the overlap region repeats across consecutive chunks — this ensures facts straddling a boundary still appear intact in at least one chunk.</div>`;
+<strong>• Chunk size = 80, overlap = 20</strong>: reasonable balance. Notice how the overlap region repeats across consecutive chunks — this ensures facts straddling a boundary still appear intact in at least one chunk.</div>`,`<div class="info is"><div class="il">Zum Ausprobieren</div>
+<strong>• Chunk-Größe = 30, Überlappung = 0</strong>: Der Text zersplittert in winzige Fragmente, die kaum Bedeutung tragen.<br>
+<strong>• Chunk-Größe = 200, Überlappung = 0</strong>: ein oder zwei riesige Chunks — fragt die Anfrage nach „low-rank decomposition", das mitten im Chunk steht, wird das Embedding des ganzen Chunks von anderen Themen dominiert.<br>
+<strong>• Chunk-Größe = 80, Überlappung = 20</strong>: vernünftige Balance. Beachte, wie sich der Überlappungsbereich in aufeinanderfolgenden Chunks wiederholt — so kommen Fakten an einer Grenze in mindestens einem Chunk unversehrt vor.</div>`);
 
   // Show the corpus we'll use
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Our demo corpus</h3>`;
-  h += `<p class="stage-desc">For this simulator we use a tiny corpus of ${CORPUS.length} hand-crafted chunks covering four topics: LoRA fine-tuning, the Transformer paper, French geography, and vector similarity. In a real RAG system this corpus would be thousands to millions of chunks.</p>`;
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Our demo corpus</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Unser Demo-Korpus</h3>`);
+  h += L(`<p class="stage-desc">For this simulator we use a tiny corpus of ${CORPUS.length} hand-crafted chunks covering four topics: LoRA fine-tuning, the Transformer paper, French geography, and vector similarity. In a real RAG system this corpus would be thousands to millions of chunks.</p>`,`<p class="stage-desc">Für diesen Simulator nutzen wir einen winzigen Korpus aus ${CORPUS.length} handgeschriebenen Chunks zu vier Themen: LoRA-Feintuning, das Transformer-Paper, französische Geographie und Vektorähnlichkeit. In einem echten RAG-System wären es Tausende bis Millionen Chunks.</p>`);
   h += `<div class="doc-list">`;
   CORPUS.forEach(d => h += renderDoc(d));
   h += `</div>`;
@@ -807,31 +886,38 @@ Two reasons. First, embedding models have a <strong>context limit</strong> (usua
 }},
 
 // ───────────────────── 4. EMBEDDING ─────────────────────
-{id: 'embedding', title: 'Embedding', group: 'Indexing',
+{id: 'embedding', get title(){return L('Embedding','Embedding');}, get group(){return L('Indexing','Indexierung');},
 render() {
-  let h = `<div class="stage-title">Step 2 · Embedding the Corpus <span class="tag tp">EMBED</span></div>`;
-  h += `<p class="stage-desc">Each chunk is passed through an <strong>embedding model</strong> that produces a fixed-length dense vector. Semantically similar chunks land near each other in this vector space. The embedding model is trained so that <em>"dog"</em> and <em>"puppy"</em> end up close together, while <em>"dog"</em> and <em>"spreadsheet"</em> end up far apart.</p>`;
+  let h = L(`<div class="stage-title">Step 2 · Embedding the Corpus <span class="tag tp">EMBED</span></div>`,`<div class="stage-title">Schritt 2 · Den Korpus einbetten <span class="tag tp">EMBED</span></div>`);
+  h += L(`<p class="stage-desc">Each chunk is passed through an <strong>embedding model</strong> that produces a fixed-length dense vector. Semantically similar chunks land near each other in this vector space. The embedding model is trained so that <em>"dog"</em> and <em>"puppy"</em> end up close together, while <em>"dog"</em> and <em>"spreadsheet"</em> end up far apart.</p>`,`<p class="stage-desc">Jeder Chunk wird durch ein <strong>Embedding-Modell</strong> geschickt, das einen dichten Vektor fester Länge erzeugt. Semantisch ähnliche Chunks landen in diesem Vektorraum nah beieinander. Das Embedding-Modell ist so trainiert, dass <em>„dog"</em> und <em>„puppy"</em> nah zusammenliegen, während <em>„dog"</em> und <em>„spreadsheet"</em> weit auseinanderliegen.</p>`);
 
-  h += `<div class="formula">vec(chunk) = <span class="hl">embed_model</span>( chunk_text )&nbsp;&nbsp;&nbsp;<span class="cm">// → ℝ^d, then L2-normalized</span></div>`;
+  h += `<div class="formula">vec(chunk) = <span class="hl">embed_model</span>( chunk_text )&nbsp;&nbsp;&nbsp;<span class="cm">// → ℝ^d, ${L('then L2-normalized','dann L2-normalisiert')}</span></div>`;
 
-  h += `<div class="info ip"><div class="il">Popular embedding models</div>
+  h += L(`<div class="info ip"><div class="il">Popular embedding models</div>
 <table style="font-family:var(--mono);font-size:0.75rem;width:100%;">
 <tr><td><strong>all-MiniLM-L6-v2</strong></td><td>384 dims</td><td style="color:var(--txt3);">Sentence-Transformers default. Fast, small, decent quality.</td></tr>
 <tr><td><strong>bge-base-en-v1.5</strong></td><td>768 dims</td><td style="color:var(--txt3);">BAAI. Strong MTEB benchmark scores.</td></tr>
 <tr><td><strong>text-embedding-3-small</strong></td><td>1536 dims</td><td style="color:var(--txt3);">OpenAI. Paid API, high quality.</td></tr>
 <tr><td><strong>text-embedding-3-large</strong></td><td>3072 dims</td><td style="color:var(--txt3);">OpenAI. Highest quality in the OpenAI line.</td></tr>
 <tr><td><strong>voyage-3</strong></td><td>1024 dims</td><td style="color:var(--txt3);">Voyage AI. Leads several MTEB categories.</td></tr>
-</table></div>`;
+</table></div>`,`<div class="info ip"><div class="il">Verbreitete Embedding-Modelle</div>
+<table style="font-family:var(--mono);font-size:0.75rem;width:100%;">
+<tr><td><strong>all-MiniLM-L6-v2</strong></td><td>384 Dims</td><td style="color:var(--txt3);">Sentence-Transformers-Standard. Schnell, klein, ordentliche Qualität.</td></tr>
+<tr><td><strong>bge-base-en-v1.5</strong></td><td>768 Dims</td><td style="color:var(--txt3);">BAAI. Starke MTEB-Benchmark-Werte.</td></tr>
+<tr><td><strong>text-embedding-3-small</strong></td><td>1536 Dims</td><td style="color:var(--txt3);">OpenAI. Bezahl-API, hohe Qualität.</td></tr>
+<tr><td><strong>text-embedding-3-large</strong></td><td>3072 Dims</td><td style="color:var(--txt3);">OpenAI. Höchste Qualität der OpenAI-Linie.</td></tr>
+<tr><td><strong>voyage-3</strong></td><td>1024 Dims</td><td style="color:var(--txt3);">Voyage AI. Führt mehrere MTEB-Kategorien an.</td></tr>
+</table></div>`);
 
   // Show the first few chunks and their embeddings
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Corpus embeddings (after normalization)</h3>`;
-  h += `<p class="stage-desc">Each row is one chunk's embedding in our 8-dimensional toy space. Notice how related chunks have visually similar patterns — docs 1–3 (LoRA) look alike, docs 4–6 (Transformers) cluster separately, and so on.</p>`;
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Corpus embeddings (after normalization)</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Korpus-Embeddings (nach Normalisierung)</h3>`);
+  h += L(`<p class="stage-desc">Each row is one chunk's embedding in our 8-dimensional toy space. Notice how related chunks have visually similar patterns — docs 1–3 (LoRA) look alike, docs 4–6 (Transformers) cluster separately, and so on.</p>`,`<p class="stage-desc">Jede Zeile ist das Embedding eines Chunks in unserem 8-dimensionalen Spielzeugraum. Beachte, wie verwandte Chunks sichtbar ähnliche Muster haben — die Docs 1–3 (LoRA) sehen sich ähnlich, die Docs 4–6 (Transformer) bilden ein eigenes Cluster usw.</p>`);
 
   h += `<div class="mtx-wrap"><table class="mtx" style="margin:0 auto;">`;
-  h += `<tr><td class="cheader">id</td><td class="cheader">topic</td>`;
+  h += `<tr><td class="cheader">id</td><td class="cheader">${L('topic','Thema')}</td>`;
   for (let i = 0; i < 8; i++) h += `<td class="cheader">d${i}</td>`;
   h += `</tr>`;
-  const topics = ['LoRA', 'LoRA', 'LoRA', 'Transformers', 'Transformers', 'Transformers', 'Geography', 'Geography', 'Similarity', 'Similarity'];
+  const topics = ['LoRA', 'LoRA', 'LoRA', 'Transformer', 'Transformer', 'Transformer', L('Geography','Geographie'), L('Geography','Geographie'), L('Similarity','Ähnlichkeit'), L('Similarity','Ähnlichkeit')];
   CORPUS.forEach((d, i) => {
     h += `<tr><td class="cheader">${d.id}</td><td class="cheader" style="text-align:left;padding-left:0.5rem;">${topics[i]}</td>`;
     d.vec.forEach(v => h += `<td class="cp">${fmt(v)}</td>`);
@@ -839,52 +925,67 @@ render() {
   });
   h += `</table></div>`;
 
-  h += `<div class="info is"><div class="il">Why L2-normalize?</div>
-After embedding, we scale every vector to unit length (<code>||v|| = 1</code>). This serves two purposes: (1) it makes cosine similarity reduce to a simple dot product, which is much faster to compute; (2) it ensures retrieval ranks chunks by <em>direction</em>, not <em>length</em> — two chunks about the same topic should score the same regardless of how "loud" the embedding model made them.</div>`;
+  h += L(`<div class="info is"><div class="il">Why L2-normalize?</div>
+After embedding, we scale every vector to unit length (<code>||v|| = 1</code>). This serves two purposes: (1) it makes cosine similarity reduce to a simple dot product, which is much faster to compute; (2) it ensures retrieval ranks chunks by <em>direction</em>, not <em>length</em> — two chunks about the same topic should score the same regardless of how "loud" the embedding model made them.</div>`,`<div class="info is"><div class="il">Warum L2-normalisieren?</div>
+Nach dem Einbetten skalieren wir jeden Vektor auf Einheitslänge (<code>||v|| = 1</code>). Das hat zwei Zwecke: (1) Die Kosinus-Ähnlichkeit reduziert sich auf ein einfaches Skalarprodukt, das viel schneller zu berechnen ist; (2) das Retrieval ordnet Chunks nach <em>Richtung</em>, nicht nach <em>Länge</em> — zwei Chunks zum selben Thema sollten gleich bewertet werden, egal wie „laut" das Embedding-Modell sie gemacht hat.</div>`);
 
-  h += `<div class="info iac"><div class="il">Key property: isometry of meaning</div>
-A good embedding model makes <strong>semantic distance ≈ geometric distance</strong>. Paraphrases of the same idea become close vectors even if they share no words. This is what lets the retriever find <em>"Who authored the Transformer paper?"</em> when the corpus only contains <em>"Vaswani et al. introduced self-attention..."</em>.</div>`;
+  h += L(`<div class="info iac"><div class="il">Key property: isometry of meaning</div>
+A good embedding model makes <strong>semantic distance ≈ geometric distance</strong>. Paraphrases of the same idea become close vectors even if they share no words. This is what lets the retriever find <em>"Who authored the Transformer paper?"</em> when the corpus only contains <em>"Vaswani et al. introduced self-attention..."</em>.</div>`,`<div class="info iac"><div class="il">Kerneigenschaft: Isometrie der Bedeutung</div>
+Ein gutes Embedding-Modell sorgt für <strong>semantischer Abstand ≈ geometrischer Abstand</strong>. Paraphrasen derselben Idee werden zu nahen Vektoren, auch wenn sie kein Wort gemeinsam haben. Das ermöglicht dem Retriever, <em>„Who authored the Transformer paper?"</em> zu finden, obwohl der Korpus nur <em>„Vaswani et al. introduced self-attention..."</em> enthält.</div>`);
 
   // ── Interactive 2D visualization ──
-  h += `<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">📊 The vector space, visualized</h3>`;
-  h += `<p class="stage-desc">We can't draw 8 dimensions directly, but we can project them onto two axes for visualization. In real systems this is typically done with <strong>PCA</strong>, <strong>t-SNE</strong>, or <strong>UMAP</strong>; for this small toy corpus we use a simpler hand-picked projection that places each topic cluster at its own compass point (LoRA → right, Transformers → left, Geography → top, Similarity → bottom). The purple <strong>QUERY</strong> marker shows where the current query from the header dropdown lands — try switching queries to see it jump between clusters.</p>`;
+  h += L(`<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">📊 The vector space, visualized</h3>`,`<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">📊 Der Vektorraum, visualisiert</h3>`);
+  h += L(`<p class="stage-desc">We can't draw 8 dimensions directly, but we can project them onto two axes for visualization. In real systems this is typically done with <strong>PCA</strong>, <strong>t-SNE</strong>, or <strong>UMAP</strong>; for this small toy corpus we use a simpler hand-picked projection that places each topic cluster at its own compass point (LoRA → right, Transformers → left, Geography → top, Similarity → bottom). The purple <strong>QUERY</strong> marker shows where the current query from the header dropdown lands — try switching queries to see it jump between clusters.</p>`,`<p class="stage-desc">8 Dimensionen lassen sich nicht direkt zeichnen, aber wir können sie zur Visualisierung auf zwei Achsen projizieren. In echten Systemen geschieht das meist mit <strong>PCA</strong>, <strong>t-SNE</strong> oder <strong>UMAP</strong>; für diesen kleinen Spielzeugkorpus nutzen wir eine einfachere, handgewählte Projektion, die jedes Themencluster auf einen eigenen Kompasspunkt legt (LoRA → rechts, Transformer → links, Geographie → oben, Ähnlichkeit → unten). Die lila <strong>QUERY</strong>-Markierung zeigt, wo die aktuelle Anfrage aus dem Header-Menü landet — wechsle die Anfrage und sieh zu, wie sie zwischen den Clustern springt.</p>`);
   h += `<div class="scatter-wrap">${renderScatter2D({showSimLines: false, showLabels: true})}</div>`;
-  h += `<div class="scatter-caption">↑ 2D projection of the 8-dim embeddings · change the query in the header to see the purple marker move</div>`;
+  h += L(`<div class="scatter-caption">↑ 2D projection of the 8-dim embeddings · change the query in the header to see the purple marker move</div>`,`<div class="scatter-caption">↑ 2D-Projektion der 8-dim Embeddings · ändere die Anfrage im Header, um die lila Markierung wandern zu sehen</div>`);
 
-  h += `<div class="info is"><div class="il">What this tells us</div>
-Notice that the four topic clusters form <strong>clearly separated regions</strong>, even after squashing 8 dimensions down to 2. This is the property that makes retrieval work: <em>semantically related content lives near itself in vector space</em>. When a query arrives, finding the "most similar" documents is literally the same as finding the <em>geometrically closest</em> points.</div>`;
+  h += L(`<div class="info is"><div class="il">What this tells us</div>
+Notice that the four topic clusters form <strong>clearly separated regions</strong>, even after squashing 8 dimensions down to 2. This is the property that makes retrieval work: <em>semantically related content lives near itself in vector space</em>. When a query arrives, finding the "most similar" documents is literally the same as finding the <em>geometrically closest</em> points.</div>`,`<div class="info is"><div class="il">Was uns das sagt</div>
+Die vier Themencluster bilden <strong>klar getrennte Regionen</strong>, selbst nachdem 8 Dimensionen auf 2 zusammengedrückt wurden. Genau diese Eigenschaft lässt Retrieval funktionieren: <em>Semantisch verwandter Inhalt liegt im Vektorraum beieinander</em>. Kommt eine Anfrage, ist die Suche nach den „ähnlichsten" Dokumenten buchstäblich dasselbe wie die Suche nach den <em>geometrisch nächsten</em> Punkten.</div>`);
 
   return h;
 }},
 
 // ───────────────────── 5. VECTOR DB ─────────────────────
-{id: 'vectordb', title: 'Vector Database', group: 'Indexing',
+{id: 'vectordb', get title(){return L('Vector Database','Vektordatenbank');}, get group(){return L('Indexing','Indexierung');},
 render() {
-  let h = `<div class="stage-title">Step 3 · The Vector Database <span class="tag tr">INDEX</span></div>`;
-  h += `<p class="stage-desc">The embedded chunks are loaded into a <strong>vector database</strong> — a data store optimized for fast nearest-neighbor search over high-dimensional vectors. When a query arrives, the database finds the top-k closest vectors in milliseconds, even if there are millions of them.</p>`;
+  let h = L(`<div class="stage-title">Step 3 · The Vector Database <span class="tag tr">INDEX</span></div>`,`<div class="stage-title">Schritt 3 · Die Vektordatenbank <span class="tag tr">INDEX</span></div>`);
+  h += L(`<p class="stage-desc">The embedded chunks are loaded into a <strong>vector database</strong> — a data store optimized for fast nearest-neighbor search over high-dimensional vectors. When a query arrives, the database finds the top-k closest vectors in milliseconds, even if there are millions of them.</p>`,`<p class="stage-desc">Die eingebetteten Chunks werden in eine <strong>Vektordatenbank</strong> geladen — einen Datenspeicher, der auf schnelle Nächste-Nachbarn-Suche über hochdimensionale Vektoren optimiert ist. Kommt eine Anfrage, findet die Datenbank die k nächsten Vektoren in Millisekunden, selbst wenn es Millionen sind.</p>`);
 
-  h += `<div class="info ir"><div class="il">What the database actually stores</div>
+  h += L(`<div class="info ir"><div class="il">What the database actually stores</div>
 For each chunk, the database stores:<br>
 • The <strong>embedding vector</strong> (used for similarity search)<br>
 • The <strong>original text</strong> (used later by the LLM)<br>
 • Optional <strong>metadata</strong>: document source, page number, timestamp, tags (used for filtering)<br><br>
-The embedding is the index, the text is the payload.</div>`;
+The embedding is the index, the text is the payload.</div>`,`<div class="info ir"><div class="il">Was die Datenbank tatsächlich speichert</div>
+Für jeden Chunk speichert die Datenbank:<br>
+• den <strong>Embedding-Vektor</strong> (für die Ähnlichkeitssuche)<br>
+• den <strong>Originaltext</strong> (später vom LLM verwendet)<br>
+• optionale <strong>Metadaten</strong>: Dokumentquelle, Seitenzahl, Zeitstempel, Tags (zum Filtern)<br><br>
+Das Embedding ist der Index, der Text ist die Nutzlast.</div>`);
 
-  h += `<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Brute-force vs. approximate search</h3>`;
-  h += `<div class="glossary"><table>
+  h += L(`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Brute-force vs. approximate search</h3>`,`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Brute-Force- vs. approximative Suche</h3>`);
+  h += L(`<div class="glossary"><table>
 <tr><th>Approach</th><th>Complexity</th><th>When to use</th></tr>
 <tr><td class="sym">Exact (brute-force)</td><td class="def">O(N·d) per query — compare against every vector.</td><td class="def">Corpus &lt; ~100k chunks. Guarantees the true top-k.</td></tr>
 <tr><td class="sym">IVF (inverted file)</td><td class="def">Cluster vectors, search only nearby clusters.</td><td class="def">Mid-size corpora. Trades some recall for speed.</td></tr>
 <tr><td class="sym" style="color:var(--rust);">HNSW</td><td class="def">Hierarchical Navigable Small World graph [5]. Logarithmic search via graph navigation.</td><td class="def">The modern default. Used by Pinecone, Weaviate, Qdrant, Milvus, pgvector.</td></tr>
 <tr><td class="sym">PQ (product quantization)</td><td class="def">Compress vectors to 8–16× smaller footprint.</td><td class="def">Billion-scale corpora where RAM is the bottleneck.</td></tr>
-</table></div>`;
+</table></div>`,`<div class="glossary"><table>
+<tr><th>Ansatz</th><th>Komplexität</th><th>Wann einsetzen</th></tr>
+<tr><td class="sym">Exakt (Brute-Force)</td><td class="def">O(N·d) pro Anfrage — Vergleich mit jedem Vektor.</td><td class="def">Korpus &lt; ~100k Chunks. Garantiert die echten Top-k.</td></tr>
+<tr><td class="sym">IVF (Inverted File)</td><td class="def">Vektoren clustern, nur nahe Cluster durchsuchen.</td><td class="def">Mittelgroße Korpora. Tauscht etwas Recall gegen Geschwindigkeit.</td></tr>
+<tr><td class="sym" style="color:var(--rust);">HNSW</td><td class="def">Hierarchical-Navigable-Small-World-Graph [5]. Logarithmische Suche per Graph-Navigation.</td><td class="def">Der moderne Standard. Genutzt von Pinecone, Weaviate, Qdrant, Milvus, pgvector.</td></tr>
+<tr><td class="sym">PQ (Produktquantisierung)</td><td class="def">Vektoren auf 8–16× kleineren Speicherbedarf komprimieren.</td><td class="def">Korpora im Milliardenmaßstab, wo RAM der Engpass ist.</td></tr>
+</table></div>`);
 
-  h += `<div class="info is"><div class="il">Popular vector databases</div>
-<strong>FAISS</strong> (Meta, library) [4] · <strong>Pinecone</strong> (managed SaaS) · <strong>Weaviate</strong> (open-source, GraphQL) · <strong>Qdrant</strong> (open-source, Rust) · <strong>Milvus</strong> (open-source, Go) · <strong>Chroma</strong> (open-source, Python-first) · <strong>pgvector</strong> (PostgreSQL extension) · <strong>Elasticsearch / OpenSearch</strong> (with dense-vector fields). All of them speak roughly the same interface: insert vectors, query by vector, filter by metadata.</div>`;
+  h += L(`<div class="info is"><div class="il">Popular vector databases</div>
+<strong>FAISS</strong> (Meta, library) [4] · <strong>Pinecone</strong> (managed SaaS) · <strong>Weaviate</strong> (open-source, GraphQL) · <strong>Qdrant</strong> (open-source, Rust) · <strong>Milvus</strong> (open-source, Go) · <strong>Chroma</strong> (open-source, Python-first) · <strong>pgvector</strong> (PostgreSQL extension) · <strong>Elasticsearch / OpenSearch</strong> (with dense-vector fields). All of them speak roughly the same interface: insert vectors, query by vector, filter by metadata.</div>`,`<div class="info is"><div class="il">Verbreitete Vektordatenbanken</div>
+<strong>FAISS</strong> (Meta, Bibliothek) [4] · <strong>Pinecone</strong> (verwaltetes SaaS) · <strong>Weaviate</strong> (Open Source, GraphQL) · <strong>Qdrant</strong> (Open Source, Rust) · <strong>Milvus</strong> (Open Source, Go) · <strong>Chroma</strong> (Open Source, Python-first) · <strong>pgvector</strong> (PostgreSQL-Erweiterung) · <strong>Elasticsearch / OpenSearch</strong> (mit Dense-Vector-Feldern). Alle sprechen ungefähr dieselbe Schnittstelle: Vektoren einfügen, per Vektor abfragen, nach Metadaten filtern.</div>`);
 
   // Show all embeddings as the "database"
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Our demo database</h3>`;
-  h += `<p class="stage-desc">All ${CORPUS.length} chunks have been indexed. When a query comes in, we'll compute cosine similarity against every chunk and sort by score. With only 10 vectors, brute-force is instant.</p>`;
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Our demo database</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Unsere Demo-Datenbank</h3>`);
+  h += L(`<p class="stage-desc">All ${CORPUS.length} chunks have been indexed. When a query comes in, we'll compute cosine similarity against every chunk and sort by score. With only 10 vectors, brute-force is instant.</p>`,`<p class="stage-desc">Alle ${CORPUS.length} Chunks sind indexiert. Kommt eine Anfrage, berechnen wir die Kosinus-Ähnlichkeit zu jedem Chunk und sortieren nach Score. Bei nur 10 Vektoren ist Brute-Force sofort fertig.</p>`);
 
   h += `<div class="doc-list">`;
   CORPUS.forEach(d => h += renderDoc(d));
@@ -894,43 +995,47 @@ The embedding is the index, the text is the payload.</div>`;
 }},
 
 // ───────────────────── 6. QUERY EMBED ─────────────────────
-{id: 'query-embed', title: 'Query Embedding', group: 'Retrieval',
+{id: 'query-embed', get title(){return L('Query Embedding','Query-Embedding');}, get group(){return L('Retrieval','Retrieval');},
 render() {
   const {query} = computeRetrieval();
-  let h = `<div class="stage-title">Step 4 · Embed the Query <span class="tag tp">QUERY</span></div>`;
-  h += `<p class="stage-desc">When a user asks a question, the first thing we do is <strong>embed it using exactly the same model</strong> that embedded the corpus. This puts the query in the same vector space as the chunks, so cosine similarity becomes meaningful.</p>`;
+  let h = L(`<div class="stage-title">Step 4 · Embed the Query <span class="tag tp">QUERY</span></div>`,`<div class="stage-title">Schritt 4 · Die Anfrage einbetten <span class="tag tp">QUERY</span></div>`);
+  h += L(`<p class="stage-desc">When a user asks a question, the first thing we do is <strong>embed it using exactly the same model</strong> that embedded the corpus. This puts the query in the same vector space as the chunks, so cosine similarity becomes meaningful.</p>`,`<p class="stage-desc">Stellt ein Nutzer eine Frage, ist das Erste, was wir tun, sie <strong>mit exakt demselben Modell einzubetten</strong>, das den Korpus eingebettet hat. Damit liegt die Anfrage im selben Vektorraum wie die Chunks, und die Kosinus-Ähnlichkeit wird aussagekräftig.</p>`);
 
-  h += `<div class="formula">q_vec = <span class="hl">embed_model</span>( query_text )&nbsp;&nbsp;&nbsp;<span class="cm">// same model as the corpus!</span></div>`;
+  h += `<div class="formula">q_vec = <span class="hl">embed_model</span>( query_text )&nbsp;&nbsp;&nbsp;<span class="cm">// ${L('same model as the corpus!','dasselbe Modell wie beim Korpus!')}</span></div>`;
 
-  h += `<div class="info ip"><div class="il">Current query</div>
+  h += L(`<div class="info ip"><div class="il">Current query</div>
 <strong>"${query.text}"</strong><br>
-<span style="font-size:0.78rem;color:var(--txt3);">Topic cluster: ${query.topic}</span></div>`;
+<span style="font-size:0.78rem;color:var(--txt3);">Topic cluster: ${query.topic}</span></div>`,`<div class="info ip"><div class="il">Aktuelle Anfrage</div>
+<strong>"${query.text}"</strong><br>
+<span style="font-size:0.78rem;color:var(--txt3);">Themencluster: ${query.topic}</span></div>`);
 
   h += `<div class="mtx-wrap"><div class="mtx-row">`;
-  h += renderVec(query.vec, `q_vec (8 dims, normalized)`, 'cp');
+  h += renderVec(query.vec, L('q_vec (8 dims, normalized)','q_vec (8 Dims, normalisiert)'), 'cp');
   h += `</div></div>`;
 
-  h += `<div class="info ird"><div class="il">Common pitfall: model mismatch</div>
-If you embed the corpus with <code>bge-base</code> but the query with <code>all-MiniLM</code>, the vectors live in <strong>different spaces</strong> and cosine similarity becomes meaningless. Always use the same model on both sides. If you ever swap embedding models, you must <strong>re-embed the entire corpus</strong>.</div>`;
+  h += L(`<div class="info ird"><div class="il">Common pitfall: model mismatch</div>
+If you embed the corpus with <code>bge-base</code> but the query with <code>all-MiniLM</code>, the vectors live in <strong>different spaces</strong> and cosine similarity becomes meaningless. Always use the same model on both sides. If you ever swap embedding models, you must <strong>re-embed the entire corpus</strong>.</div>`,`<div class="info ird"><div class="il">Häufige Falle: Modell-Mismatch</div>
+Bettet man den Korpus mit <code>bge-base</code> ein, die Anfrage aber mit <code>all-MiniLM</code>, leben die Vektoren in <strong>verschiedenen Räumen</strong>, und die Kosinus-Ähnlichkeit wird bedeutungslos. Immer auf beiden Seiten dasselbe Modell nutzen. Wechselt man je das Embedding-Modell, muss man <strong>den gesamten Korpus neu einbetten</strong>.</div>`);
 
-  h += `<div class="info ig"><div class="il">Variant: HyDE (Hypothetical Document Embeddings)</div>
-Instead of embedding the raw query, HyDE [6] first asks an LLM to <em>write a plausible answer</em> to the query, then embeds the <em>answer</em> and searches with that embedding. The intuition: a fake answer is closer in vector space to real answers than the question itself is. This often improves retrieval quality, especially for underspecified queries.</div>`;
+  h += L(`<div class="info ig"><div class="il">Variant: HyDE (Hypothetical Document Embeddings)</div>
+Instead of embedding the raw query, HyDE [6] first asks an LLM to <em>write a plausible answer</em> to the query, then embeds the <em>answer</em> and searches with that embedding. The intuition: a fake answer is closer in vector space to real answers than the question itself is. This often improves retrieval quality, especially for underspecified queries.</div>`,`<div class="info ig"><div class="il">Variante: HyDE (Hypothetical Document Embeddings)</div>
+Statt die rohe Anfrage einzubetten, lässt HyDE [6] zuerst ein LLM <em>eine plausible Antwort schreiben</em>, bettet dann die <em>Antwort</em> ein und sucht mit diesem Embedding. Die Intuition: Eine fiktive Antwort liegt im Vektorraum näher an echten Antworten als die Frage selbst. Das verbessert die Retrieval-Qualität oft, besonders bei unterspezifizierten Anfragen.</div>`);
 
   return h;
 }},
 
 // ───────────────────── 7. SIMILARITY ─────────────────────
-{id: 'similarity', title: 'Similarity Search', group: 'Retrieval',
+{id: 'similarity', get title(){return L('Similarity Search','Ähnlichkeitssuche');}, get group(){return L('Retrieval','Retrieval');},
 render() {
   const {query, scored} = computeRetrieval();
-  let h = `<div class="stage-title">Step 5 · Cosine Similarity Search <span class="tag ts">SEARCH</span></div>`;
-  h += `<p class="stage-desc">Compute the cosine similarity between the query embedding and <strong>every chunk embedding</strong> in the database. Since all vectors are L2-normalized, cosine similarity reduces to a simple dot product — fast and parallelizable.</p>`;
+  let h = L(`<div class="stage-title">Step 5 · Cosine Similarity Search <span class="tag ts">SEARCH</span></div>`,`<div class="stage-title">Schritt 5 · Kosinus-Ähnlichkeitssuche <span class="tag ts">SUCHE</span></div>`);
+  h += L(`<p class="stage-desc">Compute the cosine similarity between the query embedding and <strong>every chunk embedding</strong> in the database. Since all vectors are L2-normalized, cosine similarity reduces to a simple dot product — fast and parallelizable.</p>`,`<p class="stage-desc">Berechne die Kosinus-Ähnlichkeit zwischen dem Query-Embedding und <strong>jedem Chunk-Embedding</strong> in der Datenbank. Da alle Vektoren L2-normalisiert sind, reduziert sich die Kosinus-Ähnlichkeit auf ein einfaches Skalarprodukt — schnell und parallelisierbar.</p>`);
 
-  h += `<div class="formula">sim(q, d) = <span class="purple">q_vec</span> · <span class="rust">d_vec</span> = Σᵢ <span class="purple">q_vec[i]</span> · <span class="rust">d_vec[i]</span>&nbsp;&nbsp;&nbsp;<span class="cm">// dot product (both unit length)</span></div>`;
+  h += `<div class="formula">sim(q, d) = <span class="purple">q_vec</span> · <span class="rust">d_vec</span> = Σᵢ <span class="purple">q_vec[i]</span> · <span class="rust">d_vec[i]</span>&nbsp;&nbsp;&nbsp;<span class="cm">// ${L('dot product (both unit length)','Skalarprodukt (beide Einheitslänge)')}</span></div>`;
 
   // Show a sample computation for the top-1 result
   const top = scored[0];
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Worked example · comparing the query to ${top.id}</h3>`;
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Worked example · comparing the query to ${top.id}</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Rechenbeispiel · die Anfrage im Vergleich mit ${top.id}</h3>`);
   h += `<div class="mtx-wrap"><div class="mtx-row">`;
   h += renderVec(query.vec, 'q_vec', 'cp');
   h += `<span class="op">·</span>`;
@@ -940,8 +1045,8 @@ render() {
   h += `</div></div>`;
 
   // Show all scores as bars
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Scores for all ${CORPUS.length} chunks (sorted)</h3>`;
-  h += `<p class="stage-desc">Each bar shows the cosine similarity between the query and one chunk. Higher = more relevant. The top few should come from the correct topic cluster.</p>`;
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Scores for all ${CORPUS.length} chunks (sorted)</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Scores für alle ${CORPUS.length} Chunks (sortiert)</h3>`);
+  h += L(`<p class="stage-desc">Each bar shows the cosine similarity between the query and one chunk. Higher = more relevant. The top few should come from the correct topic cluster.</p>`,`<p class="stage-desc">Jeder Balken zeigt die Kosinus-Ähnlichkeit zwischen der Anfrage und einem Chunk. Höher = relevanter. Die obersten sollten aus dem richtigen Themencluster stammen.</p>`);
   const maxScore = Math.max(...scored.map(s => s.score));
   h += `<div class="bar-wrap">`;
   scored.forEach((s, i) => {
@@ -955,64 +1060,73 @@ render() {
   });
   h += `</div>`;
 
-  h += `<div class="info iac"><div class="il">Observation</div>
-The top-${TOP_K} results (highlighted in forest green) should be from the ${query.topic} cluster. The other chunks — from unrelated topics — have clearly lower scores. This is the retrieval signal: even without keyword matching, semantic embeddings pull the right documents to the top.</div>`;
+  h += L(`<div class="info iac"><div class="il">Observation</div>
+The top-${TOP_K} results (highlighted in forest green) should be from the ${query.topic} cluster. The other chunks — from unrelated topics — have clearly lower scores. This is the retrieval signal: even without keyword matching, semantic embeddings pull the right documents to the top.</div>`,`<div class="info iac"><div class="il">Beobachtung</div>
+Die Top-${TOP_K}-Ergebnisse (waldgrün hervorgehoben) sollten aus dem Cluster „${query.topic}" stammen. Die anderen Chunks — aus fremden Themen — haben deutlich niedrigere Scores. Das ist das Retrieval-Signal: Auch ohne Schlüsselwort-Abgleich ziehen semantische Embeddings die richtigen Dokumente nach oben.</div>`);
 
   // ── Interactive 2D plot with similarity lines ──
-  h += `<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">📊 Geometric view of similarity search</h3>`;
-  h += `<p class="stage-desc">In 2D, cosine similarity is easy to see: <strong>closer points have higher scores</strong>. Each line in the plot below connects the query (purple star) to one document. <strong>Solid forest-green lines</strong> mark the top-${TOP_K} retrieved documents; <strong>dashed gray lines</strong> are everything else. The line thickness is proportional to the similarity score. Change the <strong>query</strong> and <strong>top-k</strong> controls in the header to see the lines re-route live.</p>`;
+  h += L(`<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">📊 Geometric view of similarity search</h3>`,`<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">📊 Geometrische Sicht auf die Ähnlichkeitssuche</h3>`);
+  h += L(`<p class="stage-desc">In 2D, cosine similarity is easy to see: <strong>closer points have higher scores</strong>. Each line in the plot below connects the query (purple star) to one document. <strong>Solid forest-green lines</strong> mark the top-${TOP_K} retrieved documents; <strong>dashed gray lines</strong> are everything else. The line thickness is proportional to the similarity score. Change the <strong>query</strong> and <strong>top-k</strong> controls in the header to see the lines re-route live.</p>`,`<p class="stage-desc">In 2D ist die Kosinus-Ähnlichkeit leicht zu sehen: <strong>nähere Punkte haben höhere Scores</strong>. Jede Linie im Plot unten verbindet die Anfrage (lila Stern) mit einem Dokument. <strong>Durchgezogene waldgrüne Linien</strong> markieren die Top-${TOP_K} abgerufenen Dokumente; <strong>gestrichelte graue Linien</strong> sind alle anderen. Die Linienstärke ist proportional zum Ähnlichkeits-Score. Ändere <strong>Anfrage</strong> und <strong>Top-k</strong> im Header, um die Linien live umspringen zu sehen.</p>`);
   h += `<div class="scatter-wrap">${renderScatter2D({showSimLines: true, showLabels: true, showRanks: true})}</div>`;
-  h += `<div class="scatter-caption">↑ Query-to-document similarity lines · the top-${TOP_K} are highlighted with numbered ranks · change query and top-k in the header</div>`;
+  h += L(`<div class="scatter-caption">↑ Query-to-document similarity lines · the top-${TOP_K} are highlighted with numbered ranks · change query and top-k in the header</div>`,`<div class="scatter-caption">↑ Ähnlichkeitslinien von der Anfrage zu den Dokumenten · die Top-${TOP_K} sind mit nummerierten Rängen hervorgehoben · Anfrage und Top-k im Header ändern</div>`);
 
-  h += `<div class="info ip"><div class="il">Note on dimensionality</div>
-In this toy visualization, we project the 8-dim embeddings down to 2 using a hand-picked semantic projection. In a real system, embeddings might have 768 or 1536 or 3072 dimensions, and you'd use <strong>PCA</strong>, <strong>t-SNE</strong>, or <strong>UMAP</strong> for the reduction. The important property is preserved either way: clusters that are close in high-dim space stay close in 2D.</div>`;
+  h += L(`<div class="info ip"><div class="il">Note on dimensionality</div>
+In this toy visualization, we project the 8-dim embeddings down to 2 using a hand-picked semantic projection. In a real system, embeddings might have 768 or 1536 or 3072 dimensions, and you'd use <strong>PCA</strong>, <strong>t-SNE</strong>, or <strong>UMAP</strong> for the reduction. The important property is preserved either way: clusters that are close in high-dim space stay close in 2D.</div>`,`<div class="info ip"><div class="il">Anmerkung zur Dimensionalität</div>
+In dieser Spielzeug-Visualisierung projizieren wir die 8-dim Embeddings mit einer handgewählten semantischen Projektion auf 2 Dimensionen. In einem echten System hätten Embeddings 768, 1536 oder 3072 Dimensionen, und man würde <strong>PCA</strong>, <strong>t-SNE</strong> oder <strong>UMAP</strong> zur Reduktion nutzen. Die wichtige Eigenschaft bleibt so oder so erhalten: Cluster, die im hochdimensionalen Raum nah sind, bleiben auch in 2D nah.</div>`);
 
   return h;
 }},
 
 // ───────────────────── 8. TOP-K ─────────────────────
-{id: 'topk', title: 'Top-k Selection', group: 'Retrieval',
+{id: 'topk', get title(){return L('Top-k Selection','Top-k-Auswahl');}, get group(){return L('Retrieval','Retrieval');},
 render() {
   const {retrieved} = computeRetrieval();
-  let h = `<div class="stage-title">Step 6 · Top-k Selection <span class="tag tr">RETRIEVE</span></div>`;
-  h += `<p class="stage-desc">Keep only the <strong>k chunks with the highest similarity scores</strong>. These will be fed to the LLM as context. Everything else is discarded (for this query — the database stays intact).</p>`;
+  let h = L(`<div class="stage-title">Step 6 · Top-k Selection <span class="tag tr">RETRIEVE</span></div>`,`<div class="stage-title">Schritt 6 · Top-k-Auswahl <span class="tag tr">RETRIEVE</span></div>`);
+  h += L(`<p class="stage-desc">Keep only the <strong>k chunks with the highest similarity scores</strong>. These will be fed to the LLM as context. Everything else is discarded (for this query — the database stays intact).</p>`,`<p class="stage-desc">Behalte nur die <strong>k Chunks mit den höchsten Ähnlichkeits-Scores</strong>. Sie werden dem LLM als Kontext übergeben. Alles andere wird verworfen (für diese Anfrage — die Datenbank bleibt unverändert).</p>`);
 
-  h += `<div class="formula">retrieved = argtop-k<sub>d ∈ corpus</sub> sim(q, d)&nbsp;&nbsp;&nbsp;<span class="cm">// currently k = ${TOP_K}</span></div>`;
+  h += `<div class="formula">retrieved = argtop-k<sub>d ∈ corpus</sub> sim(q, d)&nbsp;&nbsp;&nbsp;<span class="cm">// ${L('currently','aktuell')} k = ${TOP_K}</span></div>`;
 
-  h += `<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Retrieved passages (k = ${TOP_K})</h3>`;
-  h += `<p class="stage-desc">These are the passages that will be passed to the LLM. Change the top-k slider in the header to see more or fewer.</p>`;
+  h += L(`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Retrieved passages (k = ${TOP_K})</h3>`,`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Abgerufene Passagen (k = ${TOP_K})</h3>`);
+  h += L(`<p class="stage-desc">These are the passages that will be passed to the LLM. Change the top-k slider in the header to see more or fewer.</p>`,`<p class="stage-desc">Das sind die Passagen, die an das LLM übergeben werden. Ändere den Top-k-Regler im Header, um mehr oder weniger zu sehen.</p>`);
   h += `<div class="doc-list">`;
   retrieved.forEach((d, i) => {
     h += renderDoc(d, {retrieved: true, top: i === 0, score: d.score, rank: i});
   });
   h += `</div>`;
 
-  h += `<div class="info ig"><div class="il">How to pick k</div>
+  h += L(`<div class="info ig"><div class="il">How to pick k</div>
 <strong>Small k (1–3):</strong> minimizes prompt cost and reduces the chance of distracting the LLM with irrelevant chunks. Works when retrieval is very precise.<br>
 <strong>Medium k (5–10):</strong> standard default. Balances recall (catching the right chunk) with signal-to-noise.<br>
-<strong>Large k (20+):</strong> for tasks needing broad coverage (summarization, multi-hop QA). Usually combined with a <em>re-ranker</em> that further filters the top-k down.</div>`;
+<strong>Large k (20+):</strong> for tasks needing broad coverage (summarization, multi-hop QA). Usually combined with a <em>re-ranker</em> that further filters the top-k down.</div>`,`<div class="info ig"><div class="il">Wie man k wählt</div>
+<strong>Kleines k (1–3):</strong> minimiert die Prompt-Kosten und die Gefahr, das LLM mit irrelevanten Chunks abzulenken. Funktioniert, wenn das Retrieval sehr präzise ist.<br>
+<strong>Mittleres k (5–10):</strong> der übliche Standard. Balanciert Recall (den richtigen Chunk erwischen) gegen das Signal-Rausch-Verhältnis.<br>
+<strong>Großes k (20+):</strong> für Aufgaben, die breite Abdeckung brauchen (Zusammenfassung, Multi-Hop-QA). Meist kombiniert mit einem <em>Re-Ranker</em>, der die Top-k weiter filtert.</div>`);
 
-  h += `<div class="info is"><div class="il">Advanced: re-ranking</div>
+  h += L(`<div class="info is"><div class="il">Advanced: re-ranking</div>
 For higher-quality systems, the retrieval is a two-stage process:<br>
 <strong>Stage 1:</strong> retrieve top-50 or top-100 with a cheap bi-encoder (what we just did).<br>
 <strong>Stage 2:</strong> re-score those with a slow but accurate <strong>cross-encoder</strong> that reads the query and each chunk together and outputs a relevance score. Keep the top-5 after re-ranking.<br><br>
-Cross-encoders (e.g., <code>ms-marco-MiniLM-L-12-v2</code>) are much more accurate than bi-encoders but can't be pre-computed — they must run per query per candidate, which is why they're only used on the shortlist.</div>`;
+Cross-encoders (e.g., <code>ms-marco-MiniLM-L-12-v2</code>) are much more accurate than bi-encoders but can't be pre-computed — they must run per query per candidate, which is why they're only used on the shortlist.</div>`,`<div class="info is"><div class="il">Fortgeschritten: Re-Ranking</div>
+In höherwertigen Systemen ist das Retrieval ein zweistufiger Prozess:<br>
+<strong>Stufe 1:</strong> Top-50 oder Top-100 mit einem billigen Bi-Encoder abrufen (was wir gerade getan haben).<br>
+<strong>Stufe 2:</strong> diese mit einem langsamen, aber genauen <strong>Cross-Encoder</strong> neu bewerten, der Anfrage und Chunk zusammen liest und einen Relevanz-Score ausgibt. Nach dem Re-Ranking die Top-5 behalten.<br><br>
+Cross-Encoder (z. B. <code>ms-marco-MiniLM-L-12-v2</code>) sind viel genauer als Bi-Encoder, lassen sich aber nicht vorberechnen — sie müssen pro Anfrage pro Kandidat laufen, weshalb sie nur auf der Shortlist eingesetzt werden.</div>`);
 
   return h;
 }},
 
 // ───────────────────── 8b. RE-RANKING ─────────────────────
-{id: 'rerank', title: 'Re-ranking', group: 'Retrieval',
+{id: 'rerank', get title(){return L('Re-ranking','Re-Ranking');}, get group(){return L('Retrieval','Retrieval');},
 render() {
   const {query, scored} = computeRetrieval();
-  let h = `<div class="stage-title">Deep Dive · Bi-encoder vs Cross-encoder Re-ranking <span class="tag tr">DEEP DIVE</span></div>`;
-  h += `<p class="stage-desc">The retrieval you just saw uses a <strong>bi-encoder</strong> — cheap, pre-computable, but coarse. High-quality RAG systems add a second stage: a <strong>cross-encoder re-ranker</strong> that scores the shortlist more carefully. Understanding the difference between these two architectures is the single most important concept in modern dense retrieval.</p>`;
+  let h = L(`<div class="stage-title">Deep Dive · Bi-encoder vs Cross-encoder Re-ranking <span class="tag tr">DEEP DIVE</span></div>`,`<div class="stage-title">Vertiefung · Bi-Encoder vs. Cross-Encoder-Re-Ranking <span class="tag tr">VERTIEFUNG</span></div>`);
+  h += L(`<p class="stage-desc">The retrieval you just saw uses a <strong>bi-encoder</strong> — cheap, pre-computable, but coarse. High-quality RAG systems add a second stage: a <strong>cross-encoder re-ranker</strong> that scores the shortlist more carefully. Understanding the difference between these two architectures is the single most important concept in modern dense retrieval.</p>`,`<p class="stage-desc">Das eben gezeigte Retrieval nutzt einen <strong>Bi-Encoder</strong> — billig, vorberechenbar, aber grob. Hochwertige RAG-Systeme fügen eine zweite Stufe hinzu: einen <strong>Cross-Encoder-Re-Ranker</strong>, der die Shortlist sorgfältiger bewertet. Den Unterschied zwischen diesen beiden Architekturen zu verstehen, ist das wichtigste Konzept im modernen Dense Retrieval.</p>`);
 
   // Side-by-side architecture comparison
   h += `<div class="encoder-cmp">
 <div class="encoder-card bi">
-<h4>Bi-encoder (a.k.a. dual encoder)</h4>
-<div class="tagline">"Encode once, compare cheaply"</div>
+${L('<h4>Bi-encoder (a.k.a. dual encoder)</h4>','<h4>Bi-Encoder (auch: Dual Encoder)</h4>')}
+${L('<div class="tagline">"Encode once, compare cheaply"</div>','<div class="tagline">„Einmal kodieren, billig vergleichen"</div>')}
 <svg viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, sans-serif">
   <defs>
     <marker id="arrBi" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
@@ -1043,18 +1157,12 @@ render() {
   <rect x="110" y="145" width="80" height="22" rx="4" fill="#0369a128" stroke="#0369a1" stroke-width="1.5"/>
   <text x="150" y="160" text-anchor="middle" font-size="9" fill="#0369a1" font-weight="600">cos(q, d)</text>
 </svg>
-<div class="props">
-<strong>Two independent forward passes</strong> — one for the query, one for the document. The two vectors never interact inside the model; they only meet at the end for a fast dot product.<br><br>
-<strong>✓ Documents can be pre-computed</strong> and stored offline. At query time: one encoder call + fast vector search.<br>
-<strong>✓ Scales to billions</strong> of documents with HNSW indexing.<br>
-<strong>✗ The encoder must be generic</strong> — it has to compress everything it <em>might</em> care about into a fixed-length vector, without knowing the query.<br><br>
-<strong>Examples:</strong> Sentence-BERT, all-MiniLM, BGE, OpenAI embeddings, DPR.
-</div>
+${L('<div class="props">\n<strong>Two independent forward passes</strong> — one for the query, one for the document. The two vectors never interact inside the model; they only meet at the end for a fast dot product.<br><br>\n<strong>✓ Documents can be pre-computed</strong> and stored offline. At query time: one encoder call + fast vector search.<br>\n<strong>✓ Scales to billions</strong> of documents with HNSW indexing.<br>\n<strong>✗ The encoder must be generic</strong> — it has to compress everything it <em>might</em> care about into a fixed-length vector, without knowing the query.<br><br>\n<strong>Examples:</strong> Sentence-BERT, all-MiniLM, BGE, OpenAI embeddings, DPR.\n</div>','<div class="props">\n<strong>Zwei unabhängige Forward-Passes</strong> — einer für die Anfrage, einer für das Dokument. Die beiden Vektoren interagieren im Modell nie; sie treffen sich erst am Ende für ein schnelles Skalarprodukt.<br><br>\n<strong>✓ Dokumente können vorberechnet</strong> und offline gespeichert werden. Zur Anfragezeit: ein Encoder-Aufruf + schnelle Vektorsuche.<br>\n<strong>✓ Skaliert auf Milliarden</strong> Dokumente mit HNSW-Indexierung.<br>\n<strong>✗ Der Encoder muss generisch sein</strong> — er muss alles, was <em>vielleicht</em> wichtig ist, in einen Vektor fester Länge komprimieren, ohne die Anfrage zu kennen.<br><br>\n<strong>Beispiele:</strong> Sentence-BERT, all-MiniLM, BGE, OpenAI-Embeddings, DPR.\n</div>')}
 </div>
 
 <div class="encoder-card cross">
-<h4>Cross-encoder (a.k.a. joint encoder)</h4>
-<div class="tagline">"Read query and doc together"</div>
+${L('<h4>Cross-encoder (a.k.a. joint encoder)</h4>','<h4>Cross-Encoder (auch: Joint Encoder)</h4>')}
+${L('<div class="tagline">"Read query and doc together"</div>','<div class="tagline">„Anfrage und Dokument zusammen lesen"</div>')}
 <svg viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg" font-family="DM Sans, sans-serif">
   <defs>
     <marker id="arrCr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
@@ -1072,36 +1180,30 @@ render() {
   <line x1="150" y1="48" x2="150" y2="55" stroke="#8b8778" stroke-width="1.5" marker-end="url(#arrCr)"/>
   <!-- Single big encoder -->
   <rect x="30" y="58" width="240" height="60" rx="6" fill="#c2410c28" stroke="#c2410c" stroke-width="2"/>
-  <text x="150" y="80" text-anchor="middle" font-size="11" fill="#c2410c" font-weight="700">Single Transformer</text>
-  <text x="150" y="96" text-anchor="middle" font-size="9" fill="#57534e" font-style="italic">self-attention over query + doc jointly</text>
-  <text x="150" y="110" text-anchor="middle" font-size="9" fill="#57534e">(every query token sees every doc token)</text>
+  <text x="150" y="80" text-anchor="middle" font-size="11" fill="#c2410c" ${L('font-weight="700">Single Transformer</text>','font-weight="700">Ein einziger Transformer</text>')}
+  <text x="150" y="96" text-anchor="middle" font-size="9" fill="#57534e" ${L('font-style="italic">self-attention over query + doc jointly</text>','font-style="italic">Self-Attention gemeinsam über Anfrage + Dokument</text>')}
+  <text x="150" y="110" text-anchor="middle" font-size="9" ${L('fill="#57534e">(every query token sees every doc token)</text>','fill="#57534e">(jeder Anfrage-Token sieht jeden Dokument-Token)</text>')}
   <line x1="150" y1="118" x2="150" y2="140" stroke="#8b8778" stroke-width="1.5" marker-end="url(#arrCr)"/>
   <!-- Score directly -->
   <rect x="100" y="142" width="100" height="22" rx="4" fill="#0369a128" stroke="#0369a1" stroke-width="1.5"/>
-  <text x="150" y="157" text-anchor="middle" font-size="10" fill="#0369a1" font-weight="700">relevance score</text>
+  <text x="150" y="157" text-anchor="middle" font-size="10" fill="#0369a1" ${L('font-weight="700">relevance score</text>','font-weight="700">Relevanz-Score</text>')}
 </svg>
-<div class="props">
-<strong>One forward pass per (query, doc) pair.</strong> The query and document are concatenated as a single input; self-attention lets them interact at every layer.<br><br>
-<strong>✓ Much more accurate</strong> — the model can form query-specific representations and catch subtle relational signals.<br>
-<strong>✗ Nothing can be pre-computed.</strong> Every query means re-running the model on every candidate.<br>
-<strong>✗ Scales only to hundreds</strong> of candidates per query — impractical as a first-stage retriever.<br><br>
-<strong>Examples:</strong> ms-marco-MiniLM-L-12-v2, bge-reranker-large, Cohere rerank, Voyage rerank-2.
-</div>
+${L('<div class="props">\n<strong>One forward pass per (query, doc) pair.</strong> The query and document are concatenated as a single input; self-attention lets them interact at every layer.<br><br>\n<strong>✓ Much more accurate</strong> — the model can form query-specific representations and catch subtle relational signals.<br>\n<strong>✗ Nothing can be pre-computed.</strong> Every query means re-running the model on every candidate.<br>\n<strong>✗ Scales only to hundreds</strong> of candidates per query — impractical as a first-stage retriever.<br><br>\n<strong>Examples:</strong> ms-marco-MiniLM-L-12-v2, bge-reranker-large, Cohere rerank, Voyage rerank-2.\n</div>','<div class="props">\n<strong>Ein Forward-Pass pro (Anfrage, Dokument)-Paar.</strong> Anfrage und Dokument werden zu einer einzigen Eingabe konkateniert; Self-Attention lässt sie in jeder Schicht interagieren.<br><br>\n<strong>✓ Viel genauer</strong> — das Modell kann anfragespezifische Repräsentationen bilden und subtile relationale Signale erfassen.<br>\n<strong>✗ Nichts lässt sich vorberechnen.</strong> Jede Anfrage bedeutet, das Modell auf jedem Kandidaten neu laufen zu lassen.<br>\n<strong>✗ Skaliert nur auf Hunderte</strong> Kandidaten pro Anfrage — als Erststufen-Retriever unpraktikabel.<br><br>\n<strong>Beispiele:</strong> ms-marco-MiniLM-L-12-v2, bge-reranker-large, Cohere rerank, Voyage rerank-2.\n</div>')}
 </div>
 </div>`;
 
   // The two-stage pipeline explanation
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">The two-stage pipeline · fast filter + precise judge</h3>`;
-  h += `<p class="stage-desc">Neither architecture alone is ideal. Production RAG systems combine them: the bi-encoder scans the entire corpus to produce a shortlist of ~50–100 candidates, then the cross-encoder re-scores those candidates precisely. You get bi-encoder speed <em>and</em> cross-encoder quality.</p>`;
-  h += `<div class="formula">corpus (10M docs)&nbsp;→&nbsp;<span class="hl">bi-encoder top-100</span>&nbsp;→&nbsp;<span class="rust">cross-encoder top-5</span>&nbsp;→&nbsp;LLM context</div>`;
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">The two-stage pipeline · fast filter + precise judge</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Die zweistufige Pipeline · schneller Filter + präziser Richter</h3>`);
+  h += L(`<p class="stage-desc">Neither architecture alone is ideal. Production RAG systems combine them: the bi-encoder scans the entire corpus to produce a shortlist of ~50–100 candidates, then the cross-encoder re-scores those candidates precisely. You get bi-encoder speed <em>and</em> cross-encoder quality.</p>`,`<p class="stage-desc">Keine der beiden Architekturen ist allein ideal. Produktive RAG-Systeme kombinieren sie: Der Bi-Encoder durchsucht den gesamten Korpus und erzeugt eine Shortlist von ~50–100 Kandidaten, dann bewertet der Cross-Encoder diese Kandidaten präzise neu. Man bekommt Bi-Encoder-Geschwindigkeit <em>und</em> Cross-Encoder-Qualität.</p>`);
+  h += `<div class="formula">${L('corpus (10M docs)','Korpus (10 Mio. Dokumente)')}&nbsp;→&nbsp;<span class="hl">Bi-Encoder Top-100</span>&nbsp;→&nbsp;<span class="rust">Cross-Encoder Top-5</span>&nbsp;→&nbsp;${L('LLM context','LLM-Kontext')}</div>`;
 
   // Latency comparison chart (scaling with corpus size)
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">📊 Latency at scale · why two stages are necessary</h3>`;
-  h += `<p class="stage-desc">The bar chart below shows approximate query latency (in ms) for each approach, assuming a realistic mix of CPU vector index + GPU cross-encoder. Note the different time scales.</p>`;
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">📊 Latency at scale · why two stages are necessary</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">📊 Latenz im großen Maßstab · warum zwei Stufen nötig sind</h3>`);
+  h += L(`<p class="stage-desc">The bar chart below shows approximate query latency (in ms) for each approach, assuming a realistic mix of CPU vector index + GPU cross-encoder. Note the different time scales.</p>`,`<p class="stage-desc">Das Balkendiagramm unten zeigt die ungefähre Anfrage-Latenz (in ms) für jeden Ansatz, bei einer realistischen Mischung aus CPU-Vektorindex + GPU-Cross-Encoder. Beachte die unterschiedlichen Zeitskalen.</p>`);
   const scenarios = [
-    {name: 'Corpus: 1k docs',   bi: 2,    crossFull: 100,   twoStage: 12},
-    {name: 'Corpus: 100k docs', bi: 5,    crossFull: 10000, twoStage: 15},
-    {name: 'Corpus: 10M docs',  bi: 12,   crossFull: 1000000, twoStage: 22},
+    {name: L('Corpus: 1k docs','Korpus: 1k Dokumente'),   bi: 2,    crossFull: 100,   twoStage: 12},
+    {name: L('Corpus: 100k docs','Korpus: 100k Dokumente'), bi: 5,    crossFull: 10000, twoStage: 15},
+    {name: L('Corpus: 10M docs','Korpus: 10 Mio. Dokumente'),  bi: 12,   crossFull: 1000000, twoStage: 22},
   ];
   h += `<div class="latency-chart">`;
   scenarios.forEach(s => {
@@ -1109,18 +1211,19 @@ render() {
     // Scale bars relative to max of this scenario
     const maxLat = Math.max(s.bi, s.crossFull, s.twoStage);
     const fmtLat = ms => ms < 1000 ? `${ms} ms` : ms < 60000 ? `${(ms/1000).toFixed(1)} s` : `${(ms/60000).toFixed(1)} min`;
-    h += `<div class="lat-row"><span class="lat-label">bi-encoder</span><div class="lat-bar"><div class="lat-fill" style="width:${(s.bi/maxLat)*100}%;background:var(--acc);"></div></div><span class="lat-val">${fmtLat(s.bi)}</span></div>`;
-    h += `<div class="lat-row"><span class="lat-label">cross-encoder (naive)</span><div class="lat-bar"><div class="lat-fill" style="width:100%;background:var(--red);"></div></div><span class="lat-val">${fmtLat(s.crossFull)}</span></div>`;
-    h += `<div class="lat-row"><span class="lat-label">two-stage</span><div class="lat-bar"><div class="lat-fill" style="width:${(s.twoStage/maxLat)*100}%;background:var(--rust);"></div></div><span class="lat-val">${fmtLat(s.twoStage)}</span></div>`;
+    h += `<div class="lat-row"><span class="lat-label">Bi-Encoder</span><div class="lat-bar"><div class="lat-fill" style="width:${(s.bi/maxLat)*100}%;background:var(--acc);"></div></div><span class="lat-val">${fmtLat(s.bi)}</span></div>`;
+    h += `<div class="lat-row"><span class="lat-label">Cross-Encoder (naiv)</span><div class="lat-bar"><div class="lat-fill" style="width:100%;background:var(--red);"></div></div><span class="lat-val">${fmtLat(s.crossFull)}</span></div>`;
+    h += `<div class="lat-row"><span class="lat-label">${L('two-stage','zweistufig')}</span><div class="lat-bar"><div class="lat-fill" style="width:${(s.twoStage/maxLat)*100}%;background:var(--rust);"></div></div><span class="lat-val">${fmtLat(s.twoStage)}</span></div>`;
   });
   h += `</div>`;
 
-  h += `<div class="info ir"><div class="il">Notice the scaling</div>
-At 10M documents, a naive cross-encoder would take <strong>~16 minutes per query</strong> — obviously unusable. The two-stage pipeline stays around <strong>~22 ms</strong> regardless of corpus size, because the cross-encoder only runs on a fixed shortlist of 100 candidates. This decoupling is the entire reason production systems use both architectures.</div>`;
+  h += L(`<div class="info ir"><div class="il">Notice the scaling</div>
+At 10M documents, a naive cross-encoder would take <strong>~16 minutes per query</strong> — obviously unusable. The two-stage pipeline stays around <strong>~22 ms</strong> regardless of corpus size, because the cross-encoder only runs on a fixed shortlist of 100 candidates. This decoupling is the entire reason production systems use both architectures.</div>`,`<div class="info ir"><div class="il">Beachte die Skalierung</div>
+Bei 10 Mio. Dokumenten bräuchte ein naiver Cross-Encoder <strong>~16 Minuten pro Anfrage</strong> — offensichtlich unbrauchbar. Die zweistufige Pipeline bleibt unabhängig von der Korpusgröße bei etwa <strong>~22 ms</strong>, weil der Cross-Encoder nur auf einer festen Shortlist von 100 Kandidaten läuft. Diese Entkopplung ist der ganze Grund, warum produktive Systeme beide Architekturen nutzen.</div>`);
 
   // Re-ranking before/after demo
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Re-ranking in action · before vs after</h3>`;
-  h += `<p class="stage-desc">Below is a simulated re-ranking of the top-5 results for the current query. The cross-encoder scores are hand-crafted to show how re-ranking can shuffle the order — a document that was rank 4 in bi-encoder scores can jump to rank 1 because the cross-encoder reads it more carefully.</p>`;
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Re-ranking in action · before vs after</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Re-Ranking in Aktion · vorher vs. nachher</h3>`);
+  h += L(`<p class="stage-desc">Below is a simulated re-ranking of the top-5 results for the current query. The cross-encoder scores are hand-crafted to show how re-ranking can shuffle the order — a document that was rank 4 in bi-encoder scores can jump to rank 1 because the cross-encoder reads it more carefully.</p>`,`<p class="stage-desc">Unten ein simuliertes Re-Ranking der Top-5-Ergebnisse für die aktuelle Anfrage. Die Cross-Encoder-Scores sind handgesetzt, um zu zeigen, wie Re-Ranking die Reihenfolge durchmischen kann — ein Dokument, das bei den Bi-Encoder-Scores auf Rang 4 lag, kann auf Rang 1 springen, weil der Cross-Encoder es genauer liest.</p>`);
 
   // Take top-5 bi-encoder
   const top5 = scored.slice(0, 5);
@@ -1135,120 +1238,147 @@ At 10M documents, a naive cross-encoder would take <strong>~16 minutes per query
 
   h += `<div class="rerank-grid">
 <div class="rerank-col before">
-<h4>Before · bi-encoder top-5</h4>`;
+<h4>${L('Before · bi-encoder top-5','Vorher · Bi-Encoder Top-5')}</h4>`;
   top5.forEach((d, i) => {
     h += `<div class="rerank-item"><span class="rank">${i + 1}</span><span class="id">${d.id}</span><span class="score">${fmt(d.score)}</span></div>`;
   });
   h += `</div>
 <div class="rerank-arrow">→</div>
 <div class="rerank-col after">
-<h4>After · cross-encoder re-scored</h4>`;
+<h4>${L('After · cross-encoder re-scored','Nachher · vom Cross-Encoder neu bewertet')}</h4>`;
   afterRerank.forEach((d, newRank) => {
     const oldRank = top5.findIndex(t => t.id === d.id);
     const moved = newRank < oldRank ? 'moved-up' : newRank > oldRank ? 'moved-down' : '';
     const arrow = newRank < oldRank ? '↑' : newRank > oldRank ? '↓' : '·';
-    h += `<div class="rerank-item ${moved}"><span class="rank">${newRank + 1}</span><span class="id">${d.id}</span><span style="color:var(--txt3);font-family:var(--mono);font-size:0.66rem;">${arrow} was ${oldRank + 1}</span><span class="score">${fmt(d.crossScore)}</span></div>`;
+    h += `<div class="rerank-item ${moved}"><span class="rank">${newRank + 1}</span><span class="id">${d.id}</span><span style="color:var(--txt3);font-family:var(--mono);font-size:0.66rem;">${arrow} ${L('was','war')} ${oldRank + 1}</span><span class="score">${fmt(d.crossScore)}</span></div>`;
   });
   h += `</div>
 </div>`;
 
-  h += `<div class="info iac"><div class="il">Why re-ranking matters in practice</div>
-The bi-encoder has to decide "is this doc relevant?" without ever looking at the doc and query together. The cross-encoder can notice things like "the query asks about <em>causes</em> but this passage only lists <em>effects</em>" — a relational distinction that a single dot product cannot capture. Empirically, re-ranking typically improves NDCG@10 by <strong>5–15 percentage points</strong> over bi-encoder-only retrieval (Nogueira &amp; Cho 2019; Thakur et al. 2021).</div>`;
+  h += L(`<div class="info iac"><div class="il">Why re-ranking matters in practice</div>
+The bi-encoder has to decide "is this doc relevant?" without ever looking at the doc and query together. The cross-encoder can notice things like "the query asks about <em>causes</em> but this passage only lists <em>effects</em>" — a relational distinction that a single dot product cannot capture. Empirically, re-ranking typically improves NDCG@10 by <strong>5–15 percentage points</strong> over bi-encoder-only retrieval (Nogueira &amp; Cho 2019; Thakur et al. 2021).</div>`,`<div class="info iac"><div class="il">Warum Re-Ranking in der Praxis wichtig ist</div>
+Der Bi-Encoder muss „Ist dieses Dokument relevant?" entscheiden, ohne Dokument und Anfrage je zusammen zu sehen. Der Cross-Encoder kann Dinge bemerken wie „die Anfrage fragt nach <em>Ursachen</em>, aber diese Passage listet nur <em>Wirkungen</em>" — eine relationale Unterscheidung, die ein einzelnes Skalarprodukt nicht erfassen kann. Empirisch verbessert Re-Ranking NDCG@10 typischerweise um <strong>5–15 Prozentpunkte</strong> gegenüber reinem Bi-Encoder-Retrieval (Nogueira &amp; Cho 2019; Thakur et al. 2021).</div>`);
 
-  h += `<div class="info ig"><div class="il">Library analogy</div>
+  h += L(`<div class="info ig"><div class="il">Library analogy</div>
 <strong>Bi-encoder</strong> is like reading only the book titles on a shelf. You can scan thousands of books per minute, and you'll narrow a library down to 20 plausible candidates. But you'll sometimes miss a great book whose title doesn't match what you expected.<br><br>
 <strong>Cross-encoder</strong> is like actually opening each book and skimming it with your specific question in mind. Much slower — a minute per book — but now you can tell which ones <em>really</em> answer the question.<br><br>
-You wouldn't skim every book in the library, but skimming the 20 candidates the title-scan gave you? Perfectly manageable. That's retrieve-then-rerank in one sentence.</div>`;
+You wouldn't skim every book in the library, but skimming the 20 candidates the title-scan gave you? Perfectly manageable. That's retrieve-then-rerank in one sentence.</div>`,`<div class="info ig"><div class="il">Bibliotheks-Analogie</div>
+Der <strong>Bi-Encoder</strong> ist, als würde man nur die Buchtitel im Regal lesen. Man schafft Tausende Bücher pro Minute und grenzt eine Bibliothek auf 20 plausible Kandidaten ein. Aber manchmal übersieht man ein großartiges Buch, dessen Titel nicht zu dem passt, was man erwartet hat.<br><br>
+Der <strong>Cross-Encoder</strong> ist, als würde man jedes Buch tatsächlich aufschlagen und mit der konkreten Frage im Kopf überfliegen. Viel langsamer — eine Minute pro Buch — aber jetzt erkennt man, welche die Frage <em>wirklich</em> beantworten.<br><br>
+Man würde nicht jedes Buch der Bibliothek überfliegen, aber die 20 Kandidaten aus dem Titel-Scan? Gut machbar. Das ist Retrieve-then-Rerank in einem Satz.</div>`);
 
   return h;
 }},
 
 // ───────────────────── 9. AUGMENT PROMPT ─────────────────────
-{id: 'augment', title: 'Prompt Augmentation', group: 'Generation',
+{id: 'augment', get title(){return L('Prompt Augmentation','Prompt-Anreicherung');}, get group(){return L('Generation','Generierung');},
 render() {
   const {query, retrieved} = computeRetrieval();
-  let h = `<div class="stage-title">Step 7 · Augment the Prompt <span class="tag tst">AUGMENT</span></div>`;
-  h += `<p class="stage-desc">Now we assemble the final prompt. The retrieved chunks are concatenated into a <strong>context block</strong>, wrapped with system instructions that tell the LLM to answer <em>only based on the provided context</em>, and the user's query is appended at the end.</p>`;
+  let h = L(`<div class="stage-title">Step 7 · Augment the Prompt <span class="tag tst">AUGMENT</span></div>`,`<div class="stage-title">Schritt 7 · Den Prompt anreichern <span class="tag tst">AUGMENT</span></div>`);
+  h += L(`<p class="stage-desc">Now we assemble the final prompt. The retrieved chunks are concatenated into a <strong>context block</strong>, wrapped with system instructions that tell the LLM to answer <em>only based on the provided context</em>, and the user's query is appended at the end.</p>`,`<p class="stage-desc">Jetzt bauen wir den endgültigen Prompt zusammen. Die abgerufenen Chunks werden zu einem <strong>Kontextblock</strong> konkateniert, eingerahmt von Systemanweisungen, die dem LLM sagen, <em>nur auf Basis des bereitgestellten Kontexts</em> zu antworten, und die Nutzeranfrage wird am Ende angehängt.</p>`);
 
-  h += `<div class="info ist"><div class="il">The prompt template</div>
+  h += L(`<div class="info ist"><div class="il">The prompt template</div>
 Typically looks like:
 <div class="formula" style="margin:0.6rem 0;">[SYSTEM]&nbsp;<span class="cm">rules for the model</span><br>[CONTEXT]&nbsp;<span class="cm">retrieved chunks, numbered</span><br>[QUERY]&nbsp;<span class="cm">user question</span><br>[ANSWER]&nbsp;<span class="cm">← LLM completes from here</span></div>
-The exact wording varies but the structure is universal.</div>`;
+The exact wording varies but the structure is universal.</div>`,`<div class="info ist"><div class="il">Die Prompt-Vorlage</div>
+Sieht typischerweise so aus:
+<div class="formula" style="margin:0.6rem 0;">[SYSTEM]&nbsp;<span class="cm">Regeln für das Modell</span><br>[CONTEXT]&nbsp;<span class="cm">abgerufene Chunks, nummeriert</span><br>[QUERY]&nbsp;<span class="cm">Nutzerfrage</span><br>[ANSWER]&nbsp;<span class="cm">← ab hier vervollständigt das LLM</span></div>
+Die genaue Formulierung variiert, aber die Struktur ist universell.</div>`);
 
   // Build the actual prompt
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">The augmented prompt (what actually gets sent to the LLM)</h3>`;
-  let promptText = `<span class="label">System instructions</span><span class="sys">You are a helpful assistant. Answer the user's question using ONLY the provided context. If the answer is not in the context, say "I don't know." Cite sources by their doc_id.</span>
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">The augmented prompt (what actually gets sent to the LLM)</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Der angereicherte Prompt (was tatsächlich an das LLM geschickt wird)</h3>`);
+  let promptText = `<span class="label">${L('System instructions','Systemanweisungen')}</span><span class="sys">You are a helpful assistant. Answer the user's question using ONLY the provided context. If the answer is not in the context, say "I don't know." Cite sources by their doc_id.</span>
 
-<span class="label">Retrieved context (top-${TOP_K})</span>`;
+<span class="label">${L('Retrieved context','Abgerufener Kontext')} (top-${TOP_K})</span>`;
   retrieved.forEach((d, i) => {
     promptText += `\n<span class="ctx">[${d.id}] ${d.text}</span>`;
   });
-  promptText += `\n\n<span class="label">User query</span><span class="q">${query.text}</span>
+  promptText += `\n\n<span class="label">${L('User query','Nutzeranfrage')}</span><span class="q">${query.text}</span>
 
-<span class="label">Answer</span><span class="a">___</span>`;
+<span class="label">${L('Answer','Antwort')}</span><span class="a">___</span>`;
   h += `<div class="prompt-box">${promptText}</div>`;
 
-  h += `<div class="info iac"><div class="il">Why the explicit instructions?</div>
-Without the "use ONLY the provided context" clause, the LLM will happily blend its own memorized knowledge with the retrieved passages — defeating the grounding guarantee. Well-engineered RAG prompts are extremely firm about this: "if the answer is not in the context, say so." The stricter the instructions, the more auditable the system.</div>`;
+  h += L(`<div class="info iac"><div class="il">Why the explicit instructions?</div>
+Without the "use ONLY the provided context" clause, the LLM will happily blend its own memorized knowledge with the retrieved passages — defeating the grounding guarantee. Well-engineered RAG prompts are extremely firm about this: "if the answer is not in the context, say so." The stricter the instructions, the more auditable the system.</div>`,`<div class="info iac"><div class="il">Warum die expliziten Anweisungen?</div>
+Ohne die Klausel „NUR den bereitgestellten Kontext verwenden" vermischt das LLM munter sein eigenes auswendig gelerntes Wissen mit den abgerufenen Passagen — und die Fundierungsgarantie ist dahin. Gut gebaute RAG-Prompts sind hier extrem streng: „Wenn die Antwort nicht im Kontext steht, sag es." Je strenger die Anweisungen, desto überprüfbarer das System.</div>`);
 
-  h += `<div class="info ig"><div class="il">Context window budget</div>
+  h += L(`<div class="info ig"><div class="il">Context window budget</div>
 Every chunk in the context takes up tokens in the LLM's context window. For a 16k-token window:<br>
 • System prompt: ~200 tokens<br>
 • User query: ~50 tokens<br>
 • Room for context: ~15 000 tokens<br>
 • At 500 tokens/chunk, that's a hard ceiling of ~30 chunks per query.<br><br>
-In practice you want <em>far fewer</em> — 3 to 10 well-chosen chunks beat 30 mediocre ones, because the LLM's attention dilutes as context grows ("lost in the middle" effect).</div>`;
+In practice you want <em>far fewer</em> — 3 to 10 well-chosen chunks beat 30 mediocre ones, because the LLM's attention dilutes as context grows ("lost in the middle" effect).</div>`,`<div class="info ig"><div class="il">Budget des Kontextfensters</div>
+Jeder Chunk im Kontext belegt Token im Kontextfenster des LLM. Bei einem 16k-Token-Fenster:<br>
+• System-Prompt: ~200 Token<br>
+• Nutzeranfrage: ~50 Token<br>
+• Platz für Kontext: ~15 000 Token<br>
+• Bei 500 Token/Chunk ist das eine harte Obergrenze von ~30 Chunks pro Anfrage.<br><br>
+In der Praxis will man <em>viel weniger</em> — 3 bis 10 gut gewählte Chunks schlagen 30 mittelmäßige, weil die Aufmerksamkeit des LLM mit wachsendem Kontext verwässert („Lost in the middle"-Effekt).</div>`);
 
   return h;
 }},
 
 // ───────────────────── 10. GENERATION ─────────────────────
-{id: 'generation', title: 'Generation', group: 'Generation',
+{id: 'generation', get title(){return L('Generation','Generierung');}, get group(){return L('Generation','Generierung');},
 render() {
   const {query, retrieved} = computeRetrieval();
-  let h = `<div class="stage-title">Step 8 · LLM Generation <span class="tag tac">GENERATE</span></div>`;
-  h += `<p class="stage-desc">Finally, the augmented prompt is sent to a language model, which generates an answer conditioned on the retrieved context. Because the model sees specific factual passages, it can <strong>quote them, paraphrase them, and cite them</strong> — rather than pulling answers from its training memory.</p>`;
+  let h = L(`<div class="stage-title">Step 8 · LLM Generation <span class="tag tac">GENERATE</span></div>`,`<div class="stage-title">Schritt 8 · LLM-Generierung <span class="tag tac">GENERATE</span></div>`);
+  h += L(`<p class="stage-desc">Finally, the augmented prompt is sent to a language model, which generates an answer conditioned on the retrieved context. Because the model sees specific factual passages, it can <strong>quote them, paraphrase them, and cite them</strong> — rather than pulling answers from its training memory.</p>`,`<p class="stage-desc">Schließlich wird der angereicherte Prompt an ein Sprachmodell geschickt, das eine auf den abgerufenen Kontext bedingte Antwort generiert. Weil das Modell konkrete Faktenpassagen sieht, kann es sie <strong>zitieren, paraphrasieren und belegen</strong> — statt Antworten aus seinem Trainingsgedächtnis zu ziehen.</p>`);
 
-  h += `<div class="formula">answer = LLM( <span class="hl">augmented_prompt</span> )&nbsp;&nbsp;&nbsp;<span class="cm">// standard autoregressive generation</span></div>`;
+  h += `<div class="formula">answer = LLM( <span class="hl">augmented_prompt</span> )&nbsp;&nbsp;&nbsp;<span class="cm">// ${L('standard autoregressive generation','gewöhnliche autoregressive Generierung')}</span></div>`;
 
-  h += `<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">With retrieval vs without retrieval</h3>`;
-  h += `<p class="stage-desc">The same query, asked of the same LLM, with and without the retrieved context. Notice how RAG produces specific, grounded, citable answers, while the closed-book version either hedges or confabulates.</p>`;
+  h += L(`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">With retrieval vs without retrieval</h3>`,`<h3 style="margin-top:1rem;font-size:0.95rem;color:var(--txt);">Mit Retrieval vs. ohne Retrieval</h3>`);
+  h += L(`<p class="stage-desc">The same query, asked of the same LLM, with and without the retrieved context. Notice how RAG produces specific, grounded, citable answers, while the closed-book version either hedges or confabulates.</p>`,`<p class="stage-desc">Dieselbe Anfrage an dasselbe LLM, mit und ohne abgerufenen Kontext. Beachte, wie RAG konkrete, fundierte, belegbare Antworten liefert, während die Closed-Book-Version entweder ausweicht oder konfabuliert.</p>`);
 
   h += `<div class="answer-grid">
 <div class="answer-card bad">
-<div class="lbl">Without RAG · closed-book</div>
+<div class="lbl">${L('Without RAG · closed-book','Ohne RAG · Closed-Book')}</div>
 <div class="txt">${query.withoutRag}</div>
 </div>
 <div class="answer-card good">
-<div class="lbl">With RAG · grounded</div>
+<div class="lbl">${L('With RAG · grounded','Mit RAG · fundiert')}</div>
 <div class="txt">${query.withRag}</div>
 </div>
 </div>`;
 
-  h += `<div class="info iac"><div class="il">What makes a good RAG answer</div>
+  h += L(`<div class="info iac"><div class="il">What makes a good RAG answer</div>
 <strong>1. Faithful</strong> — every claim traces back to a retrieved passage, nothing invented.<br>
 <strong>2. Cited</strong> — each factual statement points to the chunk it came from.<br>
 <strong>3. Complete</strong> — uses all the relevant retrieved information, not just the first chunk.<br>
-<strong>4. Honest about gaps</strong> — if the context doesn't contain the answer, the model says so instead of filling in from memory.</div>`;
+<strong>4. Honest about gaps</strong> — if the context doesn't contain the answer, the model says so instead of filling in from memory.</div>`,`<div class="info iac"><div class="il">Was eine gute RAG-Antwort ausmacht</div>
+<strong>1. Treu</strong> — jede Aussage lässt sich auf eine abgerufene Passage zurückführen, nichts ist erfunden.<br>
+<strong>2. Belegt</strong> — jede Faktenaussage verweist auf den Chunk, aus dem sie stammt.<br>
+<strong>3. Vollständig</strong> — nutzt alle relevanten abgerufenen Informationen, nicht nur den ersten Chunk.<br>
+<strong>4. Ehrlich bei Lücken</strong> — enthält der Kontext die Antwort nicht, sagt das Modell das, statt aus dem Gedächtnis aufzufüllen.</div>`);
 
-  h += `<div class="info ig"><div class="il">The LLM is frozen too</div>
-Notice that in standard RAG, the LLM itself is never trained or fine-tuned. It's used as-is. All the "knowledge" lives in the vector database, and updating knowledge means updating the database — no retraining, no fine-tuning, no re-deployment of the model. This is RAG's biggest operational advantage: the model and the knowledge are decoupled.</div>`;
+  h += L(`<div class="info ig"><div class="il">The LLM is frozen too</div>
+Notice that in standard RAG, the LLM itself is never trained or fine-tuned. It's used as-is. All the "knowledge" lives in the vector database, and updating knowledge means updating the database — no retraining, no fine-tuning, no re-deployment of the model. This is RAG's biggest operational advantage: the model and the knowledge are decoupled.</div>`,`<div class="info ig"><div class="il">Auch das LLM ist eingefroren</div>
+Beachte, dass im Standard-RAG das LLM selbst nie trainiert oder feinjustiert wird. Es wird so verwendet, wie es ist. Das gesamte „Wissen" lebt in der Vektordatenbank, und Wissen zu aktualisieren heißt, die Datenbank zu aktualisieren — kein Neutraining, kein Fine-Tuning, kein erneutes Ausrollen des Modells. Das ist der größte operative Vorteil von RAG: Modell und Wissen sind entkoppelt.</div>`);
 
   // ── Temperature section ──
-  h += `<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">Where does temperature fit in?</h3>`;
-  h += `<p class="stage-desc">At the very end of this step, when the LLM actually generates tokens, the standard sampling hyperparameters apply — <code>temperature</code>, <code>top-k</code>, <code>top-p</code>. They operate on the <strong>final softmax over the vocabulary</strong>, exactly as in any non-RAG LLM. The retrieval pipeline has no influence on them and they have no influence on the retrieval pipeline.</p>`;
+  h += L(`<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">Where does temperature fit in?</h3>`,`<h3 style="margin-top:1.5rem;font-size:0.95rem;color:var(--txt);">Wo passt die Temperatur hinein?</h3>`);
+  h += L(`<p class="stage-desc">At the very end of this step, when the LLM actually generates tokens, the standard sampling hyperparameters apply — <code>temperature</code>, <code>top-k</code>, <code>top-p</code>. They operate on the <strong>final softmax over the vocabulary</strong>, exactly as in any non-RAG LLM. The retrieval pipeline has no influence on them and they have no influence on the retrieval pipeline.</p>`,`<p class="stage-desc">Ganz am Ende dieses Schritts, wenn das LLM tatsächlich Token erzeugt, gelten die üblichen Sampling-Hyperparameter — <code>temperature</code>, <code>top-k</code>, <code>top-p</code>. Sie wirken auf den <strong>finalen Softmax über das Vokabular</strong>, genau wie bei jedem LLM ohne RAG. Die Retrieval-Pipeline hat keinen Einfluss auf sie, und sie haben keinen Einfluss auf die Retrieval-Pipeline.</p>`);
 
-  h += `<div class="info ip"><div class="il">Temperature recap (from the GPT decoder simulator)</div>
+  h += L(`<div class="info ip"><div class="il">Temperature recap (from the GPT decoder simulator)</div>
 Temperature <code>T</code> divides the final logits before softmax:
 <div class="formula" style="margin:0.6rem 0;">P(next token) = softmax( logits / <span class="hl">T</span> )</div>
 <strong>T &lt; 1</strong> → sharper distribution, more deterministic output. Good for factual RAG answers where you want the model to commit to what the context says.<br>
 <strong>T = 1</strong> → the model's natural distribution.<br>
-<strong>T &gt; 1</strong> → flatter distribution, more creative/varied output. Rarely what you want in RAG — it can cause the model to wander away from the retrieved facts.</div>`;
+<strong>T &gt; 1</strong> → flatter distribution, more creative/varied output. Rarely what you want in RAG — it can cause the model to wander away from the retrieved facts.</div>`,`<div class="info ip"><div class="il">Temperatur-Rekapitulation (aus dem GPT-Decoder-Simulator)</div>
+Die Temperatur <code>T</code> teilt die finalen Logits vor dem Softmax:
+<div class="formula" style="margin:0.6rem 0;">P(next token) = softmax( logits / <span class="hl">T</span> )</div>
+<strong>T &lt; 1</strong> → schärfere Verteilung, deterministischere Ausgabe. Gut für faktische RAG-Antworten, bei denen sich das Modell auf das festlegen soll, was der Kontext sagt.<br>
+<strong>T = 1</strong> → die natürliche Verteilung des Modells.<br>
+<strong>T &gt; 1</strong> → flachere Verteilung, kreativere/variablere Ausgabe. In RAG selten gewünscht — das Modell kann sich von den abgerufenen Fakten entfernen.</div>`);
 
-  h += `<div class="info iac"><div class="il">Recommended temperature for RAG</div>
+  h += L(`<div class="info iac"><div class="il">Recommended temperature for RAG</div>
 Most production RAG systems set <strong>temperature = 0 to 0.3</strong>, deliberately pushing the model toward deterministic, committed answers:<br><br>
 <strong>Why low?</strong> You retrieved specific passages for a reason. You want the model to <em>use</em> those facts, not to improvise around them. High temperature makes the model more likely to paraphrase loosely, fill in gaps from memory, or pick a less-supported token — all of which weaken the grounding guarantee that RAG is supposed to provide.<br><br>
-<strong>Exception:</strong> if the task is generative rather than factual (e.g., "write a marketing blurb using these product specs"), a moderate temperature (0.5–0.7) can help produce varied phrasings while the retrieved context still anchors the content.</div>`;
+<strong>Exception:</strong> if the task is generative rather than factual (e.g., "write a marketing blurb using these product specs"), a moderate temperature (0.5–0.7) can help produce varied phrasings while the retrieved context still anchors the content.</div>`,`<div class="info iac"><div class="il">Empfohlene Temperatur für RAG</div>
+Die meisten produktiven RAG-Systeme setzen <strong>Temperatur = 0 bis 0,3</strong> und drängen das Modell bewusst zu deterministischen, festgelegten Antworten:<br><br>
+<strong>Warum niedrig?</strong> Man hat aus gutem Grund konkrete Passagen abgerufen. Das Modell soll diese Fakten <em>nutzen</em>, nicht um sie herum improvisieren. Eine hohe Temperatur macht es wahrscheinlicher, dass das Modell locker paraphrasiert, Lücken aus dem Gedächtnis füllt oder einen weniger gestützten Token wählt — all das schwächt die Fundierungsgarantie, die RAG eigentlich bieten soll.<br><br>
+<strong>Ausnahme:</strong> Ist die Aufgabe generativ statt faktisch (z. B. „schreibe einen Werbetext anhand dieser Produktdaten"), kann eine moderate Temperatur (0,5–0,7) helfen, abwechslungsreiche Formulierungen zu erzeugen, während der abgerufene Kontext den Inhalt weiterhin verankert.</div>`);
 
   // Pipeline diagram showing where temperature lives
   h += `<div class="arch-wrap">
@@ -1261,14 +1391,14 @@ Most production RAG systems set <strong>temperature = 0 to 0.3</strong>, deliber
 
   <!-- Augmented prompt -->
   <rect x="20" y="60" width="140" height="50" rx="8" fill="#57534e22" stroke="#57534e" stroke-width="2"/>
-  <text x="90" y="82" text-anchor="middle" font-size="11" fill="#57534e" font-weight="700">Augmented prompt</text>
+  <text x="90" y="82" text-anchor="middle" font-size="11" fill="#57534e" ${L('font-weight="700">Augmented prompt</text>','font-weight="700">Angereicherter Prompt</text>')}
   <text x="90" y="98" text-anchor="middle" font-size="9" fill="#57534e" font-family="DM Mono, monospace">sys + ctx + query</text>
 
   <line x1="160" y1="85" x2="200" y2="85" stroke="#8b8778" stroke-width="2" marker-end="url(#arrT2)"/>
 
   <!-- LLM forward -->
   <rect x="200" y="60" width="130" height="50" rx="8" fill="#16653428" stroke="#166534" stroke-width="2"/>
-  <text x="265" y="82" text-anchor="middle" font-size="11" fill="#166534" font-weight="700">LLM forward pass</text>
+  <text x="265" y="82" text-anchor="middle" font-size="11" fill="#166534" ${L('font-weight="700">LLM forward pass</text>','font-weight="700">LLM-Forward-Pass</text>')}
   <text x="265" y="98" text-anchor="middle" font-size="9" fill="#57534e" font-family="DM Mono, monospace">attention, FFN, ...</text>
 
   <line x1="330" y1="85" x2="370" y2="85" stroke="#8b8778" stroke-width="2" marker-end="url(#arrT2)"/>
@@ -1283,30 +1413,30 @@ Most production RAG systems set <strong>temperature = 0 to 0.3</strong>, deliber
 
   <!-- Softmax + sample -->
   <rect x="510" y="60" width="130" height="50" rx="8" fill="#7e22ce28" stroke="#7e22ce" stroke-width="2"/>
-  <text x="575" y="82" text-anchor="middle" font-size="11" fill="#7e22ce" font-weight="700">Softmax → sample</text>
+  <text x="575" y="82" text-anchor="middle" font-size="11" fill="#7e22ce" ${L('font-weight="700">Softmax → sample</text>','font-weight="700">Softmax → Sampling</text>')}
   <text x="575" y="98" text-anchor="middle" font-size="9" fill="#57534e" font-family="DM Mono, monospace">top-k, top-p</text>
 
   <!-- RAG scope bracket (left) -->
   <line x1="20" y1="140" x2="330" y2="140" stroke="#c2410c" stroke-width="2"/>
   <line x1="20" y1="140" x2="20" y2="130" stroke="#c2410c" stroke-width="2"/>
   <line x1="330" y1="140" x2="330" y2="130" stroke="#c2410c" stroke-width="2"/>
-  <text x="175" y="158" text-anchor="middle" font-size="10" fill="#c2410c" font-weight="600">RAG pipeline (retrieval + prompt)</text>
+  <text x="175" y="158" text-anchor="middle" font-size="10" fill="#c2410c" ${L('font-weight="600">RAG pipeline (retrieval + prompt)</text>','font-weight="600">RAG-Pipeline (Retrieval + Prompt)</text>')}
 
   <!-- Sampling scope bracket (right) -->
   <line x1="370" y1="140" x2="640" y2="140" stroke="#7e22ce" stroke-width="2"/>
   <line x1="370" y1="140" x2="370" y2="130" stroke="#7e22ce" stroke-width="2"/>
   <line x1="640" y1="140" x2="640" y2="130" stroke="#7e22ce" stroke-width="2"/>
-  <text x="505" y="158" text-anchor="middle" font-size="10" fill="#7e22ce" font-weight="600">Sampling (temperature, top-k, top-p)</text>
+  <text x="505" y="158" text-anchor="middle" font-size="10" fill="#7e22ce" ${L('font-weight="600">Sampling (temperature, top-k, top-p)</text>','font-weight="600">Sampling (Temperatur, top-k, top-p)</text>')}
 
   <!-- Title -->
-  <text x="330" y="25" text-anchor="middle" font-size="12" fill="#1c1a15" font-weight="700">Two independent stages</text>
-  <text x="330" y="42" text-anchor="middle" font-size="10" fill="#57534e" font-style="italic">RAG controls what goes in; sampling controls how tokens come out</text>
+  <text x="330" y="25" text-anchor="middle" font-size="12" fill="#1c1a15" ${L('font-weight="700">Two independent stages</text>','font-weight="700">Zwei unabhängige Stufen</text>')}
+  <text x="330" y="42" text-anchor="middle" font-size="10" fill="#57534e" ${L('font-style="italic">RAG controls what goes in; sampling controls how tokens come out</text>','font-style="italic">RAG steuert, was hineingeht; Sampling steuert, wie Token herauskommen</text>')}
 </svg>
 </div>`;
 
   // Cheat sheet — which knob lives where
-  h += `<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Parameter cheat sheet · which knob lives where</h3>`;
-  h += `<div class="glossary"><table>
+  h += L(`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Parameter cheat sheet · which knob lives where</h3>`,`<h3 style="margin-top:1.2rem;font-size:0.95rem;color:var(--txt);">Parameter-Spickzettel · welcher Regler wo sitzt</h3>`);
+  h += L(`<div class="glossary"><table>
 <tr><th>Parameter</th><th>Stage</th><th>What it controls</th></tr>
 <tr><td class="sym" style="color:var(--rust);">chunk size, overlap</td><td class="val">Indexing</td><td><strong>How the corpus is split.</strong> Decided once when building the vector database. Affects what the retriever can see.</td></tr>
 <tr><td class="sym" style="color:var(--rust);">embedding model</td><td class="val">Indexing</td><td><strong>The vector representation</strong> of chunks and queries. Must be consistent on both sides.</td></tr>
@@ -1316,176 +1446,221 @@ Most production RAG systems set <strong>temperature = 0 to 0.3</strong>, deliber
 <tr><td class="sym" style="color:var(--purple);">temperature (T)</td><td class="val">Sampling</td><td><strong>Shape of the token distribution.</strong> Applied at the very end, after the LLM has already processed the retrieved context. <strong>Recommended: 0–0.3 for factual RAG.</strong></td></tr>
 <tr><td class="sym" style="color:var(--purple);">top-k (sampling)</td><td class="val">Sampling</td><td><strong>Truncate to top-k tokens</strong> before sampling. Note: this is a <em>different</em> top-k from the retrieval one — same name, completely different stage!</td></tr>
 <tr><td class="sym" style="color:var(--purple);">top-p (nucleus)</td><td class="val">Sampling</td><td><strong>Truncate to smallest set</strong> whose cumulative probability exceeds p, then sample.</td></tr>
-</table></div>`;
+</table></div>`,`<div class="glossary"><table>
+<tr><th>Parameter</th><th>Stufe</th><th>Was er steuert</th></tr>
+<tr><td class="sym" style="color:var(--rust);">Chunk-Größe, Überlappung</td><td class="val">Indexierung</td><td><strong>Wie der Korpus zerlegt wird.</strong> Einmal beim Aufbau der Vektordatenbank entschieden. Bestimmt, was der Retriever sehen kann.</td></tr>
+<tr><td class="sym" style="color:var(--rust);">Embedding-Modell</td><td class="val">Indexierung</td><td><strong>Die Vektorrepräsentation</strong> von Chunks und Anfragen. Muss auf beiden Seiten konsistent sein.</td></tr>
+<tr><td class="sym" style="color:var(--acc);">top-k (Retrieval)</td><td class="val">Retrieval</td><td><strong>Wie viele Chunks</strong> aus der Vektordatenbank geholt und in den Kontext gelegt werden. Der Regler im Header.</td></tr>
+<tr><td class="sym" style="color:var(--acc);">Ähnlichkeitsmaß</td><td class="val">Retrieval</td><td>Meist Kosinus-Ähnlichkeit. Könnte auch Skalarprodukt oder euklidischer Abstand sein.</td></tr>
+<tr><td class="sym" style="color:var(--stone);">System-Prompt</td><td class="val">Prompting</td><td><strong>Anweisungen an das LLM</strong>, wie der Kontext zu nutzen ist („nur aus dem Kontext antworten", „Quellen belegen" usw.).</td></tr>
+<tr><td class="sym" style="color:var(--purple);">Temperatur (T)</td><td class="val">Sampling</td><td><strong>Form der Token-Verteilung.</strong> Ganz am Ende angewendet, nachdem das LLM den abgerufenen Kontext bereits verarbeitet hat. <strong>Empfohlen: 0–0,3 für faktisches RAG.</strong></td></tr>
+<tr><td class="sym" style="color:var(--purple);">top-k (Sampling)</td><td class="val">Sampling</td><td><strong>Auf die Top-k-Token beschneiden</strong>, bevor gesampelt wird. Achtung: Das ist ein <em>anderes</em> top-k als beim Retrieval — gleicher Name, völlig andere Stufe!</td></tr>
+<tr><td class="sym" style="color:var(--purple);">top-p (Nucleus)</td><td class="val">Sampling</td><td><strong>Auf die kleinste Menge beschneiden</strong>, deren kumulierte Wahrscheinlichkeit p überschreitet, dann samplen.</td></tr>
+</table></div>`);
 
-  h += `<div class="info ird"><div class="il">Watch out: two different top-k's!</div>
+  h += L(`<div class="info ird"><div class="il">Watch out: two different top-k's!</div>
 <strong>Retrieval top-k</strong> (rust, header slider) = how many chunks to fetch from the vector database.<br>
 <strong>Sampling top-k</strong> (purple, an LLM generation parameter) = how many vocabulary tokens to consider at each generation step.<br><br>
-Both are called "top-k" but they operate at completely different stages. In production systems you'd configure them separately — e.g., retrieval top-k = 5, sampling top-k = 50, temperature = 0.2.</div>`;
+Both are called "top-k" but they operate at completely different stages. In production systems you'd configure them separately — e.g., retrieval top-k = 5, sampling top-k = 50, temperature = 0.2.</div>`,`<div class="info ird"><div class="il">Vorsicht: zwei verschiedene top-k!</div>
+<strong>Retrieval-top-k</strong> (rostrot, Regler im Header) = wie viele Chunks aus der Vektordatenbank geholt werden.<br>
+<strong>Sampling-top-k</strong> (lila, ein Generierungsparameter des LLM) = wie viele Vokabular-Token bei jedem Generierungsschritt berücksichtigt werden.<br><br>
+Beide heißen „top-k", wirken aber auf völlig verschiedenen Stufen. In produktiven Systemen konfiguriert man sie getrennt — z. B. Retrieval-top-k = 5, Sampling-top-k = 50, Temperatur = 0,2.</div>`);
 
   return h;
 }},
 
 // ───────────────────── 11. FAILURE MODES ─────────────────────
-{id: 'failures', title: 'Failure Modes', group: 'Deep Dive',
+{id: 'failures', get title(){return L('Failure Modes','Fehlerbilder');}, get group(){return L('Deep Dive','Vertiefung');},
 render() {
-  let h = `<div class="stage-title">Failure Modes & How to Fix Them <span class="tag trd">PITFALLS</span></div>`;
-  h += `<p class="stage-desc">RAG systems fail in predictable ways. Understanding these failure modes is key to building a reliable system.</p>`;
+  let h = L(`<div class="stage-title">Failure Modes & How to Fix Them <span class="tag trd">PITFALLS</span></div>`,`<div class="stage-title">Fehlerbilder & wie man sie behebt <span class="tag trd">FALLSTRICKE</span></div>`);
+  h += L(`<p class="stage-desc">RAG systems fail in predictable ways. Understanding these failure modes is key to building a reliable system.</p>`,`<p class="stage-desc">RAG-Systeme scheitern auf vorhersehbare Weise. Diese Fehlerbilder zu verstehen, ist der Schlüssel zu einem zuverlässigen System.</p>`);
 
-  h += `<div class="info ird"><div class="il">1 · Retrieval miss — the right chunk is never fetched</div>
+  h += L(`<div class="info ird"><div class="il">1 · Retrieval miss — the right chunk is never fetched</div>
 <strong>Symptom:</strong> The correct passage exists in the corpus but doesn't make it into the top-k for a reasonable query.<br>
 <strong>Causes:</strong> Poor embedding model, wrong chunk size, vocabulary mismatch between query and corpus, overly aggressive filtering.<br>
-<strong>Fixes:</strong> Swap in a stronger embedding model, use <strong>hybrid search</strong> (combine dense + BM25 keyword search), apply <strong>query rewriting</strong> (have the LLM rephrase the query first), try HyDE [6].</div>`;
+<strong>Fixes:</strong> Swap in a stronger embedding model, use <strong>hybrid search</strong> (combine dense + BM25 keyword search), apply <strong>query rewriting</strong> (have the LLM rephrase the query first), try HyDE [6].</div>`,`<div class="info ird"><div class="il">1 · Retrieval-Fehlschlag — der richtige Chunk wird nie geholt</div>
+<strong>Symptom:</strong> Die richtige Passage existiert im Korpus, schafft es aber bei einer vernünftigen Anfrage nicht in die Top-k.<br>
+<strong>Ursachen:</strong> Schwaches Embedding-Modell, falsche Chunk-Größe, Vokabular-Mismatch zwischen Anfrage und Korpus, zu aggressive Filterung.<br>
+<strong>Abhilfen:</strong> Ein stärkeres Embedding-Modell einsetzen, <strong>hybride Suche</strong> nutzen (dense + BM25-Schlüsselwortsuche kombinieren), <strong>Query-Rewriting</strong> anwenden (das LLM die Anfrage zuerst umformulieren lassen), HyDE [6] ausprobieren.</div>`);
 
-  h += `<div class="info ird"><div class="il">2 · "Lost in the middle"</div>
+  h += L(`<div class="info ird"><div class="il">2 · "Lost in the middle"</div>
 <strong>Symptom:</strong> The relevant chunk is retrieved and placed in the context, but the LLM ignores it and answers from memory anyway.<br>
 <strong>Cause:</strong> Liu et al. (2023) showed that LLMs systematically under-attend to the middle of long contexts — the beginning and end dominate.<br>
-<strong>Fixes:</strong> Keep context short (fewer, better chunks), put the most important chunk <em>first</em>, use a cross-encoder re-ranker so the top-1 is really the most relevant.</div>`;
+<strong>Fixes:</strong> Keep context short (fewer, better chunks), put the most important chunk <em>first</em>, use a cross-encoder re-ranker so the top-1 is really the most relevant.</div>`,`<div class="info ird"><div class="il">2 · „Lost in the middle"</div>
+<strong>Symptom:</strong> Der relevante Chunk wird abgerufen und in den Kontext gelegt, aber das LLM ignoriert ihn und antwortet trotzdem aus dem Gedächtnis.<br>
+<strong>Ursache:</strong> Liu et al. (2023) zeigten, dass LLMs die Mitte langer Kontexte systematisch zu wenig beachten — Anfang und Ende dominieren.<br>
+<strong>Abhilfen:</strong> Kontext kurz halten (weniger, bessere Chunks), den wichtigsten Chunk <em>zuerst</em> platzieren, einen Cross-Encoder-Re-Ranker nutzen, damit der Top-1 wirklich der relevanteste ist.</div>`);
 
-  h += `<div class="info ird"><div class="il">3 · Context poisoning</div>
+  h += L(`<div class="info ird"><div class="il">3 · Context poisoning</div>
 <strong>Symptom:</strong> The retriever returns a chunk that is topically related but <em>factually wrong</em> or <em>contradicts</em> other retrieved chunks. The LLM may pick the wrong one.<br>
 <strong>Causes:</strong> Corpus contains outdated or conflicting sources; the similarity metric can't distinguish "correct" from "plausible."<br>
-<strong>Fixes:</strong> Add metadata filters (freshness, authority), use re-ranking with quality signals, have the LLM explicitly reason about conflicts in the context.</div>`;
+<strong>Fixes:</strong> Add metadata filters (freshness, authority), use re-ranking with quality signals, have the LLM explicitly reason about conflicts in the context.</div>`,`<div class="info ird"><div class="il">3 · Kontextvergiftung</div>
+<strong>Symptom:</strong> Der Retriever liefert einen Chunk, der thematisch passt, aber <em>faktisch falsch</em> ist oder anderen abgerufenen Chunks <em>widerspricht</em>. Das LLM wählt womöglich den falschen.<br>
+<strong>Ursachen:</strong> Der Korpus enthält veraltete oder widersprüchliche Quellen; das Ähnlichkeitsmaß kann „richtig" nicht von „plausibel" unterscheiden.<br>
+<strong>Abhilfen:</strong> Metadaten-Filter hinzufügen (Aktualität, Autorität), Re-Ranking mit Qualitätssignalen nutzen, das LLM explizit über Widersprüche im Kontext nachdenken lassen.</div>`);
 
-  h += `<div class="info ird"><div class="il">4 · Chunk fragmentation</div>
+  h += L(`<div class="info ird"><div class="il">4 · Chunk fragmentation</div>
 <strong>Symptom:</strong> A fact is split across two chunks — the chunk boundary cuts through the middle of a key sentence — so neither chunk alone contains the answer.<br>
-<strong>Fix:</strong> Use overlapping chunks (10–20% overlap) so straddling facts appear in both. Or use structure-aware chunking.</div>`;
+<strong>Fix:</strong> Use overlapping chunks (10–20% overlap) so straddling facts appear in both. Or use structure-aware chunking.</div>`,`<div class="info ird"><div class="il">4 · Chunk-Fragmentierung</div>
+<strong>Symptom:</strong> Ein Fakt ist auf zwei Chunks verteilt — die Chunk-Grenze schneidet mitten durch einen Schlüsselsatz —, sodass kein Chunk allein die Antwort enthält.<br>
+<strong>Abhilfe:</strong> Überlappende Chunks nutzen (10–20 % Überlappung), damit Fakten an der Grenze in beiden vorkommen. Oder strukturbewusstes Chunking.</div>`);
 
-  h += `<div class="info ird"><div class="il">5 · Prompt leakage — model answers from its own memory anyway</div>
+  h += L(`<div class="info ird"><div class="il">5 · Prompt leakage — model answers from its own memory anyway</div>
 <strong>Symptom:</strong> The LLM confidently answers even when the retrieved context doesn't support the answer.<br>
-<strong>Fix:</strong> Strict system prompts ("use ONLY the provided context"), and evaluation datasets that specifically test "I don't know" behavior. Models like Claude are generally good at this; some base models need heavy prompting.</div>`;
+<strong>Fix:</strong> Strict system prompts ("use ONLY the provided context"), and evaluation datasets that specifically test "I don't know" behavior. Models like Claude are generally good at this; some base models need heavy prompting.</div>`,`<div class="info ird"><div class="il">5 · Prompt-Leckage — das Modell antwortet trotzdem aus dem eigenen Gedächtnis</div>
+<strong>Symptom:</strong> Das LLM antwortet selbstbewusst, obwohl der abgerufene Kontext die Antwort nicht stützt.<br>
+<strong>Abhilfe:</strong> Strenge System-Prompts („NUR den bereitgestellten Kontext verwenden") und Evaluationsdatensätze, die gezielt das „Ich weiß es nicht"-Verhalten testen. Modelle wie Claude sind darin meist gut; manche Basismodelle brauchen viel Prompting.</div>`);
 
-  h += `<div class="info iac"><div class="il">Evaluation matters</div>
+  h += L(`<div class="info iac"><div class="il">Evaluation matters</div>
 RAG systems need different metrics than either pure retrieval or pure generation:<br>
 • <strong>Retrieval metrics:</strong> recall@k, precision@k (did we get the right chunk?)<br>
 • <strong>Faithfulness:</strong> does the answer match the retrieved context? (RAGAS, TruLens)<br>
 • <strong>Answer relevance:</strong> does the answer actually address the question?<br>
 • <strong>Context relevance:</strong> did we retrieve too much irrelevant stuff?<br><br>
-Tools like <strong>RAGAS</strong>, <strong>TruLens</strong>, and <strong>DeepEval</strong> automate these evaluations.</div>`;
+Tools like <strong>RAGAS</strong>, <strong>TruLens</strong>, and <strong>DeepEval</strong> automate these evaluations.</div>`,`<div class="info iac"><div class="il">Evaluation ist wichtig</div>
+RAG-Systeme brauchen andere Metriken als reines Retrieval oder reine Generierung:<br>
+• <strong>Retrieval-Metriken:</strong> recall@k, precision@k (haben wir den richtigen Chunk erwischt?)<br>
+• <strong>Treue (Faithfulness):</strong> Passt die Antwort zum abgerufenen Kontext? (RAGAS, TruLens)<br>
+• <strong>Antwort-Relevanz:</strong> Geht die Antwort wirklich auf die Frage ein?<br>
+• <strong>Kontext-Relevanz:</strong> Haben wir zu viel Irrelevantes abgerufen?<br><br>
+Tools wie <strong>RAGAS</strong>, <strong>TruLens</strong> und <strong>DeepEval</strong> automatisieren diese Evaluationen.</div>`);
 
   return h;
 }},
 
 // ───────────────────── 12. VARIANTS ─────────────────────
-{id: 'variants', title: 'Advanced Variants', group: 'Deep Dive',
+{id: 'variants', get title(){return L('Advanced Variants','Fortgeschrittene Varianten');}, get group(){return L('Deep Dive','Vertiefung');},
 render() {
-  let h = `<div class="stage-title">Advanced RAG Variants <span class="tag tp">ADVANCED</span></div>`;
-  h += `<p class="stage-desc">The basic "embed → retrieve → stuff → generate" pipeline is now called "naive RAG". Over the past few years the field has developed many refinements. Gao et al. 2024 [8] is a good survey.</p>`;
+  let h = L(`<div class="stage-title">Advanced RAG Variants <span class="tag tp">ADVANCED</span></div>`,`<div class="stage-title">Fortgeschrittene RAG-Varianten <span class="tag tp">FORTGESCHRITTEN</span></div>`);
+  h += L(`<p class="stage-desc">The basic "embed → retrieve → stuff → generate" pipeline is now called "naive RAG". Over the past few years the field has developed many refinements. Gao et al. 2024 [8] is a good survey.</p>`,`<p class="stage-desc">Die einfache Pipeline „einbetten → abrufen → hineinpacken → generieren" heißt inzwischen „Naive RAG". In den letzten Jahren hat das Feld viele Verfeinerungen entwickelt. Gao et al. 2024 [8] ist ein guter Überblick.</p>`);
 
-  h += `<div class="info ip"><div class="il">Query rewriting</div>
-Before embedding, pass the user's raw query through an LLM that rewrites it into one or more better search queries. For example: "what did they say about the bug yesterday?" → "error log timestamp 2025-11-19 authentication failure". Handles conversational, underspecified, or ambiguous inputs.</div>`;
+  h += L(`<div class="info ip"><div class="il">Query rewriting</div>
+Before embedding, pass the user's raw query through an LLM that rewrites it into one or more better search queries. For example: "what did they say about the bug yesterday?" → "error log timestamp 2025-11-19 authentication failure". Handles conversational, underspecified, or ambiguous inputs.</div>`,`<div class="info ip"><div class="il">Query-Rewriting</div>
+Vor dem Einbetten wird die rohe Nutzeranfrage durch ein LLM geschickt, das sie in eine oder mehrere bessere Suchanfragen umschreibt. Zum Beispiel: „what did they say about the bug yesterday?" → „error log timestamp 2025-11-19 authentication failure". Bewältigt konversationelle, unterspezifizierte oder mehrdeutige Eingaben.</div>`);
 
-  h += `<div class="info ip"><div class="il">HyDE · Hypothetical Document Embeddings [6]</div>
-Ask the LLM to write a fake answer to the query first, embed that fake answer, and retrieve against it. The fake answer lives closer in vector space to real answers than the question does — queries and answers often have different vocabularies.</div>`;
+  h += L(`<div class="info ip"><div class="il">HyDE · Hypothetical Document Embeddings [6]</div>
+Ask the LLM to write a fake answer to the query first, embed that fake answer, and retrieve against it. The fake answer lives closer in vector space to real answers than the question does — queries and answers often have different vocabularies.</div>`,`<div class="info ip"><div class="il">HyDE · Hypothetical Document Embeddings [6]</div>
+Das LLM schreibt zuerst eine fiktive Antwort auf die Anfrage, diese wird eingebettet, und dagegen wird abgerufen. Die fiktive Antwort liegt im Vektorraum näher an echten Antworten als die Frage — Anfragen und Antworten haben oft unterschiedliche Vokabulare.</div>`);
 
-  h += `<div class="info ip"><div class="il">Hybrid search</div>
-Combine dense (embedding-based) retrieval with sparse (BM25 keyword) retrieval. Dense search catches semantic matches; sparse search catches exact terms and rare proper nouns. Scores are fused (e.g., <strong>reciprocal rank fusion</strong>). This is the practical default for production systems.</div>`;
+  h += L(`<div class="info ip"><div class="il">Hybrid search</div>
+Combine dense (embedding-based) retrieval with sparse (BM25 keyword) retrieval. Dense search catches semantic matches; sparse search catches exact terms and rare proper nouns. Scores are fused (e.g., <strong>reciprocal rank fusion</strong>). This is the practical default for production systems.</div>`,`<div class="info ip"><div class="il">Hybride Suche</div>
+Dichtes (embedding-basiertes) Retrieval mit spärlichem (BM25-Schlüsselwort-)Retrieval kombinieren. Die dichte Suche erfasst semantische Treffer; die spärliche Suche erfasst exakte Begriffe und seltene Eigennamen. Die Scores werden fusioniert (z. B. <strong>Reciprocal Rank Fusion</strong>). Das ist der praktische Standard für produktive Systeme.</div>`);
 
-  h += `<div class="info ip"><div class="il">Re-ranking</div>
-After retrieving top-100 cheaply, re-score them with a slow but accurate <strong>cross-encoder</strong> and keep top-5. Adds ~100ms of latency but dramatically improves the quality of what actually reaches the LLM.</div>`;
+  h += L(`<div class="info ip"><div class="il">Re-ranking</div>
+After retrieving top-100 cheaply, re-score them with a slow but accurate <strong>cross-encoder</strong> and keep top-5. Adds ~100ms of latency but dramatically improves the quality of what actually reaches the LLM.</div>`,`<div class="info ip"><div class="il">Re-Ranking</div>
+Nach dem billigen Abruf der Top-100 werden diese mit einem langsamen, aber genauen <strong>Cross-Encoder</strong> neu bewertet und die Top-5 behalten. Kostet ~100 ms Latenz, verbessert aber die Qualität dessen, was tatsächlich beim LLM ankommt, dramatisch.</div>`);
 
-  h += `<div class="info ip"><div class="il">Multi-hop / agentic RAG</div>
-For questions that need chained reasoning ("What is the capital of the country where Marie Curie was born?"), a single retrieval is not enough. An LLM agent issues multiple retrievals, reasons over intermediate results, and composes a final answer. Frameworks like <strong>LangGraph</strong>, <strong>DSPy</strong>, and <strong>LlamaIndex Agents</strong> implement this.</div>`;
+  h += L(`<div class="info ip"><div class="il">Multi-hop / agentic RAG</div>
+For questions that need chained reasoning ("What is the capital of the country where Marie Curie was born?"), a single retrieval is not enough. An LLM agent issues multiple retrievals, reasons over intermediate results, and composes a final answer. Frameworks like <strong>LangGraph</strong>, <strong>DSPy</strong>, and <strong>LlamaIndex Agents</strong> implement this.</div>`,`<div class="info ip"><div class="il">Multi-Hop- / agentisches RAG</div>
+Für Fragen, die verkettetes Schließen brauchen („Was ist die Hauptstadt des Landes, in dem Marie Curie geboren wurde?"), reicht ein einzelnes Retrieval nicht. Ein LLM-Agent setzt mehrere Abrufe ab, schließt über Zwischenergebnisse und setzt eine endgültige Antwort zusammen. Frameworks wie <strong>LangGraph</strong>, <strong>DSPy</strong> und <strong>LlamaIndex Agents</strong> setzen das um.</div>`);
 
-  h += `<div class="info ip"><div class="il">GraphRAG</div>
-Instead of (or alongside) a vector database, extract entities and relationships from the corpus into a knowledge graph. Retrieve by traversing the graph. Microsoft's GraphRAG paper showed strong results on global-summarization queries where vector search struggles.</div>`;
+  h += L(`<div class="info ip"><div class="il">GraphRAG</div>
+Instead of (or alongside) a vector database, extract entities and relationships from the corpus into a knowledge graph. Retrieve by traversing the graph. Microsoft's GraphRAG paper showed strong results on global-summarization queries where vector search struggles.</div>`,`<div class="info ip"><div class="il">GraphRAG</div>
+Statt (oder neben) einer Vektordatenbank werden Entitäten und Beziehungen aus dem Korpus in einen Wissensgraphen extrahiert. Abgerufen wird durch Traversieren des Graphen. Microsofts GraphRAG-Paper zeigte starke Ergebnisse bei globalen Zusammenfassungsanfragen, an denen die Vektorsuche scheitert.</div>`);
 
-  h += `<div class="info ip"><div class="il">Self-RAG / Corrective RAG</div>
-The LLM can emit special tokens telling the system to retrieve more, to discard the current retrieval, or to flag low-confidence answers. The retrieval becomes a learned decision rather than a fixed pipeline stage.</div>`;
+  h += L(`<div class="info ip"><div class="il">Self-RAG / Corrective RAG</div>
+The LLM can emit special tokens telling the system to retrieve more, to discard the current retrieval, or to flag low-confidence answers. The retrieval becomes a learned decision rather than a fixed pipeline stage.</div>`,`<div class="info ip"><div class="il">Self-RAG / Corrective RAG</div>
+Das LLM kann spezielle Token ausgeben, die dem System sagen, mehr abzurufen, den aktuellen Abruf zu verwerfen oder Antworten mit geringer Konfidenz zu markieren. Das Retrieval wird zu einer gelernten Entscheidung statt einer festen Pipeline-Stufe.</div>`);
 
-  h += `<div class="info iac"><div class="il">Long-context LLMs vs RAG · complementary, not competitive</div>
+  h += L(`<div class="info iac"><div class="il">Long-context LLMs vs RAG · complementary, not competitive</div>
 A frequent question: "Now that LLMs have 1M-token context windows, do we still need RAG?" Yes. Long-context helps, but RAG still wins on:<br>
 <strong>1. Cost</strong> — sending 1M tokens per query is ~1000× more expensive than retrieving and sending 10k.<br>
 <strong>2. Latency</strong> — long-context forward passes are slow; retrieval + short context is faster.<br>
 <strong>3. Freshness</strong> — the corpus can update independently of the model.<br>
 <strong>4. Auditability</strong> — citing specific retrieved chunks is cleaner than "somewhere in the 1M tokens I fed you".<br>
-<strong>5. Accuracy</strong> — even with long contexts, LLMs exhibit "lost in the middle". Focused context beats sprawling context.</div>`;
+<strong>5. Accuracy</strong> — even with long contexts, LLMs exhibit "lost in the middle". Focused context beats sprawling context.</div>`,`<div class="info iac"><div class="il">Long-Context-LLMs vs. RAG · ergänzend, nicht konkurrierend</div>
+Eine häufige Frage: „Jetzt, wo LLMs Kontextfenster von 1 Mio. Token haben, brauchen wir RAG überhaupt noch?" Ja. Langer Kontext hilft, aber RAG gewinnt weiterhin bei:<br>
+<strong>1. Kosten</strong> — 1 Mio. Token pro Anfrage zu senden ist ~1000× teurer als 10k abzurufen und zu senden.<br>
+<strong>2. Latenz</strong> — Forward-Passes über langen Kontext sind langsam; Retrieval + kurzer Kontext ist schneller.<br>
+<strong>3. Aktualität</strong> — der Korpus kann sich unabhängig vom Modell aktualisieren.<br>
+<strong>4. Überprüfbarkeit</strong> — konkrete abgerufene Chunks zu zitieren ist sauberer als „irgendwo in der Million Token, die ich dir gegeben habe".<br>
+<strong>5. Genauigkeit</strong> — auch bei langem Kontext zeigen LLMs „Lost in the middle". Fokussierter Kontext schlägt ausufernden Kontext.</div>`);
 
   return h;
 }},
 
 // ───────────────────── 13. QUIZ ─────────────────────
-{id: 'quiz', title: 'Quiz', group: 'Quiz',
+{id: 'quiz', get title(){return L('Quiz','Quiz');}, get group(){return L('Quiz','Quiz');},
 render() {
-  let h = `<div class="stage-title">Test Your Understanding <span class="tag tg">QUIZ</span></div>`;
-  h += `<p class="stage-desc">Seven questions covering the RAG pipeline end to end.</p>`;
+  let h = L(`<div class="stage-title">Test Your Understanding <span class="tag tg">QUIZ</span></div>`,`<div class="stage-title">Teste dein Verständnis <span class="tag tg">QUIZ</span></div>`);
+  h += L(`<p class="stage-desc">Seven questions covering the RAG pipeline end to end.</p>`,`<p class="stage-desc">Sieben Fragen, die die RAG-Pipeline von Anfang bis Ende abdecken.</p>`);
 
   const questions = [
     {
-      q: "What problem does RAG primarily solve?",
+      q: L("What problem does RAG primarily solve?","Welches Problem löst RAG in erster Linie?"),
       opts: [
-        {t: "It makes the LLM faster at inference", ok: false},
-        {t: "It grounds LLM outputs in retrieved source documents, addressing hallucination, knowledge cutoff, and lack of traceability", ok: true},
-        {t: "It reduces the number of parameters in the LLM", ok: false},
-        {t: "It replaces the need for any LLM", ok: false},
+        {t: L("It makes the LLM faster at inference","Es macht das LLM bei der Inferenz schneller"), ok: false},
+        {t: L("It grounds LLM outputs in retrieved source documents, addressing hallucination, knowledge cutoff, and lack of traceability","Es verankert LLM-Ausgaben in abgerufenen Quelldokumenten und geht damit Halluzination, Wissens-Cutoff und fehlende Nachvollziehbarkeit an"), ok: true},
+        {t: L("It reduces the number of parameters in the LLM","Es reduziert die Anzahl der Parameter im LLM"), ok: false},
+        {t: L("It replaces the need for any LLM","Es macht jedes LLM überflüssig"), ok: false},
       ],
-      fb: "RAG addresses four problems of closed-book LLMs simultaneously: hallucination, knowledge cutoff, lack of traceability, and expensive updating. The LLM becomes a reading-comprehension engine over a live corpus."
+      fb: L("RAG addresses four problems of closed-book LLMs simultaneously: hallucination, knowledge cutoff, lack of traceability, and expensive updating. The LLM becomes a reading-comprehension engine over a live corpus.","RAG geht vier Probleme von Closed-Book-LLMs gleichzeitig an: Halluzination, Wissens-Cutoff, fehlende Nachvollziehbarkeit und teure Updates. Das LLM wird zu einer Leseverständnis-Maschine über einem lebendigen Korpus.")
     },
     {
-      q: "Why is it critical to embed the query with the SAME model used for the corpus?",
+      q: L("Why is it critical to embed the query with the SAME model used for the corpus?","Warum ist es entscheidend, die Anfrage mit DEMSELBEN Modell einzubetten wie den Korpus?"),
       opts: [
-        {t: "For licensing reasons", ok: false},
-        {t: "Different models produce vectors in different, incomparable vector spaces — cosine similarity across spaces is meaningless", ok: true},
-        {t: "Mixing models is slower", ok: false},
-        {t: "It's not critical, any embedding model works", ok: false},
+        {t: L("For licensing reasons","Aus Lizenzgründen"), ok: false},
+        {t: L("Different models produce vectors in different, incomparable vector spaces — cosine similarity across spaces is meaningless","Verschiedene Modelle erzeugen Vektoren in verschiedenen, nicht vergleichbaren Vektorräumen — Kosinus-Ähnlichkeit über Räume hinweg ist bedeutungslos"), ok: true},
+        {t: L("Mixing models is slower","Modelle zu mischen ist langsamer"), ok: false},
+        {t: L("It's not critical, any embedding model works","Es ist nicht entscheidend, jedes Embedding-Modell funktioniert"), ok: false},
       ],
-      fb: "Each embedding model has its own learned geometry. A vector from model A and a vector from model B live in fundamentally different spaces, so their dot product has no semantic meaning. Always use one model consistently."
+      fb: L("Each embedding model has its own learned geometry. A vector from model A and a vector from model B live in fundamentally different spaces, so their dot product has no semantic meaning. Always use one model consistently.","Jedes Embedding-Modell hat seine eigene gelernte Geometrie. Ein Vektor aus Modell A und ein Vektor aus Modell B leben in grundlegend verschiedenen Räumen, also hat ihr Skalarprodukt keine semantische Bedeutung. Immer ein Modell konsistent verwenden.")
     },
     {
-      q: "Why are vectors L2-normalized before computing similarity?",
+      q: L("Why are vectors L2-normalized before computing similarity?","Warum werden Vektoren vor der Ähnlichkeitsberechnung L2-normalisiert?"),
       opts: [
-        {t: "To save disk space", ok: false},
-        {t: "So cosine similarity reduces to a simple dot product, and similarity depends only on direction (meaning) not magnitude", ok: true},
-        {t: "Because it's required by the BM25 algorithm", ok: false},
-        {t: "Because unnormalized vectors would overflow", ok: false},
+        {t: L("To save disk space","Um Speicherplatz zu sparen"), ok: false},
+        {t: L("So cosine similarity reduces to a simple dot product, and similarity depends only on direction (meaning) not magnitude","Damit sich die Kosinus-Ähnlichkeit auf ein einfaches Skalarprodukt reduziert und die Ähnlichkeit nur von der Richtung (Bedeutung) abhängt, nicht vom Betrag"), ok: true},
+        {t: L("Because it's required by the BM25 algorithm","Weil der BM25-Algorithmus es verlangt"), ok: false},
+        {t: L("Because unnormalized vectors would overflow","Weil unnormalisierte Vektoren überlaufen würden"), ok: false},
       ],
-      fb: "With ||v|| = 1 for all vectors, cosine(a,b) = a·b — a single dot product instead of divisions. And the ranking depends on angle (meaning) not length (which is often an arbitrary artifact of the embedding model)."
+      fb: L("With ||v|| = 1 for all vectors, cosine(a,b) = a·b — a single dot product instead of divisions. And the ranking depends on angle (meaning) not length (which is often an arbitrary artifact of the embedding model).","Mit ||v|| = 1 für alle Vektoren gilt cosine(a,b) = a·b — ein einziges Skalarprodukt statt Divisionen. Und die Rangfolge hängt vom Winkel (Bedeutung) ab, nicht von der Länge (die oft ein willkürliches Artefakt des Embedding-Modells ist).")
     },
     {
-      q: "What is the main disadvantage of very large chunks (~2000 tokens)?",
+      q: L("What is the main disadvantage of very large chunks (~2000 tokens)?","Was ist der Hauptnachteil sehr großer Chunks (~2000 Token)?"),
       opts: [
-        {t: "They're slower to embed", ok: false},
-        {t: "Retrieval becomes less precise because the relevant sentence is buried among irrelevant ones, and fewer chunks fit in the LLM's context window", ok: true},
-        {t: "Cosine similarity doesn't work on long chunks", ok: false},
-        {t: "They can't be stored in vector databases", ok: false},
+        {t: L("They're slower to embed","Sie lassen sich langsamer einbetten"), ok: false},
+        {t: L("Retrieval becomes less precise because the relevant sentence is buried among irrelevant ones, and fewer chunks fit in the LLM's context window","Das Retrieval wird unpräziser, weil der relevante Satz zwischen irrelevanten begraben liegt, und ins Kontextfenster des LLM passen weniger Chunks"), ok: true},
+        {t: L("Cosine similarity doesn't work on long chunks","Kosinus-Ähnlichkeit funktioniert bei langen Chunks nicht"), ok: false},
+        {t: L("They can't be stored in vector databases","Sie lassen sich nicht in Vektordatenbanken speichern"), ok: false},
       ],
-      fb: "Large chunks give you more context per chunk, but the embedding becomes a fuzzy average of many topics, hurting retrieval precision. You also can't fit many of them in the LLM's context window."
+      fb: L("Large chunks give you more context per chunk, but the embedding becomes a fuzzy average of many topics, hurting retrieval precision. You also can't fit many of them in the LLM's context window.","Große Chunks liefern mehr Kontext pro Chunk, aber das Embedding wird zu einem unscharfen Durchschnitt vieler Themen, was die Retrieval-Präzision verschlechtert. Außerdem passen nicht viele davon ins Kontextfenster des LLM.")
     },
     {
-      q: "What does HyDE (Hypothetical Document Embeddings) do?",
+      q: L("What does HyDE (Hypothetical Document Embeddings) do?","Was macht HyDE (Hypothetical Document Embeddings)?"),
       opts: [
-        {t: "It embeds queries and documents into different spaces", ok: false},
-        {t: "It asks an LLM to write a fake answer to the query first, then embeds that fake answer and retrieves against it", ok: true},
-        {t: "It uses only the first word of the query", ok: false},
-        {t: "It's another name for BM25", ok: false},
+        {t: L("It embeds queries and documents into different spaces","Es bettet Anfragen und Dokumente in verschiedene Räume ein"), ok: false},
+        {t: L("It asks an LLM to write a fake answer to the query first, then embeds that fake answer and retrieves against it","Es lässt ein LLM zuerst eine fiktive Antwort auf die Anfrage schreiben, bettet diese ein und ruft dagegen ab"), ok: true},
+        {t: L("It uses only the first word of the query","Es nutzt nur das erste Wort der Anfrage"), ok: false},
+        {t: L("It's another name for BM25","Es ist ein anderer Name für BM25"), ok: false},
       ],
-      fb: "HyDE's insight: a fake answer lives closer in vector space to real answers than a question does, because questions and answers use different vocabularies. Embed the fake answer and search with that."
+      fb: L("HyDE's insight: a fake answer lives closer in vector space to real answers than a question does, because questions and answers use different vocabularies. Embed the fake answer and search with that.","Die Einsicht hinter HyDE: Eine fiktive Antwort liegt im Vektorraum näher an echten Antworten als eine Frage, weil Fragen und Antworten unterschiedliche Vokabulare nutzen. Die fiktive Antwort einbetten und damit suchen.")
     },
     {
-      q: "In the 'lost in the middle' phenomenon, what does the LLM do?",
+      q: L("In the 'lost in the middle' phenomenon, what does the LLM do?","Was tut das LLM beim Phänomen „Lost in the middle\"?"),
       opts: [
-        {t: "Loses the beginning of the context", ok: false},
-        {t: "Systematically under-attends to information placed in the middle of a long context, favoring the beginning and end", ok: true},
-        {t: "Randomly deletes tokens from the middle", ok: false},
-        {t: "Only works if the query is in the middle", ok: false},
+        {t: L("Loses the beginning of the context","Es verliert den Anfang des Kontexts"), ok: false},
+        {t: L("Systematically under-attends to information placed in the middle of a long context, favoring the beginning and end","Es beachtet Informationen in der Mitte eines langen Kontexts systematisch zu wenig und bevorzugt Anfang und Ende"), ok: true},
+        {t: L("Randomly deletes tokens from the middle","Es löscht zufällig Token aus der Mitte"), ok: false},
+        {t: L("Only works if the query is in the middle","Es funktioniert nur, wenn die Anfrage in der Mitte steht"), ok: false},
       ],
-      fb: "Liu et al. 2023 showed that LLMs have U-shaped attention to long contexts: they use the first few and last few chunks but often ignore what's in the middle. Keep contexts short and put the most important chunk first."
+      fb: L("Liu et al. 2023 showed that LLMs have U-shaped attention to long contexts: they use the first few and last few chunks but often ignore what's in the middle. Keep contexts short and put the most important chunk first.","Liu et al. 2023 zeigten, dass LLMs lange Kontexte U-förmig beachten: Sie nutzen die ersten und letzten Chunks, ignorieren aber oft, was in der Mitte steht. Kontexte kurz halten und den wichtigsten Chunk zuerst platzieren.")
     },
     {
-      q: "After training, how do you update a RAG system's knowledge with new information?",
+      q: L("After training, how do you update a RAG system's knowledge with new information?","Wie aktualisiert man nach dem Training das Wissen eines RAG-Systems mit neuen Informationen?"),
       opts: [
-        {t: "Re-train the LLM from scratch", ok: false},
-        {t: "Fine-tune the LLM on the new data", ok: false},
-        {t: "Add the new documents to the vector database — the LLM doesn't need to change", ok: true},
-        {t: "RAG systems can't be updated", ok: false},
+        {t: L("Re-train the LLM from scratch","Das LLM von Grund auf neu trainieren"), ok: false},
+        {t: L("Fine-tune the LLM on the new data","Das LLM auf den neuen Daten feinjustieren"), ok: false},
+        {t: L("Add the new documents to the vector database — the LLM doesn't need to change","Die neuen Dokumente zur Vektordatenbank hinzufügen — das LLM muss sich nicht ändern"), ok: true},
+        {t: L("RAG systems can't be updated","RAG-Systeme lassen sich nicht aktualisieren"), ok: false},
       ],
-      fb: "This is RAG's biggest operational advantage: knowledge lives in the vector database, not the model weights. Updating knowledge means adding documents — no retraining, no fine-tuning, no redeployment of the LLM."
+      fb: L("This is RAG's biggest operational advantage: knowledge lives in the vector database, not the model weights. Updating knowledge means adding documents — no retraining, no fine-tuning, no redeployment of the LLM.","Das ist der größte operative Vorteil von RAG: Wissen lebt in der Vektordatenbank, nicht in den Modellgewichten. Wissen zu aktualisieren heißt Dokumente hinzufügen — kein Neutraining, kein Fine-Tuning, kein erneutes Ausrollen des LLM.")
     },
   ];
 
   questions.forEach((q, i) => {
     h += `<div class="quiz-q">
-<div class="qnum">Question ${i + 1}</div>
+<div class="qnum">${L('Question','Frage')} ${i + 1}</div>
 <div class="qtext">${q.q}</div>`;
     q.opts.forEach(o => {
       h += `<button class="quiz-opt" onclick="quizCheck(this, ${o.ok}, 'q${i}fb')">${o.t}</button>`;
@@ -1494,7 +1669,7 @@ render() {
     h += `</div>`;
   });
 
-  h += `<div class="info iac"><div class="il">Done!</div>You now understand the full RAG pipeline: from document chunking through embedding, indexing, query-time similarity search, top-k selection, prompt augmentation, and grounded generation — plus the common failure modes and advanced variants. The surveys [8] and the original RAG paper [1] are good next reads.</div>`;
+  h += L(`<div class="info iac"><div class="il">Done!</div>You now understand the full RAG pipeline: from document chunking through embedding, indexing, query-time similarity search, top-k selection, prompt augmentation, and grounded generation — plus the common failure modes and advanced variants. The surveys [8] and the original RAG paper [1] are good next reads.</div>`,`<div class="info iac"><div class="il">Geschafft!</div>Du verstehst jetzt die gesamte RAG-Pipeline: von der Dokumentzerlegung über Embedding, Indexierung, Ähnlichkeitssuche zur Anfragezeit, Top-k-Auswahl und Prompt-Anreicherung bis zur fundierten Generierung — plus die häufigen Fehlerbilder und fortgeschrittenen Varianten. Der Überblick [8] und das ursprüngliche RAG-Paper [1] sind gute nächste Lektüren.</div>`);
 
   return h;
 }},
@@ -1506,7 +1681,7 @@ let currentStep = 0;
 
 function renderSidebar() {
   const sb = document.getElementById('sidebar');
-  let h = '<div class="side-label">RAG walkthrough</div>';
+  let h = `<div class="side-label">${L('RAG walkthrough','RAG-Rundgang')}</div>`;
   const groups = {};
   STEPS.forEach((s, i) => {
     if (!groups[s.group]) groups[s.group] = [];
@@ -1533,12 +1708,12 @@ function renderMain() {
   h += `<div class="cfg-item">d=<span>${CORPUS[0].vec.length}</span></div>`;
   h += `<div class="cfg-item">k=<span>${TOP_K}</span></div>`;
   h += `<div class="cfg-item">query=<span>"${q.text}"</span></div>`;
-  h += `<div class="cfg-item" style="margin-left:auto;">step <span>${currentStep+1}</span>/${STEPS.length}</div>`;
+  h += `<div class="cfg-item" style="margin-left:auto;">${L('step','Schritt')} <span>${currentStep+1}</span>/${STEPS.length}</div>`;
   h += `</div>`;
   h += s.render();
   h += `<div class="nav-row">`;
-  h += `<button class="nav-btn nav-prev" onclick="goStep(${currentStep-1})" ${currentStep===0?'disabled':''}>← Previous</button>`;
-  h += `<button class="nav-btn nav-next" onclick="goStep(${currentStep+1})" ${currentStep===STEPS.length-1?'disabled':''}>${currentStep===STEPS.length-1?'Complete':'Next →'}</button>`;
+  h += `<button class="nav-btn nav-prev" onclick="goStep(${currentStep-1})" ${currentStep===0?'disabled':''}>${L('← Previous','← Zurück')}</button>`;
+  h += `<button class="nav-btn nav-next" onclick="goStep(${currentStep+1})" ${currentStep===STEPS.length-1?'disabled':''}>${currentStep===STEPS.length-1?L('Complete','Fertig'):L('Next →','Weiter →')}</button>`;
   h += `</div>`;
   el.innerHTML = h;
 }
@@ -1594,6 +1769,7 @@ function quizCheck(btn, ok, fbId) {
 // ═══════ INIT ═══════
 renderSidebar();
 renderMain();
+(function(){let sv=null;try{sv=localStorage.getItem('rag_sim_lang');}catch(e){}if(sv==='de')setLang('de');})();
 </script>
 </body>
 </html>
