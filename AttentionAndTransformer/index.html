@@ -255,7 +255,8 @@ canvas{border-radius:var(--radius);display:block;max-width:100%;margin:0.4rem au
 <div class="sb s-purple" data-i18n="h048"><div class="sl">Why sinusoidal?</div>For any offset <em>k</em>, PE(pos+k) is a linear function of PE(pos). This lets the model learn relative positions. Wavelengths form a geometric progression from 2π to 10000·2π.</div>
 </div>
 <div class="viz-wrap">
-<div class="viz-label" data-i18n="h186">Each of the d_model dimensions as a wave over the sequence (pos = 0 for the first token) — uses the sequence length and d_model above; read one column to get the vector</div>
+<div class="viz-label" data-i18n="h186">Each of the d_model dimensions as a wave over the sequence (pos = 0 for the first token) — uses the sequence length and d_model above; choose how many of the d_model dimensions to draw (the first k, frequencies computed for the full d_model); read one column to get the vector</div>
+<div class="pew-ctl"><label data-i18n="h187">Dimensions shown</label><input type="range" id="pew-k" min="2" max="32" step="2" value="8" oninput="drawPEWaves()"><span class="pew-out" id="pew-k-out">8 / 32</span></div>
 <div class="pew-ctl"><label data-i18n="h188">Token position</label><input type="range" id="pew-pos" min="0" max="7" step="1" value="3" oninput="drawPEWaves()"><span class="pew-out" id="pew-pos-out">pos 3</span></div>
 <svg id="pew-svg" width="100%" viewBox="0 0 900 470" style="display:block;max-width:900px;margin:0 auto;"></svg>
 <div class="pew-vec" id="pew-vec"></div>
@@ -594,7 +595,8 @@ h046:'Sequenzlänge',
 h047:'d_model',
 h048:'<div class="sl">Warum sinusförmig?</div>Für jeden Versatz <em>k</em> ist PE(pos+k) eine lineare Funktion von PE(pos). So kann das Modell relative Positionen lernen. Die Wellenlängen bilden eine geometrische Folge von 2π bis 10000·2π.',
 h189:'Positionen werden in diesem Guide durchgehend ab 0 gezählt (pos = 0 für den ersten Token), wie im Referenzcode der Autoren (tensor2tensor) und im Annotated Transformer. Der erste Token bekommt daher PE(0) = [0, 1, 0, 1, …].',
-h186:'Jede der d_model Dimensionen als Welle über die Sequenz (pos = 0 für den ersten Token) — nutzt Sequenzlänge und d_model von oben; eine Spalte ablesen ergibt den Vektor',
+h186:'Jede der d_model Dimensionen als Welle über die Sequenz (pos = 0 für den ersten Token) — nutzt Sequenzlänge und d_model von oben; wähle, wie viele der d_model Dimensionen gezeichnet werden (die ersten k, Frequenzen für das volle d_model berechnet); eine Spalte ablesen ergibt den Vektor',
+h187:'Gezeigte Dimensionen',
 h188:'Token-Position',
 h049:'Heatmap der Positionskodierung — Zeilen = Positionen, Spalten = Dimensionen',
 h050:'<span class="ic ig">⊕</span> Schritt 3: Summe → Modelleingabe',
@@ -832,16 +834,17 @@ function drawPEWaves(){
 const svg=document.getElementById('pew-svg');if(!svg)return;
 const N=parseInt(document.getElementById('pe-len').value),D=parseInt(document.getElementById('pe-dim').value);
 const posEl=document.getElementById('pew-pos');posEl.max=N-1;if(+posEl.value>N-1)posEl.value=N-1;const pos=parseInt(posEl.value);
+const kEl=document.getElementById('pew-k');kEl.max=D;if(+kEl.value>D)kEl.value=D;const Ds=parseInt(kEl.value);document.getElementById('pew-k-out').textContent=Ds+' / '+D;
 const BASE=10000,L0=150,R0=870,top=22,plotW=R0-L0;
 const pal=[['#7c3aed','var(--purplebg)'],['#0d9488','var(--tealbg)'],['#e11d48','var(--accbg)'],['#2563eb','var(--bluebg)'],['#16a34a','var(--greenbg)'],['#d97706','var(--amberbg)']];
 const pe=(p,i)=>{const f=Math.pow(BASE,-(2*Math.floor(i/2))/D);return i%2===0?Math.sin(p*f):Math.cos(p*f);};
 const x=p=>L0+(N>1?p*plotW/(N-1):plotW/2);
-const rowH=D<=6?72:D<=8?60:D<=12?48:D<=16?40:D<=32?26:18,ax=top+D*rowH+8,H=ax+56,big=rowH>=40,tick=N<=12?1:N<=20?3:5;
+const rowH=Ds<=6?72:Ds<=8?60:Ds<=12?48:Ds<=16?40:Ds<=32?26:18,ax=top+Ds*rowH+8,H=ax+56,big=rowH>=40,tick=N<=12?1:N<=20?3:5;
 svg.setAttribute('viewBox',`0 0 900 ${H}`);
 document.getElementById('pew-pos-out').textContent='pos '+pos;
 const mono="font-family:'IBM Plex Mono',monospace;";
 let h='';
-for(let i=D-1,r=0;i>=0;i--,r++){
+for(let i=Ds-1,r=0;i>=0;i--,r++){
 const cy=top+r*rowH+rowH/2,amp=rowH/2-(big?9:4),c=pal[Math.floor(i/2)%pal.length][0];
 const wl=2*Math.PI*Math.pow(BASE,(2*Math.floor(i/2))/D);
 const wlTxt=wl<1000?wl.toFixed(1):Math.round(wl).toLocaleString(LANG==='de'?'de-DE':'en-US');
@@ -864,9 +867,10 @@ h+=`<text x="${x(pos)}" y="${top-4}" text-anchor="middle" font-size="10" font-we
 h+=`<line x1="${x(pos)}" y1="${top}" x2="${x(pos)}" y2="${ax}" stroke="var(--txt2)" stroke-width="1" stroke-dasharray="3 3"/>`;
 svg.innerHTML=h;
 let v='';
-for(let i=0;i<D;i++){const [c,bg]=pal[Math.floor(i/2)%pal.length];v+=`<div class="pew-vc${D>16?' sm':''}" style="background:${bg};color:${c};border-color:${c}33;"><span>PE(${pos}, ${i}) · ${i%2?'cos':'sin'}</span><b>${pe(pos,i).toFixed(2)}</b></div>`;}
+for(let i=0;i<Ds;i++){const [c,bg]=pal[Math.floor(i/2)%pal.length];v+=`<div class="pew-vc${Ds>16?' sm':''}" style="background:${bg};color:${c};border-color:${c}33;"><span>PE(${pos}, ${i}) · ${i%2?'cos':'sin'}</span><b>${pe(pos,i).toFixed(2)}</b></div>`;}
+if(Ds<D)v+=`<div class="pew-vc${Ds>16?' sm':''}" style="background:var(--card2);color:var(--txtm);border-color:var(--border);"><span>d${Ds} … d${D-1}</span><b>…</b></div>`;
 document.getElementById('pew-vec').innerHTML=v;
-document.getElementById('pew-leg').innerHTML=`<span><i style="background:${pal[0][0]}"></i>${L('fast pair','schnelles Paar')} (i=0)</span>`+(D>2?`<span><i style="background:${pal[Math.floor((D-1)/2)%pal.length][0]}"></i>${L('slowest pair','langsamstes Paar')} (i=${Math.floor((D-1)/2)})</span>`:'')+`<span>${L('solid = sin (even dim), dashed = cos (odd dim)','durchgezogen = sin (gerade Dim.), gestrichelt = cos (ungerade Dim.)')}</span><span>${L('base = 10000 fixed; wavelength','Basis = 10000 fest; Wellenlänge')} λ = 2π·10000<sup>2i/${D}</sup></span>`;
+document.getElementById('pew-leg').innerHTML=`<span><i style="background:${pal[0][0]}"></i>${L('fast pair','schnelles Paar')} (i=0)</span>`+(Ds>2?`<span><i style="background:${pal[Math.floor((Ds-1)/2)%pal.length][0]}"></i>${L('slowest pair shown','langsamstes gezeigtes Paar')} (i=${Math.floor((Ds-1)/2)})</span>`:'')+(Ds<D?`<span>${L('showing','gezeigt')} d0 … d${Ds-1} ${L('of','von')} d_model = ${D}</span>`:'')+`<span>${L('solid = sin (even dim), dashed = cos (odd dim)','durchgezogen = sin (gerade Dim.), gestrichelt = cos (ungerade Dim.)')}</span><span>${L('base = 10000 fixed; wavelength','Basis = 10000 fest; Wellenlänge')} λ = 2π·10000<sup>2i/${D}</sup></span>`;
 }
 
 // ═══════ POSITIONAL ENCODING HEATMAP ═══════
