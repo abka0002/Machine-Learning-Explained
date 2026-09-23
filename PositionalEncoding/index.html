@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Interactive visualization: sinusoidal positional encoding as a clock with 256 hands. Why every sine needs a cosine partner.">
+<title>Why sine and cosine? Positional encoding as a clock</title>
+<style>
+:root{
+  --green:#2e7d32;--green2:#66bb6a;--green-dark:#1b5e20;
+  --bg:#ffffff;--surface:#ffffff;--bg-alt:#f5f7f5;
+  --ink:#1c1f1c;--muted:#5a635a;--faint:#8a938a;
+  --line:#e0e4e0;--line-strong:#c9d0c9;--hover:#eef4ee;--code-bg:#f4f6f4;
+  --hka:#2e7d32;--hand:#2e7d32;--on-hka:#ffffff;--shift:#e67e22;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04);
+  --serif:"Cambria Math",Cambria,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,sans-serif;
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --bg:#161a16;--surface:#232923;--bg-alt:#1e231e;
+  --ink:#e6ebe6;--muted:#9aa39a;--faint:#798479;
+  --line:#2f362f;--line-strong:#465046;--hover:#1e231e;--code-bg:#1a1f1a;
+  --green:#66bb6a;--green2:#66bb6a;--hka:#66bb6a;--hand:#7cc47f;--on-hka:#161a16;--shift:#e8a552;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+main{max-width:1040px;margin:0 auto;padding:28px 24px 56px}
+header.app-header{background:linear-gradient(135deg,var(--green) 0%,var(--green2) 100%);color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);flex-wrap:wrap;gap:12px}
+.app-header .brand{display:flex;align-items:center;gap:14px;min-width:0}
+.app-header .brand-mark{width:38px;height:38px;background:#fff;color:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;letter-spacing:-.5px;flex:none}
+.app-header .brand-text h1{margin:0;font-size:clamp(16px,2.4vw,20px);font-weight:700;letter-spacing:-.01em}
+.app-header .brand-text p{margin:2px 0 0;font-size:12px;opacity:.85}
+.header-actions{display:flex;gap:10px;align-items:center;flex:none}
+.header-actions button{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.header-actions button:hover{background:rgba(255,255,255,.28)}
+.header-actions .lang{display:inline-flex;gap:0}
+.header-actions .lang button{padding:7px 11px;border-radius:0}
+.header-actions .lang button:first-child{border-radius:6px 0 0 6px}
+.header-actions .lang button:last-child{border-radius:0 6px 6px 0;border-left:0}
+.header-actions .lang button[aria-pressed="true"]{background:#fff;color:var(--green);font-weight:700}
+
+/* Header */
+.lead{margin:8px 0 26px;max-width:64ch;color:var(--muted);font-size:17px}
+.lead em,.math{font-family:var(--serif);font-style:italic}
+
+/* Formula strip */
+.formula{display:flex;flex-wrap:wrap;gap:10px 36px;align-items:baseline;margin:0 0 28px;padding:14px 18px;
+  background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--hka);border-radius:8px;box-shadow:var(--shadow);
+  font:italic 17px/1.4 var(--serif)}
+.formula sup,.formula sub{font-size:.7em;line-height:0}
+
+/* Buttons */
+button{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);
+  border-radius:8px;padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+button:hover{background:var(--hover)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--hand);outline-offset:2px}
+.tools{display:flex;gap:8px;flex:none}
+.lang{display:inline-flex}
+#theme{padding:5px 10px;font-size:14px;line-height:1}
+.lang button{padding:5px 11px;font-size:13px;color:var(--muted);border-radius:0}
+.lang button:first-child{border-radius:8px 0 0 8px}
+.lang button:last-child{border-radius:0 8px 8px 0;border-left:0}
+.lang button[aria-pressed="true"]{background:var(--hka);border-color:var(--hka);color:var(--on-hka);font-weight:600}
+
+/* Controls */
+.controls{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -24px;padding:12px 24px 14px;border-bottom:1px solid var(--line)}
+.row{display:grid;grid-template-columns:auto 1fr 1fr;gap:14px 28px;align-items:center}
+.slider{display:grid;grid-template-columns:auto 1fr 4ch;gap:12px;align-items:center}
+.slider label{font-size:14px;color:var(--muted);white-space:nowrap}
+.slider input{width:100%;min-width:0;accent-color:var(--hand)}
+.slider.k input{accent-color:var(--shift)}
+.slider output{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:var(--hand)}
+.slider.k output{color:var(--shift)}
+.play-icon{width:14px;height:14px;fill:currentColor}
+#play{min-width:118px;justify-content:center;background:var(--hka);border-color:var(--hka);color:var(--on-hka);font-weight:600}
+#play:hover{filter:brightness(.94)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 20px;margin:12px 0 0;font-size:13px;color:var(--muted)}
+.legend>span{display:inline-flex;align-items:center;gap:7px}
+.sw{display:inline-block;flex:none}
+.sw.pos{width:10px;height:10px;border-radius:50%;background:var(--hand)}
+.sw.trail{width:7px;height:7px;border-radius:50%;background:var(--hka)}
+.sw.ghost{width:10px;height:10px;border-radius:50%;border:2px solid var(--shift)}
+.sw.arc{width:16px;height:8px;border:2px solid var(--shift);border-bottom:0;border-radius:10px 10px 0 0}
+
+/* Dials */
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:30px 20px;margin:30px 0 44px}
+.pan{text-align:center}
+.pan svg{display:block;width:100%;max-width:200px;height:auto;margin:8px auto 6px}
+.c1{font-size:14px;color:var(--muted)}
+.c1 strong{font:700 15px var(--sans);color:var(--ink)}
+.c2{font-size:12.5px;line-height:1.55;color:var(--faint);font-variant-numeric:tabular-nums}
+.c2 span{display:block}
+.c2 .d{color:var(--shift);font-weight:600}
+.face{fill:var(--surface);stroke:var(--line-strong);stroke-width:1}
+.tick{stroke:var(--line-strong);stroke-width:1}
+.tick.major{stroke:var(--faint);stroke-width:1.4}
+.axis{stroke:var(--line);stroke-width:1}
+
+/* Explanations */
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;border-top:1px solid var(--line);padding-top:26px}
+.notes h2{margin:0 0 8px;font:700 18px/1.3 var(--sans);padding-left:10px;border-left:4px solid var(--hka)}
+.notes p{margin:0 0 12px;font-size:15px;color:var(--muted);max-width:44ch}
+.linkish{font-size:13px;padding:5px 11px}
+.rot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:italic 14px/1.3 var(--serif);color:var(--ink);margin-top:4px}
+.mat{display:inline-grid;gap:2px 12px;padding:4px 8px;border-left:1.5px solid var(--ink);border-right:1.5px solid var(--ink);border-radius:4px;text-align:center}
+.mat.v{grid-template-columns:auto}.mat.m{grid-template-columns:auto auto}
+.mat .s{color:var(--shift)}
+.notes p.why{margin-top:14px;font-size:14px}
+.why .eq{display:block;margin:4px 0;font:italic 15px/1.4 var(--serif);color:var(--ink)}
+
+footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);text-align:center;font-size:12.5px;color:var(--muted);letter-spacing:.01em;line-height:1.7}
+footer cite{font-style:italic}
+footer a{color:var(--accent,var(--hand));font-weight:600;text-decoration:none}
+footer a:hover{text-decoration:underline}
+:root{--accent:#2e7d32}[data-theme="dark"]{--accent:#66bb6a}
+
+@media (max-width:860px){
+  .row{grid-template-columns:1fr 1fr}
+  #play{grid-column:1 / -1;justify-self:start}
+  .notes{grid-template-columns:1fr}
+  .notes p{max-width:64ch}
+}
+@media (max-width:640px){
+  main{padding:24px 16px 40px}
+  .controls{position:static;margin:0 -16px;padding:10px 16px 12px}
+  .row{grid-template-columns:1fr}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 14px}
+  .top{flex-direction:column-reverse;gap:12px}
+}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark">PE</div>
+    <div class="brand-text">
+      <h1 data-i18n="title">Why sine and cosine? Positional encoding as a clock</h1>
+      <p data-i18n="kicker">Machine Learning</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button type="button" id="theme">🌙 Dark</button>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="de" aria-pressed="false">DE</button>
+    </div>
+  </div>
+</header>
+<main>
+  <p class="lead" data-i18n-html="lead"></p>
+
+  <div class="formula" aria-label="Formula">
+    <span>PE(pos, 2i) = sin(pos · ω<sub>i</sub>)</span>
+    <span>PE(pos, 2i+1) = cos(pos · ω<sub>i</sub>)</span>
+    <span>ω<sub>i</sub> = 10000<sup>−2i / d<sub>model</sub></sup></span>
+  </div>
+
+  <section class="controls" aria-label="Controls">
+    <div class="row">
+      <button type="button" id="play"><svg class="play-icon" viewBox="0 0 16 16" aria-hidden="true"><path id="play-path" d="M4.5 2.8v10.4L13 8z"/></svg><span id="play-label">Play</span></button>
+      <div class="slider">
+        <label for="pos" data-i18n="pos">Position</label>
+        <input type="range" id="pos" min="0" max="512" step="1" value="50">
+        <output id="pos-out" for="pos">50</output>
+      </div>
+      <div class="slider k">
+        <label for="k" data-i18n="shift">Shift k</label>
+        <input type="range" id="k" min="0" max="64" step="1" value="0">
+        <output id="k-out" for="k">0</output>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="sw pos" aria-hidden="true"></i><span data-i18n="lgPos">position pos</span></span>
+      <span><i class="sw trail" aria-hidden="true"></i><span data-i18n="lgTrail">positions 0 to pos</span></span>
+      <span><i class="sw ghost" aria-hidden="true"></i><span data-i18n="lgGhost">position pos + k</span></span>
+      <span><i class="sw arc" aria-hidden="true"></i><span data-i18n="lgArc">rotation k · ω_i</span></span>
+      <span data-i18n="lgAxes">x = sin (dim 2i), y = cos (dim 2i+1), d_model = 512</span>
+    </div>
+  </section>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="notes">
+    <div>
+      <h2 data-i18n="fastH">Fast hands</h2>
+      <p data-i18n-html="fastP"></p>
+      <button type="button" class="linkish" id="go44" data-i18n="go44">Show position 44</button>
+    </div>
+    <div>
+      <h2 data-i18n="slowH">Slow hands</h2>
+      <p data-i18n-html="slowP"></p>
+    </div>
+    <div>
+      <h2 data-i18n="rotH">A shift is a rotation</h2>
+      <p data-i18n-html="rotP"></p>
+      <div class="rot" aria-label="PE(pos+k) = R(k·ω) · PE(pos)">
+        <span class="mat v"><span>sin ω(p+k)</span><span>cos ω(p+k)</span></span>
+        <span>=</span>
+        <span class="mat m"><span class="s">cos kω</span><span class="s">sin kω</span><span class="s">−sin kω</span><span class="s">cos kω</span></span>
+        <span class="mat v"><span>sin ωp</span><span>cos ωp</span></span>
+      </div>
+      <p class="why" data-i18n-html="whyP"></p>
+    </div>
+  </section>
+
+  <footer data-i18n-html="foot"></footer>
+</main>
+
+<script>
+(function(){
+'use strict';
+const NS='http://www.w3.org/2000/svg',S=180,C=90,R=68,RA=R-16,D=512,PMAX=512,TAU=2*Math.PI;
+const PLAY='M4.5 2.8v10.4L13 8z',PAUSE='M4 3h3v10H4zM9 3h3v10H9z';
+const T={
+en:{
+  kicker:'Machine Learning',dark:'🌙 Dark',light:'☀ Light',
+  title:'Why sine and cosine? Positional encoding as a clock',
+  lead:'Plot <em>sin</em> on the x-axis and <em>cos</em> on the y-axis for one dimension pair, and every position becomes a point on a circle. With d<sub>model</sub> = 512 there are 256 such pairs: a clock with 256 hands, each turning at its own speed. Eight of them are shown below.',
+  play:'Play',pause:'Pause',pos:'Position',shift:'Shift k',
+  lgPos:'position pos',lgTrail:'positions 0 to pos',lgGhost:'position pos + k',lgArc:'rotation k · ωᵢ',
+  lgAxes:'x = sin (dim 2i), y = cos (dim 2i+1), d_model = 512',
+  dim:'dim',per:'per position',turns:'full turns',pair:'Dimension pair',wl:'wavelength',
+  fastH:'Fast hands',
+  fastP:'Low dimensions turn quickly and separate neighbouring tokens. But they wrap around: in pair <span class="math">i</span> = 0, position 44 lands about 1° away from position 0.',
+  go44:'Show position 44',
+  slowH:'Slow hands',
+  slowP:'High dimensions barely move. Pair <span class="math">i</span> = 224 turns only about 9° across all 512 positions, so it never repeats, but it can hardly tell neighbours apart. Only all hands together pin down a position, like seconds, minutes and hours.',
+  rotH:'A shift is a rotation',
+  rotP:'Moving <span class="math">k</span> positions ahead rotates every dial by <span class="math">k·ω<sub>i</sub></span>, wherever you start. Set a shift <span class="math">k</span> and drag the position: the arcs keep their angle. This works only because each sine has a cosine partner:',
+  whyP:'The rows come from angle addition:<span class="eq">sin(a + b) = sin a · cos b + cos a · sin b</span><span class="eq">cos(a + b) = cos a · cos b − sin a · sin b</span>With <span class="math">a = ωp</span> and <span class="math">b = kω</span>, shifting a sine always pulls in its cosine partner, so a sine alone cannot be shifted by a fixed linear map. The matrix contains only <span class="math">k</span>, not <span class="math">p</span>: the same shift is the same rotation anywhere in the sequence.',
+  foot:'Encoding from Vaswani et al. (2017), <cite>Attention Is All You Need</cite>.<br>Built by <a href="https://www.linkedin.com/feed/" target="_blank" rel="noopener">Dr. Kawther Aboalam</a> and AI-Agents — <a href="https://github.com/abka0002/Machine-Learning-Explained" target="_blank" rel="noopener">View on GitHub</a>.',
+  loc:'en-US',group:'Language',controls:'Controls',formula:'Formula'
+},
+de:{
+  kicker:'Machine Learning',dark:'🌙 Dunkel',light:'☀ Hell',
+  title:'Warum Sinus und Kosinus? Positional Encoding als Uhr',
+  lead:'Trägt man für ein Dimensionspaar <em>sin</em> auf der x-Achse und <em>cos</em> auf der y-Achse ab, wird jede Position zu einem Punkt auf einem Kreis. Bei d<sub>model</sub> = 512 gibt es 256 solcher Paare: eine Uhr mit 256 Zeigern, jeder mit eigener Geschwindigkeit. Acht davon sind unten dargestellt.',
+  play:'Abspielen',pause:'Pause',pos:'Position',shift:'Verschiebung k',
+  lgPos:'Position pos',lgTrail:'Positionen 0 bis pos',lgGhost:'Position pos + k',lgArc:'Rotation k · ωᵢ',
+  lgAxes:'x = sin (Dim 2i), y = cos (Dim 2i+1), d_model = 512',
+  dim:'Dim',per:'pro Position',turns:'volle Umdrehungen',pair:'Dimensionspaar',wl:'Wellenlänge',
+  fastH:'Schnelle Zeiger',
+  fastP:'Niedrige Dimensionen drehen sich schnell und trennen benachbarte Tokens. Aber sie laufen herum: Im Paar <span class="math">i</span> = 0 landet Position 44 nur etwa 1° neben Position 0.',
+  go44:'Position 44 zeigen',
+  slowH:'Langsame Zeiger',
+  slowP:'Hohe Dimensionen bewegen sich kaum. Paar <span class="math">i</span> = 224 dreht sich über alle 512 Positionen nur um etwa 9°, wiederholt sich also nie, kann Nachbarn aber kaum unterscheiden. Erst alle Zeiger zusammen legen eine Position fest, wie Sekunden, Minuten und Stunden.',
+  rotH:'Eine Verschiebung ist eine Rotation',
+  rotP:'<span class="math">k</span> Positionen weiter dreht sich jedes Zifferblatt um <span class="math">k·ω<sub>i</sub></span>, egal wo man startet. Stelle eine Verschiebung <span class="math">k</span> ein und ziehe die Position: Die Bögen behalten ihren Winkel. Das funktioniert nur, weil jeder Sinus einen Kosinus-Partner hat:',
+  whyP:'Die Zeilen folgen aus den Additionstheoremen:<span class="eq">sin(a + b) = sin a · cos b + cos a · sin b</span><span class="eq">cos(a + b) = cos a · cos b − sin a · sin b</span>Mit <span class="math">a = ωp</span> und <span class="math">b = kω</span> zieht jede Verschiebung eines Sinus seinen Kosinus-Partner mit hinein; ein Sinus allein lässt sich nicht durch eine feste lineare Abbildung verschieben. Die Matrix enthält nur <span class="math">k</span>, nicht <span class="math">p</span>: Dieselbe Verschiebung ist überall in der Sequenz dieselbe Rotation.',
+  foot:'Encoding nach Vaswani et al. (2017), <cite>Attention Is All You Need</cite>.<br>Built by <a href="https://www.linkedin.com/feed/" target="_blank" rel="noopener">Dr. Kawther Aboalam</a> and AI-Agents — <a href="https://github.com/abka0002/Machine-Learning-Explained" target="_blank" rel="noopener">View on GitHub</a>.',
+  loc:'de-DE',group:'Sprache',controls:'Steuerung',formula:'Formel'
+}};
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+let lang=store.get('pe_circles_lang')==='de'?'de':'en';
+let theme=store.get('pe_circles_theme')==='dark'?'dark':'light';
+function applyTheme(){document.documentElement.dataset.theme=theme;const b=document.getElementById('theme');
+  b.textContent=theme==='dark'?T[lang].light:T[lang].dark;}
+const $=id=>document.getElementById(id);
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e;}
+function pt(th,r){r=r||R;return[(C+r*Math.sin(th)).toFixed(2),(C-r*Math.cos(th)).toFixed(2)];}
+
+// Build dials
+const grid=$('grid');
+const pairs=[0,32,64,96,128,160,192,224].map((i,idx)=>{
+  const w=Math.pow(10000,-2*i/D),lam=2/w; // wavelength in units of pi
+  const pan=document.createElement('div');pan.className='pan';
+  const c1=document.createElement('div');c1.className='c1';pan.appendChild(c1);
+  const s=el('svg',{viewBox:'0 0 '+S+' '+S,role:'img'},pan);
+  el('circle',{cx:C,cy:C,r:R,class:'face'},s);
+  for(let t=0;t<60;t++){
+    const major=t%5===0,th=t*TAU/60,a=pt(th,R+2),b=pt(th,R+(major?9:5));
+    el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],class:'tick'+(major?' major':'')},s);
+  }
+  el('line',{x1:C-R,y1:C,x2:C+R,y2:C,class:'axis'},s);
+  el('line',{x1:C,y1:C-R,x2:C,y2:C+R,class:'axis'},s);
+  const trail=el('path',{fill:'none','stroke-opacity':0.85,'stroke-width':3.6,'stroke-linecap':'round',style:'stroke:var(--hka)'},s);
+  const arc=el('path',{fill:'none','stroke-width':2.2,'stroke-linecap':'round',style:'stroke:var(--shift)'},s);
+  const gHand=el('line',{x1:C,y1:C,x2:C,y2:C-R,'stroke-width':1.3,'stroke-dasharray':'3 3',style:'stroke:var(--shift)'},s);
+  const ghost=el('circle',{cx:C,cy:C-R,r:4.5,style:'fill:var(--surface);stroke:var(--shift);stroke-width:2'},s);
+  const hand=el('line',{x1:C,y1:C,x2:C,y2:C-R,'stroke-width':1.8,'stroke-linecap':'round',style:'stroke:var(--hand)'},s);
+  el('circle',{cx:C,cy:C,r:2.6,style:'fill:var(--ink)'},s);
+  const dot=el('circle',{cx:C,cy:C-R,r:5,style:'fill:var(--hand);stroke:var(--surface);stroke-width:1.5'},s);
+  const c2=document.createElement('div');c2.className='c2';pan.appendChild(c2);
+  grid.appendChild(pan);
+  return{i,w,lam,exact:idx%2===0,c1,c2,s,trail,arc,gHand,ghost,hand,dot};
+});
+
+const range=$('pos'),out=$('pos-out'),kRange=$('k'),kOut=$('k-out'),path=$('play-path'),playLabel=$('play-label');
+let raf=null,last=0,cur=+range.value,k=+kRange.value;
+
+function fmt(){
+  const t=T[lang];
+  return{
+    sig:new Intl.NumberFormat(t.loc,{maximumSignificantDigits:3,useGrouping:false}),
+    deg:new Intl.NumberFormat(t.loc,{maximumSignificantDigits:3}),
+    d1:new Intl.NumberFormat(t.loc,{minimumFractionDigits:1,maximumFractionDigits:1})
+  };
+}
+let F=fmt();
+
+function arcPath(th,dth){
+  const d=((dth%TAU)+TAU)%TAU;
+  if(d<1e-3)return'';
+  const a=pt(th,RA),b=pt(th+Math.min(d,TAU-1e-3),RA);
+  return'M'+a[0]+' '+a[1]+'A'+RA+' '+RA+' 0 '+(d>Math.PI?1:0)+' 1 '+b[0]+' '+b[1];
+}
+
+function captions(pos){
+  const t=T[lang];
+  pairs.forEach(p=>{
+    const turns=Math.floor(pos*p.w/TAU);
+    let h='<span>λ '+(p.exact?'=':'≈')+' '+F.sig.format(p.lam)+'π</span>'+
+          '<span>'+F.deg.format(p.w*180/Math.PI)+'° '+t.per+'</span>'+
+          '<span>'+t.turns+': '+turns+'</span>';
+    if(k>0){const dd=((k*p.w*180/Math.PI)%360);h+='<span class="d">k·ω = '+F.d1.format(dd)+'°</span>';}
+    p.c2.innerHTML=h;
+  });
+}
+
+function draw(pos){
+  pairs.forEach(p=>{
+    let d='';for(let j=0;j<=pos;j++){const q=pt(p.w*j);d+='M'+q[0]+' '+q[1]+'l0.01 0';}
+    p.trail.setAttribute('d',d);
+    const th=p.w*pos,a=pt(th);
+    p.hand.setAttribute('x2',a[0]);p.hand.setAttribute('y2',a[1]);
+    p.dot.setAttribute('cx',a[0]);p.dot.setAttribute('cy',a[1]);
+    const show=k>0;
+    [p.arc,p.gHand,p.ghost].forEach(e=>e.style.display=show?'':'none');
+    if(show){
+      const g=pt(th+p.w*k);
+      p.gHand.setAttribute('x2',g[0]);p.gHand.setAttribute('y2',g[1]);
+      p.ghost.setAttribute('cx',g[0]);p.ghost.setAttribute('cy',g[1]);
+      p.arc.setAttribute('d',arcPath(th,p.w*k));
+    }
+  });
+  out.textContent=pos;kOut.textContent=k;
+  captions(pos);
+}
+
+function labels(){
+  const t=T[lang];F=fmt();
+  document.documentElement.lang=lang;document.title=t.title;
+  document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t[e.dataset.i18n]);
+  document.querySelectorAll('[data-i18n-html]').forEach(e=>e.innerHTML=t[e.dataset.i18nHtml]);
+  document.querySelector('.lang').setAttribute('aria-label',t.group);
+  document.querySelector('.controls').setAttribute('aria-label',t.controls);
+  document.querySelector('.formula').setAttribute('aria-label',t.formula);
+  playLabel.textContent=raf?t.pause:t.play;
+  pairs.forEach(p=>{
+    const L=F.sig.format(p.lam)+'π';
+    p.c1.innerHTML='<strong>i = '+p.i+'</strong> ('+t.dim+' '+(2*p.i)+', '+(2*p.i+1)+')';
+    p.s.setAttribute('aria-label',t.pair+' i = '+p.i+', '+t.wl+' '+L);
+  });
+  document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===lang?'true':'false'));
+  captions(cur|0);
+}
+
+function halt(){if(raf){cancelAnimationFrame(raf);raf=null;}path.setAttribute('d',PLAY);playLabel.textContent=T[lang].play;}
+function setPos(p){halt();cur=p;range.value=p;draw(p);}
+function toggle(){
+  if(raf){halt();return;}
+  if(cur>=PMAX)cur=0;
+  path.setAttribute('d',PAUSE);playLabel.textContent=T[lang].pause;
+  last=performance.now();
+  const tick=now=>{cur+=(now-last)*0.04;last=now;
+    if(cur>=PMAX){cur=PMAX;range.value=PMAX;draw(PMAX);halt();return;}
+    const p=Math.round(cur);range.value=p;draw(p);raf=requestAnimationFrame(tick);};
+  raf=requestAnimationFrame(tick);
+}
+
+range.addEventListener('input',()=>setPos(+range.value));
+kRange.addEventListener('input',()=>{k=+kRange.value;draw(Math.round(cur));});
+$('play').addEventListener('click',toggle);
+$('go44').addEventListener('click',()=>{setPos(44);document.querySelector('.controls').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});});
+document.addEventListener('keydown',e=>{
+  if(e.key===' '&&!/^(BUTTON|INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)){e.preventDefault();toggle();}
+});
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;store.set('pe_circles_lang',lang);labels();applyTheme();}));
+$('theme').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';store.set('pe_circles_theme',theme);applyTheme();});
+labels();applyTheme();draw(cur);
+})();
+</script>
+</body>
+</html>
